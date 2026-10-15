@@ -1,0 +1,45 @@
+{
+  "provider": "FirstRate Data via HF Market Data",
+  "retrievedAt": "2026-10-02",
+  "attribution": "Market data: FirstRate Data via HF Market Data (hfmarketdata.io).",
+  "api": "https://www.hfmarketdata.io/v1/futures/{root}/continuous",
+  "interval": "1m",
+  "session": "all",
+  "roll": "volume",
+  "adjust": "none",
+  "timeZoneStored": "UTC",
+  "dateBoundsTimeZone": "America/New_York",
+  "coverage": "2024-01-02 through 2024-01-31; other dates loaded on demand",
+  "instruments": {
+    "NQ": {
+      "sourceUrl": "https://www.hfmarketdata.io/docs",
+      "provider": "FirstRate Data via HF Market Data",
+      "fetchedAt": "2026-10-02",
+      "roll": "volume",
+      "adjust": "none",
+      "session": "all",
+      "contracts": [
+        "NQH24"
+      ],
+      "firstTime": 1704171600,
+      "lastTime": 1706763540,
+      "rows": 30118,
+      "downloadSHA256": "9c0ce2c189d3f993bda3ebd7a1ddee6425b380830b3f7c29e81c271602d625b4"
+    },
+    "ES": {
+      "sourceUrl": "https://www.hfmarketdata.io/docs",
+      "provider": "FirstRate Data via HF Market Data",
+      "fetchedAt": "2026-10-02",
+      "roll": "volume",
+      "adjust": "none",
+      "session": "all",
+      "contracts": [
+        "ESH24"
+      ],
+      "firstTime": 1704171600,
+      "lastTime": 1706763540,
+      "rows": 30107,
+      "downloadSHA256": "3ec64d61197ee7afbc02ff7c15cb0826941b499788680627caba74b6d63462d3"
+    }
+  }
+}

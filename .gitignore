@@ -1,0 +1,11 @@
+dist/server/
+dist/.openai/
+node_modules/
+*.tar.gz
+__pycache__/
+
+.local-data/
+.env
+.env.*
+!.env.example
+*.log

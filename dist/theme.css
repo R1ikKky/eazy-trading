@@ -1,0 +1,29 @@
+:root{color-scheme:light}
+.top-actions .theme-toggle{width:36px;height:36px;font-size:1.25rem;border-radius:8px;flex-shrink:0}
+:root[data-theme=dark]{color-scheme:dark;color:#e3e9e4;background:#101412;--border:#303b34;--muted:#a1ada2;--green:#62cba3;--red:#f18b8c}
+[data-theme=dark] :is(.topbar,.stat,.chart-card,.order-card,.journal-card,dialog:not(.tv-settings):not(.tv-utility-dialog)){background:#191f1b;color:#e3e9e4;border-color:var(--border)}
+[data-theme=dark] :is(input,select){background:#111713;color:#e3e9e4;border-color:#3b473e}
+[data-theme=dark] :is(.button.secondary,.pos-actions button){background:#242e26;color:#e3e9e4;border-color:#3b473e}
+[data-theme=dark] :is(.button.secondary:hover,.pos-actions button:hover,.stepper button:hover,.icon-button:hover,.drawing-toolbar button:hover,.settings-button:hover){background:#334135;color:#f1f5ef}
+[data-theme=dark] .brand-mark{color:#17201a}
+[data-theme=dark] :is(.avatar,.small-tag,.symbol-group .exchange,.replay-controls select,.market-label,.stepper button,.journal-header h2 span){background:#29352c;color:#b6c4b1}
+[data-theme=dark] :is(.chart-toolbar,.replay-panel,.drawing-toolbar,td,.stepper,.risk-summary,.empty-icon){border-color:var(--border)}
+[data-theme=dark] :is(.vertical-line,.progress-track){background:#303d32}
+[data-theme=dark] :is(.session-strip,.stat-title,.stat-note,.symbol-group>span,.timeframes button,.replay-time>span,.chart-footer,.entry-note,.risk-summary span,.costs summary,.costs p,.position-box p,.order-footnote,.journal-header p,td small,.empty-journal strong,.empty-journal p,.empty-hint,.page-footer,.dialog-intro,.help-list,.license,.drawing-toolbar button,.drawing-count,.drawing-hint,.history-key summary,.step-button,.icon-button){color:#a8b6a2}
+[data-theme=dark] :is(.timeframes .selected,.drawing-toolbar .selected){background:#34432c;color:#d1f39e}
+[data-theme=dark] :is(.position-box,.position-box.active,.range-preview,.upload-zone,.contract-specs,pre){background:#222e23;color:#bbcdb1;border-color:#45553b}
+[data-theme=dark] .upload-zone>span{color:#b0bfa5}
+[data-theme=dark] .demo-badge.real{background:#223c2c;border-color:#3b6046;color:#a5d5a4}
+[data-theme=dark] th{background:#202a22;color:#aebca4;border-color:var(--border)}
+[data-theme=dark] .long{background:#183b2c;color:#83dcad;border-color:#2d5a42}
+[data-theme=dark] .long:hover{background:#214d39}
+[data-theme=dark] .short{background:#3d2528;color:#f1a0a1;border-color:#644045}
+[data-theme=dark] .short:hover{background:#503036}
+[data-theme=dark] .side-tag{background:#23402c;color:#a6d3a2}
+[data-theme=dark] .side-tag.sell{background:#40292a;color:#efa6a0}
+[data-theme=dark] :is(.history-link,.text-button:hover){color:#c6e799}
+[data-theme=dark] .form-error{color:#ffa5a0}
+[data-theme=dark] .play-button{background:#34452d;color:#edf5e7}
+[data-theme=dark] .play-button:hover{background:#425937}
+[data-theme=dark] .empty-hint span{color:#789366}
+[data-theme=dark] .chart-legend #ohlc{color:inherit}

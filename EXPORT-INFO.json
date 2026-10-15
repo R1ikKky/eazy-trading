@@ -1,0 +1,574 @@
+{
+  "project": "Replay Lab",
+  "sourceCommit": "20a5f7634ce14a6b9af3cfbb219bffc5faa4faae",
+  "sourceCommitDate": "2026-10-12",
+  "preparedAt": "2026-10-15T09:17:49.778008+00:00",
+  "siteVersion": 16,
+  "sourceFiles": {
+    ".gitignore": {
+      "bytes": 63,
+      "sha256": "acdea76cd16b6739adff4da85fcfc45662a8a8e9a9485801b36da7bfd2f75e7b"
+    },
+    ".openai/hosting.json": {
+      "bytes": 95,
+      "sha256": "d8ab5a1a5af05804db1d126fc8f64ec7148d83ca4861d5d1defa0fb34bd889ce"
+    },
+    "README.md": {
+      "bytes": 7095,
+      "sha256": "3e4e41a467c75aa24191d90275a17ac31453e908f59d18fb2bb0eb356db12e9f"
+    },
+    "dist/analytics.css": {
+      "bytes": 9569,
+      "sha256": "e7b965fc17df00948eb0c4cc553d33d55364a7780c64b706190c36bfc98836b5"
+    },
+    "dist/analytics.mjs": {
+      "bytes": 25372,
+      "sha256": "bf898f37004ec6866734949cb97d1d2c27b9a581acae9e98d22bcfda29e3a5ad"
+    },
+    "dist/app.mjs": {
+      "bytes": 33567,
+      "sha256": "5ba442d13445a7f73094a45bf24a2abbb639d0d83976da86cac06d9dd20e2fb7"
+    },
+    "dist/archive.mjs": {
+      "bytes": 6224,
+      "sha256": "1113113cd7f82b1e2550a35c5f472594caf584df49b78d61349d44c821d33f06"
+    },
+    "dist/chart-menu.mjs": {
+      "bytes": 10896,
+      "sha256": "050b9894fb895e54b60394fdcd9708b9f9b2f9ac2d2360d630f498bf0a354ced"
+    },
+    "dist/chart-settings.mjs": {
+      "bytes": 19975,
+      "sha256": "1251ce06ae2efdd1630b56f746b270d018c2f8748436922d7be0e9e8bf1e92e1"
+    },
+    "dist/chart-tools.mjs": {
+      "bytes": 28420,
+      "sha256": "6abe732ff1892290bb73dcf610f829c1974aaae7e3162329c12e2602dd5d8c8c"
+    },
+    "dist/chart-ui.css": {
+      "bytes": 13364,
+      "sha256": "d3ec4161fb6e9a9bd4f08aff2b705d70ae513d3627ded275b03bf09e73461cb1"
+    },
+    "dist/curated-data.mjs": {
+      "bytes": 3296,
+      "sha256": "d2921cf2ed8b5854fa416a50ff493e004ce243583d57fe7277b4b2b314e95260"
+    },
+    "dist/data-provenance.json": {
+      "bytes": 1397,
+      "sha256": "6927fc3070e77e80603ab7f9f29b3136fc251b2e966cde49d2967e782d863d63"
+    },
+    "dist/engine.mjs": {
+      "bytes": 22019,
+      "sha256": "53f0760d725e85228ac51b774633c0a0ff9688bfaf3ee4ae15c6de30f7c0b533"
+    },
+    "dist/history-selection.mjs": {
+      "bytes": 4243,
+      "sha256": "850842ffa42661045dc1f4813fbe538e8ae52c24f979bad49753a04f053babea"
+    },
+    "dist/history.mjs": {
+      "bytes": 6633,
+      "sha256": "1f2b883e92eeddfbb156d4a8ba098f0c90f521db7835181f6efb20d3f4f349e4"
+    },
+    "dist/index.html": {
+      "bytes": 33606,
+      "sha256": "55ab3ee9ba6ef622a2b9581eb52c5092804a2a29e1a64f69c43d1a6d812b1325"
+    },
+    "dist/market-archives.mjs": {
+      "bytes": 55229,
+      "sha256": "dfe3aec324b59eb8edf6e1385bb2f78ddad9dd6511f95eb4b14dc623a38588df"
+    },
+    "dist/market-data.mjs": {
+      "bytes": 3544486,
+      "sha256": "b24b77227387db4bde49563c541db84e1bbb5b8b4c1e413abda06ea6d0af6bbc"
+    },
+    "dist/product.css": {
+      "bytes": 63003,
+      "sha256": "90c81831d7d3287a38c888bfe81917fbc951bca5b5def52280a9c583025e4b1e"
+    },
+    "dist/product.mjs": {
+      "bytes": 29621,
+      "sha256": "4fef12777db6e0047cd4ccfd2e578bcdc3cd42cb6b8125912a09112001cb6d23"
+    },
+    "dist/settings-model.mjs": {
+      "bytes": 6648,
+      "sha256": "fa42c034f4ddbc156750886c709d0137a3b9fa00cc2ff4454175477d1226889f"
+    },
+    "dist/styles.css": {
+      "bytes": 20527,
+      "sha256": "4c682422e72ea9cf83c2371ba38a635e0760d5fc2467f575d6f649c036ac42af"
+    },
+    "dist/terminal.mjs": {
+      "bytes": 9263,
+      "sha256": "c359955ff1b755210a0ab58fda9a4126cda721b09a62325f69d2afd3a8cdd3d5"
+    },
+    "dist/theme.css": {
+      "bytes": 2968,
+      "sha256": "1d2a9e4a3877d173645fd481d952b3cc9c24ef3311e54ad93ad47788396b5eec"
+    },
+    "dist/theme.js": {
+      "bytes": 1165,
+      "sha256": "4421cb209955ad8ec588de76990a5bbd11df9faf6e0095fdd94ef9c430f15812"
+    },
+    "dist/vendor/LICENSE": {
+      "bytes": 11347,
+      "sha256": "70c9d5382506dd184465425c08a99ad9bd6d9ac1313c252968ba0b585e5ef823"
+    },
+    "dist/vendor/NOTICE": {
+      "bytes": 101,
+      "sha256": "f76c6afab94884448f0426e30d6e9d555ca7247894cd3484e477d2f87513036e"
+    },
+    "dist/vendor/lightweight-charts.standalone.production.js": {
+      "bytes": 182311,
+      "sha256": "e6bd6516d9ab9cb897c0d6438e3fe1126f2fdce07e68c23836e84d527de81f52"
+    },
+    "dist/workspace-store.mjs": {
+      "bytes": 6823,
+      "sha256": "60fd6adc0f6ea427a963c6615e2ffd2fe184b96baedaff18b3b8fd68ea74ce64"
+    },
+    "dist/workspace-validation.mjs": {
+      "bytes": 13783,
+      "sha256": "8bfc3e65d01cda35b034617b42e9fd39de8aed3d8c70ee50eb70ed148d27d10c"
+    },
+    "drizzle/0000_replay_workspace.sql": {
+      "bytes": 511,
+      "sha256": "bca46e12622d5c29d40e15d0e085932f39e49a1295675712a9e92af2604e528e"
+    },
+    "drizzle/meta/_journal.json": {
+      "bytes": 207,
+      "sha256": "0fa45c4cc13fea578afe2053bcb95be1223a92c5021119330cb34e01eb0340b0"
+    },
+    "market-archives/curated-ES-history-2024-2026-2024-01.b64": {
+      "bytes": 369056,
+      "sha256": "aa7802ae0520738f419c1346ae19aaa6c740acd6358c476f989ad685457ba373"
+    },
+    "market-archives/curated-ES-history-2024-2026-2024-02.b64": {
+      "bytes": 342512,
+      "sha256": "7eec0f5ee2abf9b9aa1a6c19d74f06aea28cb3f812eae2f700facf514acb6701"
+    },
+    "market-archives/curated-ES-history-2024-2026-2024-03.b64": {
+      "bytes": 287204,
+      "sha256": "e447ba27a9e55a094c2659e103c5ee8237392332e367df721bcfbd9a9872b55c"
+    },
+    "market-archives/curated-ES-history-2024-2026-2024-04.b64": {
+      "bytes": 387320,
+      "sha256": "a59d84da1a701dd9541393cf57daa1540a711ba69361ee625bd4d64a614da041"
+    },
+    "market-archives/curated-ES-history-2024-2026-2024-05.b64": {
+      "bytes": 367148,
+      "sha256": "57b3b00e9dacbf90ba0ebcbdbc137135cd510e694cbf9c2eeddbe19e7066b8f9"
+    },
+    "market-archives/curated-ES-history-2024-2026-2024-06.b64": {
+      "bytes": 291100,
+      "sha256": "f92875f89deff94bb08ce51d82695117116ffb86fb39656aae9f56684cb53335"
+    },
+    "market-archives/curated-ES-history-2024-2026-2024-07.b64": {
+      "bytes": 388484,
+      "sha256": "379905f73240d281be567f83d4d816837da5e1e0c5d5edd885fb29f631647a57"
+    },
+    "market-archives/curated-ES-history-2024-2026-2024-08.b64": {
+      "bytes": 400988,
+      "sha256": "99a631843231258a2cb52be7cb5a1a14aa83ff7a9eefe15a5409ad6947710113"
+    },
+    "market-archives/curated-ES-history-2024-2026-2024-09.b64": {
+      "bytes": 326064,
+      "sha256": "132114fcf8e1b5790c2f0da5ea3300f7dd8563905c618c2059dc021deea4ca59"
+    },
+    "market-archives/curated-ES-history-2024-2026-2024-10.b64": {
+      "bytes": 399412,
+      "sha256": "08bfd0430edc40eb2ae4d82cd61fbc7a8922ac669caf3422b82f56d973fdbc79"
+    },
+    "market-archives/curated-ES-history-2024-2026-2024-11.b64": {
+      "bytes": 358740,
+      "sha256": "0b6c0d5706b6ead273570115ea347893482b193c2f707058799b6b4dc8b8ef88"
+    },
+    "market-archives/curated-ES-history-2024-2026-2024-12.b64": {
+      "bytes": 308732,
+      "sha256": "4b3dc1226f4e7788f3987b88bdcc7bc2464c053b16aaca11dfa35ab26d8ee361"
+    },
+    "market-archives/curated-ES-history-2024-2026-2025-01.b64": {
+      "bytes": 390876,
+      "sha256": "cf2fdadefb9329cfed13caf9a2040c55ea832d20ec1714158304c993c63b3f65"
+    },
+    "market-archives/curated-ES-history-2024-2026-2025-02.b64": {
+      "bytes": 350388,
+      "sha256": "8c23abe53fdf7a551998717be44007efb1801c5ff5bda21795ee90a841145abf"
+    },
+    "market-archives/curated-ES-history-2024-2026-2025-03.b64": {
+      "bytes": 335800,
+      "sha256": "2b1871a80eeceb1bfa736c4e4d92dc89b1f0b6bdeaa7d6783a69ee63e23e7bf8"
+    },
+    "market-archives/curated-ES-history-2024-2026-2025-04.b64": {
+      "bytes": 438412,
+      "sha256": "5f1d3edb852f82494d41ff11ccad095948af9a8050ec194be2f9cfd77c178eb9"
+    },
+    "market-archives/curated-ES-history-2024-2026-2025-05.b64": {
+      "bytes": 401104,
+      "sha256": "5b73791f330971f3a375a446ca7e93d2816e4a71fefd8352de269b3b106d5cd9"
+    },
+    "market-archives/curated-ES-history-2024-2026-2025-06.b64": {
+      "bytes": 329196,
+      "sha256": "e062c4220ff7b2ef058e6de1d15f4a88b02a553ad7c78223dec51254b87622a5"
+    },
+    "market-archives/curated-ES-history-2024-2026-2025-07.b64": {
+      "bytes": 386248,
+      "sha256": "c08e6ecc648a0d56903d03846763667463c8b47038ecbea5ee9a81f86835ac8f"
+    },
+    "market-archives/curated-ES-history-2024-2026-2025-08.b64": {
+      "bytes": 360108,
+      "sha256": "e58ecdb759836418f69c5b50cb7be08fd3c3aa20b0cf6ce71ee92a4a48cab30e"
+    },
+    "market-archives/curated-ES-history-2024-2026-2025-09.b64": {
+      "bytes": 332780,
+      "sha256": "991a2e8ca2ddacf73b8fab385b81e90ba102808b723178fb501a9bf7a3085aba"
+    },
+    "market-archives/curated-ES-history-2024-2026-2025-10.b64": {
+      "bytes": 413156,
+      "sha256": "cdaf0b315e12d30ddfcb1bf971b5f806c53a3187a040c9e05c372661b252d355"
+    },
+    "market-archives/curated-ES-history-2024-2026-2025-11.b64": {
+      "bytes": 367444,
+      "sha256": "d7807843fcd9571e2b20afa9c5d31f8c34e6bd72381b94a8d1e9543c8791d7c5"
+    },
+    "market-archives/curated-ES-history-2024-2026-2025-12.b64": {
+      "bytes": 333120,
+      "sha256": "a1448649211b1e634ecd96dbcd1190c93b5bb3057ff60405c7948eff3fa9a354"
+    },
+    "market-archives/curated-ES-history-2024-2026-2026-01.b64": {
+      "bytes": 374492,
+      "sha256": "1e97b6c29659a05cc08b47382ccf3774e8e5676469f38935b78ac9ed01fd60aa"
+    },
+    "market-archives/curated-ES-history-2024-2026-2026-02.b64": {
+      "bytes": 375944,
+      "sha256": "bc84aad4b7b1d1e50b27105e38242c162f4ff9a825008070382183ebc0d73826"
+    },
+    "market-archives/curated-ES-history-2024-2026-2026-03.b64": {
+      "bytes": 401772,
+      "sha256": "082e2b56160dd0584e89564962b10790eb56e2372e0220f83eab719572b79c96"
+    },
+    "market-archives/curated-ES-history-2024-2026-2026-04.b64": {
+      "bytes": 404072,
+      "sha256": "f396b2bee97c4e64f90ed7af2ad4820fbcda556b19d379da51bcdda5308dbfa8"
+    },
+    "market-archives/curated-ES-history-2024-2026-2026-05.b64": {
+      "bytes": 382384,
+      "sha256": "ac32224e3bc58b3594b0e65d1f67ff61406125d9b8c0be84d137f0cb16cd48ec"
+    },
+    "market-archives/curated-ES-history-2024-2026-2026-06.b64": {
+      "bytes": 152644,
+      "sha256": "a1c2eca25e9e4c1612099133e9573eb352660912509829cb74ab1a21c45aa3d9"
+    },
+    "market-archives/curated-ES-recent-2026-2026-09.b64": {
+      "bytes": 299780,
+      "sha256": "59829ae908a048385bb050b8857a3da9d242542842ee48cb8c6c66704c222ec7"
+    },
+    "market-archives/curated-ES-recent-2026-2026-10.b64": {
+      "bytes": 75924,
+      "sha256": "b9d96fb70b41ea8bfb80b0c031a28820af29b2717418826ba6beb7a162be0173"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2024-01.b64": {
+      "bytes": 477532,
+      "sha256": "8ddda81e533ed6fa3b087c9f79d6235f0686756f46731021385281aaf0ed9429"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2024-02.b64": {
+      "bytes": 445080,
+      "sha256": "ed521a9e2028a897e5ac6f597a748c6da8f222cb78c7718efff058e718ec5e58"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2024-03.b64": {
+      "bytes": 433432,
+      "sha256": "02c4215c840d9c9eeff8401bb7d06d35a43e0c6ccdc915179e4237ba28b5dd48"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2024-04.b64": {
+      "bytes": 484300,
+      "sha256": "ca1b7290c29c760b77cdbd817360713f9d4449f24e281fb10ad2392c1657658a"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2024-05.b64": {
+      "bytes": 469156,
+      "sha256": "a63e35818b3a5817a1f60ec16bad864d5f2d0c4567a1ba901f3bbe399da89e93"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2024-06.b64": {
+      "bytes": 427404,
+      "sha256": "b036871afab204467afe32db5e9db7d4cbb4d09ef2e933ffd3e218d46ce638c3"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2024-07.b64": {
+      "bytes": 500720,
+      "sha256": "998ed56a8b44cac8153dde6564477ca3d5eeac389ef3232e1773ee1d9f4c6f92"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2024-08.b64": {
+      "bytes": 501688,
+      "sha256": "e7ce2663305ade64e00e04872161285841de8566ac5b85bd6cc23a3cdcb385ce"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2024-09.b64": {
+      "bytes": 471888,
+      "sha256": "24ec4c1806be677f83b5b5e872508b18f672b1eece2d917f15bd49473837c579"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2024-10.b64": {
+      "bytes": 509064,
+      "sha256": "0f0d526d46f3a0150e4024b6d789ee5e74e63f712d922a0ebe29f9d5afb7ef82"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2024-11.b64": {
+      "bytes": 454256,
+      "sha256": "de7449f60d6cfee8c686fc8188d9c745c64cfe7ae81469af4acb3656dbcec336"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2024-12.b64": {
+      "bytes": 456476,
+      "sha256": "c4e37e5d89631904103c95a06be024fc2b1f0d9699bb7f6579f8340d65043899"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2025-01.b64": {
+      "bytes": 493184,
+      "sha256": "52ffc9c23dc368ab6a063119c03b59b5ceb36bc7823a6740328d8f67ffd54871"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2025-02.b64": {
+      "bytes": 424940,
+      "sha256": "4f872e775c3047ac0d64fdfa31bf64e950e053ef2276d5b92292dda582d27363"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2025-03.b64": {
+      "bytes": 498916,
+      "sha256": "3368273e09ff93384a404c72169bcc8ec515cf216e1318b8909e8635b35a1298"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2025-04.b64": {
+      "bytes": 518424,
+      "sha256": "acb4d73e87513b3f821416f7581eff1c46e1cfbc5dfb971b7c3ef0e066ff804d"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2025-05.b64": {
+      "bytes": 496636,
+      "sha256": "951bcae37c8b7426b4d480a4ad5fa04e135c253a563a773e7898974e212168a3"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2025-06.b64": {
+      "bytes": 449220,
+      "sha256": "b624d65cb67ec3439e9cc23f79960c45f3b736f2c26f14b42941f2d821961a7e"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2025-07.b64": {
+      "bytes": 489044,
+      "sha256": "ab73179bb477172f4388f9e864d0bea441254f575ef33811a0fa0022ce16186f"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2025-08.b64": {
+      "bytes": 464580,
+      "sha256": "4978209d2f24fec6cc21b63293ea5655028e03e5aa0fa37aebd9505258d63691"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2025-09.b64": {
+      "bytes": 475852,
+      "sha256": "8c0173844e749a533dbd98725c9c076bb91411eecc5c7a170d2283437d8fda5f"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2025-10.b64": {
+      "bytes": 376924,
+      "sha256": "7d9e8a06b44ca11364aff0051bb69df5795ca5c48e4820f2e45ee9a0c5d4acb8"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2025-11.b64": {
+      "bytes": 465688,
+      "sha256": "6e67a7a922f0737623f81e30d73dd5aae92ec2c1e4621908a968ea5de6c12962"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2025-12.b64": {
+      "bytes": 479308,
+      "sha256": "9339471ac11c515c411c0ff5314c60ea56d4ebad8dc6111dc216db53caa73fcf"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2026-01.b64": {
+      "bytes": 449436,
+      "sha256": "9bc29805bdca5a23b1f611e2fdcf1b3988443059b2bbb264787d5a11c3089ffd"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2026-02.b64": {
+      "bytes": 471680,
+      "sha256": "165f14e4cb1ec18aa46879d089da990c8642d1abef61508ab41c7f1f77f52290"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2026-03.b64": {
+      "bytes": 544800,
+      "sha256": "f05abd99378a65f2e709e6b9bd4b9b96d8facd7cd6f60ab3706f12102a00583d"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2026-04.b64": {
+      "bytes": 505956,
+      "sha256": "ac4a6d299f50e07f53ee203b7cebca117fb7fa170def1cb8345022379c699c56"
+    },
+    "market-archives/curated-NQ-history-2024-2026-2026-05.b64": {
+      "bytes": 23836,
+      "sha256": "76cbd8fc86771ec1d7b6060a74d057c845935762e0142c46cc63e88d9b7a4eb3"
+    },
+    "market-archives/curated-NQ-history-2024-2026-v2-2025-10.b64": {
+      "bytes": 519324,
+      "sha256": "bedebf98be43591ae509b6510efb10d71df5abfd08bf27e2ffc2bcbaf9bf7e7c"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2024-01.b64": {
+      "bytes": 468916,
+      "sha256": "64c20962ba3a7ef3b1e9ecd420210671990bb37a622d1d028cc23ea8a4c25061"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2024-02.b64": {
+      "bytes": 438120,
+      "sha256": "3aa02b295ad8bc6dbcf7dbbb472defed0bb743cc4e696bea3040676cd6bd3a55"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2024-03.b64": {
+      "bytes": 426440,
+      "sha256": "c1808c6c05f3a19aecb8c44135ca9e7828828a8d000542d8364d01d8a5d629bc"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2024-04.b64": {
+      "bytes": 475716,
+      "sha256": "b13801d8a2e14f989201111a30125c235b81e975df67ad8f03b726842d3a561b"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2024-05.b64": {
+      "bytes": 461844,
+      "sha256": "f226550a8654f11f9b37cd6be7a02d32f18b30c886573fa6a34f0e9582be44ed"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2024-06.b64": {
+      "bytes": 421584,
+      "sha256": "51c2c78e378b2bf12c86ce81fe28f178b1cf6d99d47657de821cff45b0541cc4"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2024-07.b64": {
+      "bytes": 492236,
+      "sha256": "04de89b12ac14981c24be145fd116d8b22c92f262f8b05cc7f772ecdf247249a"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2024-08.b64": {
+      "bytes": 492316,
+      "sha256": "600a31dfb5acc3555e0327bfff35aaa07859cf734aff2ec249eb68ed20de62a3"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2024-09.b64": {
+      "bytes": 463792,
+      "sha256": "bfe6eef5ee7df82c856cd256526f71b7d341b5a487bcd323c23559dc6a83b3eb"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2024-10.b64": {
+      "bytes": 499228,
+      "sha256": "316f8ce777cb30673f69589a8794c465f5d49210e1a26b1d2eefaa135d79661e"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2024-11.b64": {
+      "bytes": 445000,
+      "sha256": "58dfc31a0190deca4633409ee5a46f34c3954ffc764f812f75ed00c89e9425ac"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2024-12.b64": {
+      "bytes": 448096,
+      "sha256": "b559f56baf0a75e6f66c4f894c0fc2ef62f9bdf91664e2c50bb2d4dea2c87e7e"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2025-01.b64": {
+      "bytes": 483756,
+      "sha256": "eb57b193f1a056dccadc80cc80bbbd05e85af0a4fc1ba85e935e6dd7b95c8e5b"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2025-02.b64": {
+      "bytes": 438580,
+      "sha256": "3dba30fc8ecd038d9332e08d085e46ffb55866f2286c0db4ebc2915c8d353e50"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2025-03.b64": {
+      "bytes": 489816,
+      "sha256": "6227f8b6202bb17350844f3098e06158a868e31ceedfffcaf296d828e451d1aa"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2025-04.b64": {
+      "bytes": 509888,
+      "sha256": "2ca41660d28dbd5c5f5be1039184d515898282078254f2f12d9b43e2ea1ac43b"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2025-05.b64": {
+      "bytes": 486828,
+      "sha256": "eb32f8d6084d106c45787e1025ebc9f2b2d6ccf107abff803119f356798e1763"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2025-06.b64": {
+      "bytes": 463916,
+      "sha256": "683b0cce915b6a8afa3fedcbe69dde1fd7d214d8ec819266b47c6dff7b98acf0"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2025-07.b64": {
+      "bytes": 479280,
+      "sha256": "e0aa6af1b27a7b8969936edb0a4b7a0d6110e3ad28c84cf56b53ddf0f075504c"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2025-08.b64": {
+      "bytes": 453860,
+      "sha256": "00d4ddbbaae197762a9e7fb889065a4b41afd2b649df8d6b8ff9b8de811668c9"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2025-09.b64": {
+      "bytes": 463864,
+      "sha256": "6ff16b7f5669e788d9c97d0fcb78950ad83e7a27a0f0de0e109be0942ffbe21d"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2025-10.b64": {
+      "bytes": 507324,
+      "sha256": "88d0f2366152423da526c6942fcad811b6a4b71787485202ca63d50e2f86efb5"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2025-11.b64": {
+      "bytes": 454704,
+      "sha256": "7726874ee7084efd9cb49849e7813b3a64e8857e29ef6cba4fc7476a69b12005"
+    },
+    "market-archives/curated-NQ-kaggle-2024-2025-2025-12.b64": {
+      "bytes": 194328,
+      "sha256": "ab4c80e465f33291938adfe5cd2589318851ac5149087bfc1b819c7a49260a99"
+    },
+    "market-archives/curated-NQ-recent-2026-2026-09.b64": {
+      "bytes": 375144,
+      "sha256": "9d87dbd44777ce1997868bac67f001d1d8eeedd51b64cec539e598fd342fdc6c"
+    },
+    "market-archives/curated-NQ-recent-2026-2026-10.b64": {
+      "bytes": 95356,
+      "sha256": "0490cd06b39c5712689a5eeec9b462c3f8a6b7f1c3f5fea7fb29e9569242cfc9"
+    },
+    "market-archives/evidence/NQ-october-2025-restoration.json": {
+      "bytes": 4179,
+      "sha256": "eae2557420e1ad81be0884815cf9e3f30a70833593a27dea652a91ab270c22e1"
+    },
+    "package.json": {
+      "bytes": 245,
+      "sha256": "f1ebd652b5cffc3e2db3ad8cd2d007728e0ddcb5dfa1b9f97e4480ab9127cbf5"
+    },
+    "scripts/build-product.mjs": {
+      "bytes": 2902,
+      "sha256": "f6759f3b64aa21f1025eabad700b11c345c242cb647d92aafcf85a95636ab183"
+    },
+    "scripts/fill-nq-october-2025.py": {
+      "bytes": 7624,
+      "sha256": "1ba90c314cd0efe8572657df785802c1fb68813b49a8cea4ad219a89809e3fa4"
+    },
+    "scripts/pack-market-archive.py": {
+      "bytes": 3578,
+      "sha256": "f6da8e69154a35a89449df6825c99eda0ece8fd2c62e1fb53a5d4a20474a3a9e"
+    },
+    "scripts/upload-market-data.py": {
+      "bytes": 3431,
+      "sha256": "ffa3dba782068152beab0868ac818f35e554df13a13c9c2d74238fb50b47a220"
+    },
+    "scripts/verify-product.mjs": {
+      "bytes": 3343,
+      "sha256": "6757d836b4d9ef981803a6ac3a5ae548dd46925c42d567c90306c9e31525ea4f"
+    },
+    "tests/analytics.render.test.mjs": {
+      "bytes": 2390,
+      "sha256": "1669f58d4ea13cb2acc36c51145663dc4f6d6fef1908ae1581b3f97d8ab9431b"
+    },
+    "tests/analytics.test.mjs": {
+      "bytes": 9652,
+      "sha256": "f6c30e98c74da2ac315f0412073b3c169e3fc5d7748b47a33eddafd459651278"
+    },
+    "tests/archive.test.mjs": {
+      "bytes": 3387,
+      "sha256": "cc98f0e5e086234aecde383539c1e110e1f6a2afcd61d6033886a0441dd25a30"
+    },
+    "tests/comparison.test.mjs": {
+      "bytes": 5870,
+      "sha256": "f2d43e7c75955d29afb7ada597acd345395d59168bbd3d620e5039ce5389a315"
+    },
+    "tests/curated-api.test.mjs": {
+      "bytes": 2450,
+      "sha256": "92e5b1ba5e36a42b40171781208b6feb7a087b867ca5f6e12e03a2c9dc659e4b"
+    },
+    "tests/curated-data.test.mjs": {
+      "bytes": 6937,
+      "sha256": "beedadc0929077c09da77b287fd3f2ee7aa72bdf330dbac509228f767a0a88ca"
+    },
+    "tests/engine.test.mjs": {
+      "bytes": 10731,
+      "sha256": "84e1b67837954d2e90c73d1705f2a0be49106e794e5ee5e4a439702a7aec7cd4"
+    },
+    "tests/history-selection.test.mjs": {
+      "bytes": 5360,
+      "sha256": "d1c3205dbb3175b85b88f312d9236ccb437ae88862b0be6f0e213243d2923a7c"
+    },
+    "tests/worker-api.test.mjs": {
+      "bytes": 11721,
+      "sha256": "07100bd62cda15b1cbdae1e5b07728b3ca32ab78cf3f752f1166458402703f5e"
+    },
+    "tests/workspace-store.test.mjs": {
+      "bytes": 10208,
+      "sha256": "4fa131fcf70514314a85440bf9c07c6232f3447ef887c569738103672417c831"
+    },
+    "tests/workspace-validation.test.mjs": {
+      "bytes": 5759,
+      "sha256": "db5aa3b57b2f0c1e1b8b5f2fa7a8bbafc40e7aee56aa9eac9443fd55a9020e5d"
+    },
+    "worker/api.mjs": {
+      "bytes": 26944,
+      "sha256": "91553f0536f632a24f0ed4e7c1bd2399736840fffb9692cf1154dba3fa4a7ca6"
+    }
+  },
+  "verifiedMonthlyParts": 88,
+  "includesPersonalWorkspace": false,
+  "includesPersonalUploads": false,
+  "includesGitHistory": false,
+  "localDevServerImplemented": false
+}
