@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validateWorkspace} from '../dist/workspace-validation.mjs';
-import {Replay} from '../dist/engine.mjs';
+import {validateWorkspace} from '../frontend/src/replay/workspace-validation.ts';
+import {Replay} from '../frontend/src/replay/engine.ts';
 
 const bars = [0,1,2,3].map(i=>({time:1704205800+i*60,open:100+i,high:102+i,low:99+i,close:101+i,volume:1}));
 const blank=()=>({version:1,revision:0,sessions:[],playbooks:[],settings:{}});

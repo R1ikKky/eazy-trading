@@ -1,0 +1,1032 @@
+import { element as $ } from "./dom";
+import { dayKey } from "./engine";
+import { curatedArchives, isSupersededCuratedDataset } from "./curated-data";
+import { historyChoices, historyWindows } from "./history-selection";
+import { validateWorkspace } from "./workspace-validation";
+import {
+  WorkspaceStore,
+  uid,
+  escapeHTML as esc,
+  blankWorkspace,
+} from "./workspace-store";
+import {
+  analyzeTrades,
+  renderAnalytics,
+  filterTrades,
+  csvTrades,
+} from "./analytics";
+const money = (v: any) =>
+  (v < 0 ? "−" : "") +
+  "$" +
+  Math.abs(Number(v) || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+const decimal = (v: any) => (Number.isFinite(v) ? v.toFixed(2) : "—");
+const attachmentURL = (v: any) =>
+  typeof v === "string" && /^\/api\/attachments\/[a-zA-Z0-9_-]+$/.test(v);
+const date = (s: any) =>
+  s && Number.isFinite(Date.parse(s))
+    ? new Date(s).toLocaleDateString("ru-RU", {
+        day: "numeric",
+        month: "short",
+      })
+    : "—";
+const time = (t: any) =>
+  !Number.isFinite(t) || !Number.isFinite(new Date(t * 1000).getTime())
+    ? "—"
+    : new Intl.DateTimeFormat("ru-RU", {
+        timeZone: "America/New_York",
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+      }).format(new Date(t * 1000));
+const safe =
+  (fn: any) =>
+  async (...args: any[]) => {
+    try {
+      return await fn(...args);
+    } catch (error) {
+      document.dispatchEvent(
+        new CustomEvent("product-error", { detail: error.message }),
+      );
+    }
+  };
+function download(name: any, text: any, type = "application/json") {
+  const url = URL.createObjectURL(new Blob([text], { type })),
+    a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+export function createProduct({
+  toast,
+  activate,
+  capture,
+  getPreferences,
+  setPreferences,
+  onNavigate,
+  openDataset,
+}: any) {
+  let view = "sessions",
+    selectedTrade = null,
+    loaded = false,
+    filter: Record<string, any> = {};
+  const store = new WorkspaceStore((state: any, label: any) => {
+    const status = $("saveStatus");
+    if (status) {
+      status.dataset.state = state;
+      status.textContent = label;
+      status.title = label;
+    }
+    if (state === "conflict") toast(label);
+  });
+  const ws = () => store.value;
+  const active = () =>
+    ws().sessions.find((s: any) => s.id === ws().settings.activeSessionId);
+  const strategies = () => ws().playbooks || [];
+  const allTrades = () =>
+    ws().sessions.flatMap((s: any) =>
+      (s.snapshot?.trades || []).map((t: any) => {
+        const raw = s.annotations?.[t.id] || {},
+          annotation = {
+            notes: typeof raw.notes === "string" ? raw.notes : "",
+            tags: Array.isArray(raw.tags)
+              ? raw.tags.filter((x: any) => typeof x === "string")
+              : [],
+            checklist: raw.checklist,
+            attachments: raw.attachments,
+          },
+          strategyId = raw.strategyId ?? s.strategyId;
+        return {
+          ...t,
+          ...annotation,
+          sessionId: s.id,
+          sessionName: s.name,
+          capital: s.capital,
+          strategyId,
+          strategyName:
+            strategies().find((x: any) => x.id === strategyId)?.name ||
+            "Без стратегии",
+          source: s.source,
+        };
+      }),
+    );
+  document.addEventListener("product-error", (e) =>
+    toast((e as CustomEvent<string>).detail),
+  );
+  function options(selected = "", includeEmpty = true) {
+    return (
+      (includeEmpty ? '<option value="">Без стратегии</option>' : "") +
+      strategies()
+        .map(
+          (p: any) =>
+            '<option value="' +
+            esc(p.id) +
+            '" ' +
+            (selected === p.id ? "selected" : "") +
+            ">" +
+            esc(p.name) +
+            "</option>",
+        )
+        .join("")
+    );
+  }
+  function fillStrategies() {
+    if ($("sessionStrategy"))
+      $("sessionStrategy").innerHTML = options(active()?.strategyId);
+  }
+  function changed() {
+    store.changed();
+    if (view !== "replay") renderView();
+  }
+  function navigate(next: any) {
+    if (
+      ![
+        "replay",
+        "sessions",
+        "journal",
+        "analytics",
+        "playbooks",
+        "data",
+      ].includes(next)
+    )
+      return;
+    if (onNavigate?.(next) === false) return;
+    view = next;
+    for (const el of document.querySelectorAll<HTMLElement>('[id^="view-"]'))
+      el.hidden = el.id !== "view-" + next;
+    for (const b of document.querySelectorAll<HTMLElement>("[data-view]")) {
+      b.classList.toggle("active", b.dataset.view === next);
+      b.setAttribute(
+        "aria-current",
+        b.dataset.view === next ? "page" : "false",
+      );
+    }
+    ws().settings.view = next;
+    if (loaded) store.changed();
+    renderView();
+    window.dispatchEvent(new Event("resize"));
+  }
+  function updateHeader() {
+    const s = active();
+    if ($("activeSessionName"))
+      $("activeSessionName").textContent = s?.name || "Выберите сессию";
+    if ($("sessionBalance")) {
+      const open = s?.snapshot?.position,
+        net =
+          (s?.snapshot?.trades || []).reduce(
+            (v: any, t: any) => v + (Number.isFinite(t.pnl) ? t.pnl : 0),
+            0,
+          ) + (open?.realizedNet || 0);
+      $("sessionBalance").textContent = money((s?.capital || 50000) + net);
+    }
+    if ($("sessionNotes") && document.activeElement !== $("sessionNotes"))
+      $("sessionNotes").value = s?.notes || "";
+  }
+  function createSession({
+    symbol,
+    from,
+    to,
+    session,
+    datasetId,
+    comparisonDatasetId,
+    source,
+    snapshot,
+    name,
+    capital,
+    strategyId,
+  }: any) {
+    const now = new Date().toISOString();
+    const s = {
+      id: uid(),
+      name: (name || symbol + " · " + from).slice(0, 100),
+      symbol,
+      from,
+      to,
+      session,
+      datasetId,
+      ...(comparisonDatasetId ? { comparisonDatasetId } : {}),
+      source,
+      capital: Number(capital) || 50000,
+      strategyId: strategyId || "",
+      createdAt: now,
+      updatedAt: now,
+      snapshot,
+      notes: "",
+      annotations: {},
+      drawings: [],
+    };
+    if (ws().sessions.length >= 1000)
+      throw Error("Достигнут предел: 1000 сессий. Экспортируйте архив.");
+    ws().sessions.push(s);
+    ws().settings.activeSessionId = s.id;
+    changed();
+    fillStrategies();
+    updateHeader();
+    return s;
+  }
+  function saveReplay(snapshot: any) {
+    if (!loaded || !active()) return;
+    const s = active();
+    s.snapshot = snapshot;
+    s.updatedAt = new Date().toISOString();
+    store.changed();
+    updateHeader();
+    if (view === "journal" || view === "analytics" || view === "sessions")
+      renderView();
+  }
+  function renderSessions() {
+    const box = $("sessionsContent");
+    if (!box) return;
+    const sessions = [...ws().sessions].sort((a, b) =>
+      b.updatedAt.localeCompare(a.updatedAt),
+    );
+    box.innerHTML =
+      '<div class="view-toolbar"><span class="muted">' +
+      sessions.length +
+      " сессий</span></div>" +
+      (sessions.length
+        ? '<div class="cards-grid">' +
+          sessions
+            .map((s) => {
+              const a = analyzeTrades(s.snapshot?.trades || [], {
+                  capital: s.capital,
+                }),
+                i = s.snapshot?.index || 0;
+              return (
+                '<article class="content-card session-card"><div class="card-top"><span class="symbol-pill">' +
+                esc(s.comparisonDatasetId ? "NQ + ES" : s.symbol) +
+                '</span><span class="muted">' +
+                date(s.updatedAt) +
+                "</span></div><h3>" +
+                esc(s.name) +
+                '</h3><p class="muted">' +
+                esc(s.from) +
+                " → " +
+                esc(s.to) +
+                " · " +
+                (s.session === "rth" ? "RTH" : "Все сессии") +
+                '</p><div class="session-result"><strong class="' +
+                (a.net < 0 ? "negative" : a.net > 0 ? "positive" : "") +
+                '">' +
+                money(a.net) +
+                "</strong><span>" +
+                a.count +
+                " сделок · " +
+                (s.snapshot?.position ? "Есть позиция" : "Свеча " + (i + 1)) +
+                '</span></div><p class="muted">' +
+                esc(
+                  strategies().find((p: any) => p.id === s.strategyId)?.name ||
+                    "Без стратегии",
+                ) +
+                '</p><div class="card-actions"><button class="button secondary compact" data-resume="' +
+                esc(s.id) +
+                '">Продолжить →</button><button class="icon-button" data-rerun="' +
+                esc(s.id) +
+                '" title="Новый проход с сохранением результата" aria-label="Повторить сессию">↺</button><button class="icon-button" data-delete-session="' +
+                esc(s.id) +
+                '" title="Удалить сессию" aria-label="Удалить сессию">×</button></div></article>'
+              );
+            })
+            .join("") +
+          "</div>"
+        : '<div class="empty-state"><h3>Начните первый тест</h3><p>Назовите сессию, выберите диапазон и стратегию. Результаты останутся в журнале.</p><button class="button primary" data-product="new-session">Создать сессию</button></div>');
+  }
+  function renderJournal() {
+    const rows = filterTrades(allTrades(), filter),
+      summary = analyzeTrades(rows);
+    $("tradeCount").textContent = String(rows.length);
+    $("export").disabled = !rows.length;
+    $("journalSummary").innerHTML =
+      '<div class="journal-metrics"><span>Результат <strong class="' +
+      (summary.net < 0 ? "negative" : "positive") +
+      '">' +
+      money(summary.net) +
+      "</strong></span><span>Сделок <strong>" +
+      summary.count +
+      "</strong></span><span>Win rate <strong>" +
+      (summary.winRate === null ? "—" : summary.winRate.toFixed(1) + "%") +
+      "</strong></span><span>Средний R <strong>" +
+      (summary.avgR === null ? "—" : summary.avgR.toFixed(2) + "R") +
+      "</strong></span></div>";
+    $("emptyJournal").hidden = !!rows.length;
+    $("tradeRows").innerHTML = rows
+      .slice()
+      .sort((a, b) => b.exitTime - a.exitTime)
+      .map(
+        (t) =>
+          '<tr tabindex="0" role="button" aria-label="Открыть сделку ' +
+          esc(t.symbol) +
+          '" data-trade-id="' +
+          esc(t.id) +
+          '" data-session-id="' +
+          esc(t.sessionId) +
+          '"><td><strong>' +
+          esc(t.symbol) +
+          "</strong><small>" +
+          time(t.time) +
+          '</small></td><td><span class="side-tag ' +
+          (t.side === -1 ? "sell" : "") +
+          '">' +
+          (t.side === 1 ? "Long" : "Short") +
+          "</span></td><td>" +
+          t.qty +
+          '</td><td class="mono">' +
+          decimal(t.entry) +
+          '</td><td class="mono">' +
+          decimal(t.exit) +
+          '</td><td class="mono ' +
+          (t.pnl >= 0 ? "positive" : "negative") +
+          '">' +
+          money(t.pnl) +
+          "</td><td>" +
+          (Number.isFinite(t.r) ? decimal(t.r) + "R" : "—") +
+          "</td><td>" +
+          esc(t.strategyName) +
+          '<small class="trade-row-note">' +
+          esc(t.reason) +
+          (t.ambiguous ? " · OHLC неопределённость" : "") +
+          "</small></td></tr>",
+      )
+      .join("");
+  }
+  function initFilters() {
+    const box = $("journalFilters");
+    box.innerHTML =
+      '<div class="filter-grid"><label class="filter-control">Поиск<input id="journalSearch" type="search" placeholder="Сессия, стратегия, заметка"></label><label class="filter-control">Инструмент<select id="journalSymbol"><option value="">Все</option><option>NQ</option><option>ES</option></select></label><label class="filter-control">Стратегия<select id="journalStrategy">' +
+      options("", false).replace(/^/, '<option value="">Все</option>') +
+      '</select></label><label class="filter-control">С даты<input id="journalFrom" type="date"></label><label class="filter-control">По дату<input id="journalTo" type="date"></label><label class="filter-control">Тег<input id="journalTag" placeholder="например, дисциплина"></label></div>';
+    const read = () => {
+      filter = {
+        search: $("journalSearch").value,
+        symbol: $("journalSymbol").value,
+        strategyId: $("journalStrategy").value,
+        from: $("journalFrom").value,
+        to: $("journalTo").value,
+        tag: $("journalTag").value.trim(),
+      };
+      renderJournal();
+    };
+    for (const el of box.querySelectorAll<HTMLInputElement>("input,select"))
+      el.addEventListener("input", read);
+  }
+  function openTrade(sessionId: any, tradeId: any) {
+    selectedTrade = { sessionId, tradeId };
+    const s = ws().sessions.find((x: any) => x.id === sessionId),
+      t = s?.snapshot?.trades.find((x: any) => x.id === tradeId);
+    if (!t) throw Error("Сделка не найдена");
+    const a = s.annotations?.[t.id] || {},
+      p = strategies().find(
+        (x: any) => x.id === (a.strategyId ?? s.strategyId),
+      );
+    const dialog = $("tradeDetailDialog");
+    dialog.innerHTML =
+      '<form id="tradeNoteForm"><div class="dialog-header"><div><p class="eyebrow">TRADE REVIEW · ' +
+      esc(s.name) +
+      "</p><h2>" +
+      esc(t.symbol) +
+      " · " +
+      (t.side === 1 ? "Long" : "Short") +
+      '</h2></div><button class="icon-button" type="button" data-detail-close aria-label="Закрыть">×</button></div><div class="trade-detail-stats"><strong class="' +
+      (t.pnl >= 0 ? "positive" : "negative") +
+      '">' +
+      money(t.pnl) +
+      "</strong><span>" +
+      (Number.isFinite(t.r) ? decimal(t.r) + "R" : "—") +
+      "</span><span>" +
+      t.qty +
+      ' контр.</span></div><p class="muted">' +
+      time(t.time) +
+      " → " +
+      time(t.exitTime) +
+      " ET · " +
+      esc(t.reason) +
+      '</p><div class="field-pair"><label>Вход<input readonly value="' +
+      decimal(t.entry) +
+      '"></label><label>Выход<input readonly value="' +
+      decimal(t.exit) +
+      '"></label></div><p class="dialog-note muted">Комиссия ' +
+      money(t.fees) +
+      " · " +
+      (t.exits?.length || 1) +
+      " исполнений выхода" +
+      (t.ambiguous
+        ? " · В минутной свече порядок касания уровней неизвестен; выбран консервативный SL."
+        : "") +
+      '</p><label for="tradeStrategy">Стратегия</label><select id="tradeStrategy">' +
+      options(a.strategyId ?? s.strategyId) +
+      '</select><div id="tradeRules" class="trade-rules">' +
+      (p?.rules || [])
+        .map(
+          (r: any, i: any) =>
+            '<label><input type="checkbox" data-rule="' +
+            i +
+            '" ' +
+            (a.checklist?.[i] ? "checked" : "") +
+            ">" +
+            esc(r) +
+            "</label>",
+        )
+        .join("") +
+      '</div><label for="tradeTags">Теги через запятую</label><input id="tradeTags" maxlength="600" placeholder="сетап, ошибка, дисциплина" value="' +
+      esc((a.tags || []).join(", ")) +
+      '"><label for="tradeNote">Разбор сделки</label><textarea id="tradeNote" rows="6" maxlength="10000" placeholder="Контекст → условия входа → исполнение → вывод">' +
+      esc(a.notes || "") +
+      '</textarea><div id="tradeAttachments" class="attachment-grid">' +
+      (Array.isArray(a.attachments) ? a.attachments : [])
+        .filter((x: any) => attachmentURL(x.url))
+        .map(
+          (x: any) =>
+            '<a href="' +
+            esc(x.url) +
+            '" target="_blank" rel="noopener"><img src="' +
+            esc(x.url) +
+            '" alt="' +
+            esc(x.name || "Скриншот сделки") +
+            '" loading="lazy"></a>',
+        )
+        .join("") +
+      '</div><div class="card-actions"><label class="button secondary compact attachment-label">＋ Изображение<input id="tradeImage" type="file" accept="image/png,image/jpeg,image/webp" hidden></label><button type="button" id="tradeCapture" class="button secondary compact">Скриншот текущего чарта</button></div><p id="attachmentStatus" class="muted dialog-note"></p><button class="button primary full" type="submit">Сохранить разбор</button></form>';
+    const saveAnnotation = () => {
+      s.annotations ||= {};
+      s.annotations[t.id] = {
+        ...(s.annotations[t.id] || {}),
+        strategyId: $("tradeStrategy").value,
+        notes: $("tradeNote").value.trim(),
+        tags: [
+          ...new Set(
+            $("tradeTags")
+              .value.split(",")
+              .map((x: any) => x.trim().slice(0, 64))
+              .filter(Boolean),
+          ),
+        ].slice(0, 20),
+        checklist: Object.fromEntries(
+          [...dialog.querySelectorAll<HTMLElement>("[data-rule]")].map((x) => [
+            x.dataset.rule,
+            (x as HTMLInputElement).checked,
+          ]),
+        ),
+      };
+      s.updatedAt = new Date().toISOString();
+      changed();
+    };
+    $("tradeNoteForm").onsubmit = (e) => {
+      e.preventDefault();
+      saveAnnotation();
+      dialog.close();
+      toast("Разбор сохранён");
+    };
+    dialog.querySelector<HTMLElement>("[data-detail-close]").onclick = () =>
+      dialog.close();
+    $("tradeStrategy").onchange = () => {
+      const p = strategies().find(
+        (x: any) => x.id === $("tradeStrategy").value,
+      );
+      $("tradeRules").innerHTML = (p?.rules || [])
+        .map(
+          (r: any, i: any) =>
+            '<label><input type="checkbox" data-rule="' +
+            i +
+            '">' +
+            esc(r) +
+            "</label>",
+        )
+        .join("");
+    };
+    async function upload(file: any) {
+      saveAnnotation();
+      const a = s.annotations[t.id];
+      if ((a.attachments || []).length >= 10)
+        throw Error("Не более 10 изображений на сделку");
+      $("attachmentStatus").textContent = "Сохраняю изображение…";
+      const result = await store.attachment(file);
+      a.attachments ||= [];
+      a.attachments.push(result);
+      changed();
+      $("attachmentStatus").textContent = "Изображение сохранено";
+      $("tradeAttachments").insertAdjacentHTML(
+        "beforeend",
+        '<a href="' +
+          esc(result.url) +
+          '" target="_blank" rel="noopener"><img src="' +
+          esc(result.url) +
+          '" alt="Скриншот сделки"></a>',
+      );
+    }
+    $("tradeImage").onchange = safe(async () => {
+      const file = $("tradeImage").files[0];
+      if (file) await upload(file);
+    });
+    $("tradeCapture").onclick = safe(async () => {
+      const file = await capture();
+      await upload(file);
+    });
+    dialog.showModal();
+  }
+  function renderPlaybooks() {
+    const box = $("playbooksContent");
+    box.innerHTML =
+      '<div class="view-toolbar"><p class="muted">Определите условия до сделки и проверяйте соблюдение правил после.</p><button class="button primary" data-create-strategy>＋ Создать стратегию</button></div>' +
+      (strategies().length
+        ? '<div class="cards-grid">' +
+          strategies()
+            .map((p: any) => {
+              const trades = allTrades().filter(
+                  (t: any) => t.strategyId === p.id,
+                ),
+                a = analyzeTrades(trades);
+              return (
+                '<article class="content-card playbook-card"><span class="eyebrow">PLAYBOOK</span><h3>' +
+                esc(p.name) +
+                '</h3><p class="muted">' +
+                esc(p.description || "Добавьте описание модели") +
+                '</p><ul class="rule-preview">' +
+                p.rules.map((r: any) => "<li>" + esc(r) + "</li>").join("") +
+                '</ul><div class="session-result"><strong class="' +
+                (a.net < 0 ? "negative" : "positive") +
+                '">' +
+                money(a.net) +
+                "</strong><span>" +
+                a.count +
+                " сделок · " +
+                (a.winRate === null ? "—" : a.winRate.toFixed(0) + "% WR") +
+                '</span></div><button class="button secondary compact" data-edit-strategy="' +
+                esc(p.id) +
+                '">Изменить правила</button></article>'
+              );
+            })
+            .join("") +
+          "</div>"
+        : '<div class="empty-state"><h3>Ваши правила, ваша статистика</h3><p>Создайте первый playbook: контекст, вход, риск и выход. Затем назначайте его сессиям и сделкам.</p><button class="button primary" data-create-strategy>Создать стратегию</button></div>');
+  }
+  function editStrategy(id?: any) {
+    const existing = strategies().find((p: any) => p.id === id);
+    let dialog = $("playbookDialog");
+    if (!dialog) {
+      dialog = document.createElement("dialog");
+      dialog.id = "playbookDialog";
+      document.body.append(dialog);
+    }
+    dialog.innerHTML =
+      '<form id="playbookForm"><div class="dialog-header"><h2>' +
+      (existing ? "Редактировать" : "Новая") +
+      ' стратегия</h2><button type="button" class="icon-button" data-playbook-close>×</button></div><label for="playbookName">Название</label><input id="playbookName" required maxlength="100" value="' +
+      esc(existing?.name || "") +
+      '" placeholder="Например, NY reversal"><label for="playbookDescription">Описание модели</label><textarea id="playbookDescription" maxlength="2000" rows="3">' +
+      esc(existing?.description || "") +
+      '</textarea><label for="playbookRules">Правила · по одному на строку</label><textarea id="playbookRules" maxlength="5000" rows="7" placeholder="Контекст определён\nУсловия входа выполнены\nРиск соответствует плану\nУровень отмены идеи задан">' +
+      esc((existing?.rules || []).join("\n")) +
+      '</textarea><button type="submit" class="button primary full">Сохранить стратегию</button></form>';
+    dialog.querySelector("[data-playbook-close]").onclick = () =>
+      dialog.close();
+    $("playbookForm").onsubmit = (e) => {
+      e.preventDefault();
+      const p = {
+        id: existing?.id || uid(),
+        name: $("playbookName").value.trim(),
+        description: $("playbookDescription").value.trim(),
+        rules: $("playbookRules")
+          .value.split("\n")
+          .map((x: any) => x.trim().slice(0, 240))
+          .filter(Boolean)
+          .slice(0, 30),
+      };
+      if (!p.name) return;
+      if (existing) Object.assign(existing, p);
+      else {
+        if (strategies().length >= 100) throw Error("Не более 100 стратегий");
+        ws().playbooks.push(p);
+      }
+      changed();
+      fillStrategies();
+      dialog.close();
+      renderPlaybooks();
+    };
+    dialog.showModal();
+  }
+  function coverageHTML() {
+    const records = ws().settings.datasets || {};
+    return (
+      '<div class="cards-grid year-coverage">' +
+      [2024, 2025, 2026]
+        .map(
+          (year) =>
+            '<article class="content-card"><span class="eyebrow">' +
+            year +
+            (year === 2026 ? " · ПО ДОСТУПНУЮ ДАТУ" : "") +
+            "</span>" +
+            ["NQ", "ES"]
+              .map((symbol) => {
+                const months = new Set(
+                  historyChoices(records, symbol)
+                    .flatMap((d) =>
+                      Array.isArray(d.months)
+                        ? d.months
+                        : d.from.slice(0, 7) === d.to.slice(0, 7)
+                          ? [d.from.slice(0, 7)]
+                          : [],
+                    )
+                    .filter((m) => m.startsWith(year + "-")),
+                );
+                return (
+                  "<p><strong>" +
+                  symbol +
+                  "</strong> · " +
+                  (months.size
+                    ? months.size + " месяцев с данными"
+                    : "Пока нет данных") +
+                  "</p>"
+                );
+              })
+              .join("") +
+            "</article>",
+        )
+        .join("") +
+      '</div><p class="muted dialog-note">Месяц с данными может содержать пропуски. Дни без котировок не заполняются.</p>'
+    );
+  }
+  function renderData() {
+    const box = $("dataContent"),
+      records = Object.values<any>(ws().settings.datasets || {}).filter(
+        (d) => !isSupersededCuratedDataset(d.id),
+      );
+    const cards = ["NQ", "ES"]
+      .map((symbol) => {
+        const windows = historyWindows(records, symbol);
+        return (
+          '<article class="content-card"><span class="symbol-pill">' +
+          symbol +
+          "</span><h3>" +
+          symbol +
+          " · " +
+          (symbol === "NQ" ? "Nasdaq-100" : "S&amp;P 500") +
+          '</h3><p class="muted">Реальные минутные свечи</p>' +
+          windows
+            .map((w) => "<p>" + esc(w.from) + " → " + esc(w.to) + "</p>")
+            .join("") +
+          '<button class="button primary compact" data-open-dataset="' +
+          symbol +
+          '">Выбрать даты и начать →</button></article>'
+        );
+      })
+      .join("");
+    const sources = records
+      .map((d) => {
+        const curated = curatedArchives.find((a) => a.id === d.id),
+          meta = curated?.metadata,
+          provider =
+            meta?.provider ||
+            (d.source === "user_csv"
+              ? "Ваш CSV"
+              : "FirstRate Data / HF Market Data");
+        return (
+          '<article class="content-card"><div class="card-top"><span class="symbol-pill">' +
+          esc(d.symbol) +
+          '</span><span class="muted">1m' +
+          (meta?.adjusted ? " · скорректированная серия" : "") +
+          "</span></div><h3>" +
+          esc(d.name) +
+          '</h3><p class="muted">' +
+          esc(d.from) +
+          " → " +
+          esc(d.to) +
+          '</p><div class="session-result"><strong>' +
+          Number(d.count).toLocaleString("ru-RU") +
+          '</strong><span>минутных свечей</span></div><p class="muted">' +
+          esc(provider) +
+          "</p>" +
+          (meta
+            ? '<p class="dialog-note">' +
+              esc(meta.summary || meta.note) +
+              '</p><a class="text-button" href="' +
+              esc(meta.sourceUrl) +
+              '" target="_blank" rel="noopener">Источник данных ↗</a>'
+            : "") +
+          (meta?.adjusted
+            ? '<p class="dialog-note">Дополнительная серия с корректировкой цены. Автоматически для новых тестов не используется.</p>'
+            : "") +
+          "</article>"
+        );
+      })
+      .join("");
+    box.innerHTML =
+      coverageHTML() +
+      '<div class="cards-grid">' +
+      cards +
+      '</div><details class="data-sources"><summary>Источники и сведения о данных</summary><div class="cards-grid">' +
+      sources +
+      '</div></details><div class="content-card model-notes"><h3>Модель исполнения</h3><p>Минутные OHLC, фиксированное проскальзывание и комиссия. Заявка активируется после её создания. Если SL и TP попали в одну свечу и порядок неизвестен, сначала применяется SL.</p><p>Когда источник содержит код или идентификатор контракта, на его смене позиция закрывается по последней цене старого контракта. Без этих данных смену контракта определить нельзя. Просадка строится по закрытым сделкам.</p></div>';
+  }
+  function renderView() {
+    if (!loaded) return;
+    updateHeader();
+    if (view === "sessions") renderSessions();
+    if (view === "journal") {
+      if (!$("journalSearch")) initFilters();
+      renderJournal();
+    }
+    if (view === "analytics") {
+      const box = $("analyticsContent");
+      box.innerHTML =
+        '<div class="view-toolbar"><label class="filter-control">Область анализа<select id="analyticsScope"><option value="all">Все сессии</option>' +
+        ws()
+          .sessions.map(
+            (s: any) =>
+              '<option value="' + esc(s.id) + '">' + esc(s.name) + "</option>",
+          )
+          .join("") +
+        '</select></label><span class="muted">Только закрытые сделки · результаты с учётом комиссии</span></div><div id="analyticsCharts"></div>';
+      const draw = () => {
+        const id = $("analyticsScope").value,
+          s = ws().sessions.find((x: any) => x.id === id);
+        renderAnalytics(
+          $("analyticsCharts"),
+          id === "all"
+            ? allTrades()
+            : allTrades().filter((t: any) => t.sessionId === id),
+          { capital: s?.capital || 50000 },
+        );
+      };
+      $("analyticsScope").onchange = draw;
+      draw();
+    }
+    if (view === "playbooks") renderPlaybooks();
+    if (view === "data") renderData();
+  }
+  document
+    .querySelectorAll<HTMLElement>("[data-view]")
+    .forEach((b) => (b.onclick = () => navigate(b.dataset.view)));
+  document.addEventListener(
+    "click",
+    safe(async (e: any) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button");
+      if (!b) return;
+      if (b.dataset.product === "new-session") $("setupOpen").click();
+      if (b.dataset.product === "history") $("historyOpen").click();
+      if (b.dataset.product === "import") $("importOpen").click();
+      if (b.dataset.openDataset) await openDataset(b.dataset.openDataset);
+      if (b.dataset.resume) {
+        const s = ws().sessions.find((x: any) => x.id === b.dataset.resume);
+        await activate(s);
+        ws().settings.activeSessionId = s.id;
+        changed();
+        navigate("replay");
+        updateHeader();
+      }
+      if (b.dataset.rerun) {
+        const s = ws().sessions.find((x: any) => x.id === b.dataset.rerun);
+        await activate(s, true);
+        navigate("replay");
+      }
+      if (b.dataset.deleteSession) {
+        const s = ws().sessions.find(
+          (x: any) => x.id === b.dataset.deleteSession,
+        );
+        if (active()?.id === s.id) {
+          toast("Сначала откройте другую сессию");
+          return;
+        }
+        if (confirm("Удалить сессию «" + s.name + "» вместе с журналом?")) {
+          ws().sessions = ws().sessions.filter((x: any) => x.id !== s.id);
+          changed();
+        }
+      }
+      if (b.hasAttribute("data-create-strategy")) editStrategy();
+      if (b.dataset.editStrategy) editStrategy(b.dataset.editStrategy);
+    }),
+  );
+  $("tradeRows").onclick = safe((e: any) => {
+    const row = e.target.closest("[data-trade-id]");
+    if (row) openTrade(row.dataset.sessionId, row.dataset.tradeId);
+  });
+  $("tradeRows").onkeydown = (e) => {
+    if (["Enter", " "].includes(e.key)) {
+      e.preventDefault();
+      (e.target as HTMLElement)
+        .closest<HTMLElement>("[data-trade-id]")
+        ?.click();
+    }
+  };
+  $("export").onclick = () =>
+    download(
+      "replay-lab-journal.csv",
+      csvTrades(filterTrades(allTrades(), filter)),
+      "text/csv;charset=utf-8",
+    );
+  $("sessionNotes")?.addEventListener("input", () => {
+    if (active()) {
+      active().notes = $("sessionNotes").value.slice(0, 10000);
+      active().updatedAt = new Date().toISOString();
+      store.changed();
+    }
+  });
+  function exportBackup() {
+    download(
+      "replay-lab-backup-" + new Date().toISOString().slice(0, 10) + ".json",
+      JSON.stringify(
+        {
+          replayLabBackup: 1,
+          exportedAt: new Date().toISOString(),
+          workspace: ws(),
+        },
+        null,
+        2,
+      ),
+    );
+    toast(
+      "Сессии и журнал экспортированы. Рыночные архивы хранятся отдельно в вашем аккаунте.",
+    );
+  }
+  $("backupExport").onclick = exportBackup;
+  $("saveStatus").tabIndex = 0;
+  $("saveStatus").setAttribute("role", "button");
+  async function resolveCloud() {
+    if (!store.conflict) {
+      if (store.dirty) await store.flush();
+      return;
+    }
+    exportBackup();
+    if (
+      !confirm(
+        "Локальная копия скачана. Загрузить облачную версию? Несохранённые изменения останутся в скачанном архиве, который можно импортировать.",
+      )
+    )
+      return;
+    await store.useRemote();
+    const s = active();
+    fillStrategies();
+    if (s) await activate(s, false, true);
+    else $("setupOpen").click();
+    if (ws().settings.chartPreferences)
+      setPreferences(ws().settings.chartPreferences);
+    renderView();
+    updateHeader();
+  }
+  $("saveStatus").onclick = safe(resolveCloud);
+  $("saveStatus").onkeydown = (e) => {
+    if (["Enter", " "].includes(e.key)) {
+      e.preventDefault();
+      safe(resolveCloud)();
+    }
+  };
+  $("backupImport").onclick = () => $("backupFile").click();
+  $("backupFile").onchange = safe(async () => {
+    const file = $("backupFile").files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) throw Error("Резервная копия больше 5 МБ");
+    const data = JSON.parse(await file.text());
+    if (data.replayLabBackup !== 1)
+      throw Error("Нужна резервная копия Replay Lab");
+    const w = validateWorkspace(data.workspace);
+    if (
+      ws().sessions.length +
+        w.sessions.filter(
+          (s: any) => !ws().sessions.some((x: any) => x.id === s.id),
+        ).length >
+        1000 ||
+      strategies().length +
+        w.playbooks.filter(
+          (p: any) => !strategies().some((x: any) => x.id === p.id),
+        ).length >
+        100
+    )
+      throw Error("Архив превысит допустимое количество сессий или стратегий");
+    if (
+      !confirm(
+        "Добавить сессии и стратегии из резервной копии? Существующие записи с тем же ID будут сохранены.",
+      )
+    )
+      return;
+    for (const s of w.sessions)
+      if (!ws().sessions.some((x: any) => x.id === s.id)) ws().sessions.push(s);
+    for (const p of w.playbooks)
+      if (!strategies().some((x: any) => x.id === p.id)) ws().playbooks.push(p);
+    ws().settings.datasets = {
+      ...w.settings?.datasets,
+      ...ws().settings.datasets,
+    };
+    changed();
+    fillStrategies();
+    renderView();
+    toast("Архив добавлен");
+    $("backupFile").value = "";
+  });
+  window.addEventListener("online", () => store.flush());
+  window.addEventListener("pagehide", () => {
+    store.cache();
+    if (store.dirty && !store.conflict)
+      fetch("/api/workspace", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(store.value),
+        keepalive: true,
+      }).catch(() => {});
+  });
+  return {
+    store,
+    active,
+    allTrades,
+    options,
+    createSession,
+    saveReplay,
+    updateHeader,
+    navigate,
+    async load() {
+      await store.load();
+      loaded = true;
+      fillStrategies();
+      if (ws().settings.chartPreferences)
+        setPreferences(ws().settings.chartPreferences);
+      navigate(
+        ["sessions", "journal", "analytics"].includes(ws().settings.view)
+          ? ws().settings.view
+          : "sessions",
+      );
+      return active();
+    },
+    resumed(id: any) {
+      ws().settings.activeSessionId = id;
+      changed();
+      fillStrategies();
+      updateHeader();
+    },
+    saveDrawings(drawings: any) {
+      if (!loaded || !active()) return;
+      active().drawings = drawings;
+      store.changed();
+    },
+    preferencesChanged(p: any) {
+      if (!loaded) return;
+      ws().settings.chartPreferences = structuredClone(p);
+      store.changed();
+    },
+    registerDataset(id: any, d: any, symbol: any) {
+      ws().settings.datasets ||= {};
+      ws().settings.datasets[id] = {
+        id,
+        symbol,
+        name: d.name,
+        source: d.source,
+        from: d.days[0],
+        to: d.days.at(-1),
+        count: d.bars.length,
+      };
+      if (loaded) store.changed();
+    },
+    async saveDataset(d: any, symbol: any) {
+      const id = uid();
+      await store.uploadDataset({
+        id,
+        symbol,
+        name: d.name,
+        source: d.source,
+        metadata: d.metadata || {},
+        bars: d.bars,
+      });
+      d.id = id;
+      this.registerDataset(id, d, symbol);
+      return id;
+    },
+    async readDataset(id: any, range: any) {
+      return range
+        ? store.datasetRange(id, range.from, range.to)
+        : store.dataset(id);
+    },
+    registerArchive(d: any) {
+      ws().settings.datasets ||= {};
+      const entry = {
+        id: d.id,
+        symbol: d.symbol,
+        name: d.name,
+        source: d.source,
+        kind: "archive",
+        months: d.months || [],
+        from: dayKey(d.firstTime),
+        to: dayKey(d.lastTime),
+        count: d.count,
+      };
+      if (
+        JSON.stringify(ws().settings.datasets[d.id]) !== JSON.stringify(entry)
+      ) {
+        ws().settings.datasets[d.id] = entry;
+        store.changed();
+        if (view === "data") renderData();
+      }
+    },
+    refresh() {
+      if (view === "journal") renderJournal();
+      if (view === "sessions") renderSessions();
+    },
+    reviewLatest() {
+      const s = active(),
+        t = s?.snapshot?.trades.at(-1);
+      if (t) openTrade(s.id, t.id);
+      else toast("Сначала закройте сделку");
+    },
+  };
+}

@@ -1,6 +1,6 @@
 // Production guard: exercise the actual browser storage/sync module without a browser.
 import assert from 'node:assert/strict';
-import { WorkspaceStore, blankWorkspace, escapeHTML } from '../dist/workspace-store.mjs';
+import { WorkspaceStore, blankWorkspace, escapeHTML } from '../frontend/src/replay/workspace-store.ts';
 
 const CACHE = 'replay-lab-workspace-v1';
 const savedGlobals = { fetch: globalThis.fetch, setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout, localStorage: Object.getOwnPropertyDescriptor(globalThis, 'localStorage') };

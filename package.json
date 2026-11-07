@@ -1,14 +1,44 @@
 {
   "name": "replay-lab",
+  "version": "2.0.0",
   "private": true,
-  "type": "module",
+  "workspaces": [
+    "backend",
+    "frontend",
+    "packages/orderflow"
+  ],
   "scripts": {
-    "build": "node scripts/build-product.mjs",
-    "test": "node --test tests/*.test.mjs && node scripts/build-product.mjs && node scripts/verify-product.mjs",
-    "dev": "node --watch scripts/local-server.mjs",
-    "start": "node scripts/local-server.mjs"
+    "dev": "concurrently -k -n backend,frontend \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:backend": "npm run dev --workspace backend",
+    "dev:frontend": "npm run dev --workspace frontend",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "npm run build --workspace backend",
+    "build:frontend": "npm run build --workspace frontend",
+    "start": "concurrently -k -n backend,frontend \"npm:start:backend\" \"npm:start:frontend\"",
+    "start:backend": "npm run start --workspace backend",
+    "start:frontend": "npm run start --workspace frontend",
+    "typecheck": "npm run build:orderflow && npm run typecheck --workspaces",
+    "test": "npm run build:backend && node --import tsx --test tests/*.test.mjs",
+    "test:integration": "npm run test:integration --workspace backend",
+    "test:browser": "playwright test",
+    "migration:run": "npm run migration:run --workspace backend",
+    "import:sqlite": "npm run import:sqlite --workspace backend --",
+    "dev:api": "npm run dev:backend",
+    "dev:web": "npm run dev:frontend",
+    "build:api": "npm run build:backend",
+    "build:web": "npm run build:frontend",
+    "start:api": "npm run start:backend",
+    "start:web": "npm run start:frontend",
+    "build:orderflow": "npm run build --workspace @replay-lab/orderflow"
   },
   "engines": {
     "node": ">=24"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/pg": "8.23.1",
+    "concurrently": "10.0.6",
+    "prettier": "3.9.10",
+    "tsx": "4.23.15"
   }
 }

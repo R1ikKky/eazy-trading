@@ -75,7 +75,7 @@ export function createProduct({toast,activate,capture,getPreferences,setPreferen
   if(!confirm('Добавить сессии и стратегии из резервной копии? Существующие записи с тем же ID будут сохранены.'))return;for(const s of w.sessions)if(!ws().sessions.some(x=>x.id===s.id))ws().sessions.push(s);for(const p of w.playbooks)if(!strategies().some(x=>x.id===p.id))ws().playbooks.push(p);ws().settings.datasets={...w.settings?.datasets,...ws().settings.datasets};changed();fillStrategies();renderView();toast('Архив добавлен');$('backupFile').value='';});
  window.addEventListener('online',()=>store.flush());window.addEventListener('pagehide',()=>{store.cache();if(store.dirty&&!store.conflict)fetch('/api/workspace',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(store.value),keepalive:true}).catch(()=>{});});
  return {store,active,allTrades,options,createSession,saveReplay,updateHeader,navigate,
- async load(){await store.load();loaded=true;fillStrategies();if(ws().settings.chartPreferences)setPreferences(ws().settings.chartPreferences);navigate(ws().settings.view&&ws().settings.view!=='replay'?ws().settings.view:'sessions');return active();},
+ async load(){await store.load();loaded=true;fillStrategies();if(ws().settings.chartPreferences)setPreferences(ws().settings.chartPreferences);navigate(['sessions','journal','analytics'].includes(ws().settings.view)?ws().settings.view:'sessions');return active();},
   resumed(id){ws().settings.activeSessionId=id;changed();fillStrategies();updateHeader();},
   saveDrawings(drawings){if(!loaded||!active())return;active().drawings=drawings;store.changed();},
   preferencesChanged(p){if(!loaded)return;ws().settings.chartPreferences=structuredClone(p);store.changed();},

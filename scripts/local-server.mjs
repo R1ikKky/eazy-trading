@@ -59,7 +59,7 @@ export async function createLocalStorage(dataDir = resolve(root, '.local-data'))
   return { env, close: () => database.close() };
 }
 
-export async function startLocalServer({ port = 3000, dataDir } = {}) {
+export async function startLocalServer({ port = 3000, host = '127.0.0.1', dataDir } = {}) {
   const storage = await createLocalStorage(dataDir);
   const { env } = storage;
   const server = createServer(async (incoming, outgoing) => {
@@ -100,12 +100,12 @@ export async function startLocalServer({ port = 3000, dataDir } = {}) {
       outgoing.end();
     }
   });
-  try { await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', resolve); }); }
+  try { await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, host, resolve); }); }
   catch (error) { storage.close(); throw error; }
   return { url: `http://127.0.0.1:${server.address().port}`, close: () => new Promise((resolve, reject) => server.close(error => { storage.close(); error ? reject(error) : resolve(); })) };
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const server = await startLocalServer({ port: Number(process.env.PORT || 3000) });
+  const server = await startLocalServer({ port: Number(process.env.PORT || 3000), host: process.env.HOST || '127.0.0.1' });
   console.log(`Replay Lab: ${server.url}\nДанные: ${resolve(root, '.local-data')}\nИзменения интерфейса доступны после обновления страницы.`);
   for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, async () => { await server.close(); process.exit(0); });
 }

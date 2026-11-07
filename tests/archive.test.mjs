@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {importArchive,readArchive,easternTimestamp} from '../dist/archive.mjs';
-import {parseCSV} from '../dist/engine.mjs';
+import {importArchive,readArchive,easternTimestamp} from '../frontend/src/replay/archive.ts';
+import {parseCSV} from '../frontend/src/replay/engine.ts';
 const csv=lines=>new Blob(['time,open,high,low,close,volume,contract\n'+lines.join('\n')]);
 const row=t=>[t,100,101,99,100,1,'NQH24'].join(',');
 test('streamed CSV exceeds old150k cap with bounded month parts and sequential uploads',async()=>{

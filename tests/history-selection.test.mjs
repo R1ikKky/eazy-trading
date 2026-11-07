@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {curatedArchives} from '../dist/curated-data.mjs';
-import {selectHistory,historyWindows,selectReplayBars,selectHistories,commonHistoryWindows} from '../dist/history-selection.mjs';
-import {readArchive} from '../dist/archive.mjs';
-import {dayKey,Replay} from '../dist/engine.mjs';
+import {curatedArchives} from '../frontend/src/replay/curated-data.ts';
+import {selectHistory,historyWindows,selectReplayBars,selectHistories,commonHistoryWindows} from '../frontend/src/replay/history-selection.ts';
+import {readArchive} from '../frontend/src/replay/archive.ts';
+import {dayKey,Replay} from '../frontend/src/replay/engine.ts';
 
 const records=Object.fromEntries(curatedArchives.map(a=>[a.id,{id:a.id,symbol:a.symbol,kind:a.kind,source:a.source,from:dayKey(a.firstTime),to:dayKey(a.lastTime)}]));
 test('paired dates select both actual series and use their shared available periods',()=>{

@@ -9,3 +9,13 @@ __pycache__/
 .env.*
 !.env.example
 *.log
+
+build/
+.next/
+*.tsbuildinfo
+playwright-report/
+test-results/
+
+backend/dist/
+
+packages/orderflow/dist/

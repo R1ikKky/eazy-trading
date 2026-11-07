@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyzeTrades, filterTrades, csvTrades } from '../dist/analytics.mjs';
+import { analyzeTrades, filterTrades, csvTrades } from '../frontend/src/replay/analytics.ts';
 
 const timestamp = iso => Date.parse(iso) / 1000;
 const near = (actual, expected, label = '') => assert.ok(

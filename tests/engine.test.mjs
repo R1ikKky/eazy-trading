@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {Replay,parseCSV} from '../dist/engine.mjs';
+import {Replay,parseCSV} from '../frontend/src/replay/engine.ts';
 const start=Date.UTC(2024,0,2,14,30)/1000;
 const history=rows=>rows.map((r,i)=>({time:start+i*60,open:r[0],high:r[1],low:r[2],close:r[3],volume:100,...(r[4]?{contract:r[4]}:{})}));
 const config={qty:1,stop:2,target:4,fee:0,slip:0};

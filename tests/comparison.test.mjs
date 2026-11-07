@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createComparison} from '../dist/terminal.mjs';
-import {defaults} from '../dist/settings-model.mjs';
+import {createComparison} from '../frontend/src/replay/terminal.ts';
+import {defaults} from '../frontend/src/replay/settings-model.ts';
 
 function fixture({past=0}={}){
  const oldDocument=globalThis.document,oldWindow=globalThis.window;
@@ -61,5 +61,21 @@ test('linked crosshairs use each instrument price and clear when a future candle
   f.secondary.emitCrosshair({time:f.start,point:{x:1,y:1}});assert.equal(f.primary.crosshair.price,20001);
   f.primary.emitCrosshair({time:f.start+60,point:{x:1,y:1}});assert.equal(f.secondary.crosshair,null);
   f.secondary.emitCrosshair({});assert.equal(f.primary.crosshair,null);
+ }finally{f.restore();}
+});
+
+test('linked crosshairs wait for price and time scales after mounting a pane',async()=>{
+ const f=fixture();try{
+  await f.open();
+  f.secondary.series.priceToCoordinate=()=>null;
+  f.primary.emitCrosshair({time:f.start,point:{x:1,y:1}});
+  assert.equal(f.secondary.crosshair,null);
+  f.secondary.series.priceToCoordinate=()=>100;
+  f.secondary.timeScale().timeToCoordinate=()=>null;
+  f.primary.emitCrosshair({time:f.start,point:{x:1,y:1}});
+  assert.equal(f.secondary.crosshair,null);
+  f.secondary.timeScale().timeToCoordinate=()=>50;
+  f.primary.emitCrosshair({time:f.start,point:{x:1,y:1}});
+  assert.equal(f.secondary.crosshair.price,100);
  }finally{f.restore();}
 });

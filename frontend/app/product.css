@@ -1,0 +1,3807 @@
+/* Replay Lab workspace: one deliberate visual system for replay and review. */
+:root {
+  --app-bg: #111017;
+  --surface: #191820;
+  --surface-raised: #201f29;
+  --surface-soft: #15141c;
+  --input-bg: #14131b;
+  --text: #eeeef6;
+  --text-muted: #9795ac;
+  --text-faint: #68667e;
+  --border: #2b2938;
+  --border-strong: #3a364d;
+  --accent: #a18aff;
+  --accent-fill: #8b73ee;
+  --accent-soft: #8b73ee19;
+  --green: #50d6ac;
+  --red: #fa8797;
+  --lime: #a18aff;
+  --sidebar-width: 208px;
+  --radius: 12px;
+  --shadow: 0 12px 32px #0000001a;
+  background: var(--app-bg);
+  color: var(--text);
+  color-scheme: dark;
+  font-size: 14px;
+}
+:root[data-theme="light"] {
+  --app-bg: #f5f5f9;
+  --surface: #ffffff;
+  --surface-raised: #f8f7fc;
+  --surface-soft: #f2f1f7;
+  --input-bg: #fcfbff;
+  --text: #262338;
+  --text-muted: #79758e;
+  --text-faint: #a09bad;
+  --border: #e5e2ee;
+  --border-strong: #d2cde2;
+  --accent: #7657d9;
+  --accent-fill: #8262e6;
+  --accent-soft: #8262e610;
+  --green: #139a70;
+  --red: #d6526b;
+  --lime: #7657d9;
+  --shadow: 0 8px 24px #30205807;
+  color-scheme: light;
+}
+body.product-app {
+  background: var(--app-bg);
+  color: var(--text);
+  font-family:
+    Manrope,
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  letter-spacing: -0.12px;
+  min-width: 320px;
+  line-height: 1.45;
+}
+.product-app [hidden] {
+  display: none !important;
+}
+.product-app button,
+.product-app input,
+.product-app select,
+.product-app textarea {
+  font-family: inherit;
+}
+.product-app button:focus-visible,
+.product-app a:focus-visible,
+.product-app summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.product-app input:focus,
+.product-app select:focus,
+.product-app textarea:focus {
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent);
+  outline-offset: 0;
+}
+.product-app :is(input, select, textarea) {
+  background: var(--input-bg);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  border-radius: 7px;
+  padding: 10px 11px;
+  font-size: 13px;
+  min-height: 39px;
+}
+.product-app :is(input, textarea)::placeholder {
+  color: var(--text-faint);
+}
+.product-app input[type="checkbox"] {
+  min-height: 0;
+  accent-color: var(--accent-fill);
+}
+.product-app input[type="range"] {
+  accent-color: var(--accent-fill);
+}
+.product-app input[type="number"],
+.product-app .mono {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  letter-spacing: -0.3px;
+}
+.product-app textarea {
+  width: 100%;
+  resize: vertical;
+  line-height: 1.6;
+  min-height: 75px;
+}
+.product-app label {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 7px;
+}
+.product-app label span {
+  color: var(--text-faint);
+  font-size: 10px;
+}
+.product-app a:hover {
+  color: var(--accent);
+}
+.product-app h1,
+.product-app h2,
+.product-app h3 {
+  color: var(--text);
+}
+.product-app h1 {
+  font-size: 23px;
+  letter-spacing: -0.85px;
+  font-weight: 750;
+  line-height: 1.3;
+}
+.product-app h2 {
+  font-size: 14px;
+  letter-spacing: -0.35px;
+  font-weight: 700;
+}
+.product-app h3 {
+  font-size: 13px;
+  letter-spacing: -0.25px;
+}
+.product-app .eyebrow {
+  font-size: 9px;
+  letter-spacing: 1.65px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 7px;
+  line-height: 1.4;
+}
+.product-app .muted {
+  color: var(--text-muted);
+}
+.product-app .button {
+  min-height: 37px;
+  padding: 9px 13px;
+  font-size: 11px;
+  font-weight: 650;
+  gap: 7px;
+  border-radius: 7px;
+  letter-spacing: 0;
+  transition:
+    background 0.15s,
+    transform 0.15s,
+    border-color 0.15s;
+}
+.product-app .button.primary {
+  background: var(--accent-fill);
+  border: 1px solid transparent;
+  color: white;
+  box-shadow: 0 2px 10px #8364e627;
+}
+.product-app .button.primary:hover {
+  background: #a18aff;
+  transform: translateY(-1px);
+}
+.product-app .button.secondary {
+  background: var(--surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border-strong);
+}
+.product-app .button.secondary:hover {
+  background: var(--surface-raised);
+  color: var(--text);
+  border-color: var(--accent);
+}
+.product-app .button.compact {
+  min-height: 32px;
+  padding: 7px 11px;
+  font-size: 11px;
+}
+.product-app .text-button {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 550;
+  gap: 8px;
+}
+.product-app .text-button:hover {
+  color: var(--accent);
+}
+.product-app .icon-button {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 7px;
+  min-width: 30px;
+  min-height: 30px;
+  font-size: 16px;
+}
+.product-app .icon-button:hover {
+  color: var(--text);
+  background: var(--surface-raised);
+  border-color: var(--border);
+}
+.product-app button:disabled {
+  opacity: 0.4;
+  transform: none;
+  cursor: not-allowed;
+}
+/* Navigation and persistent workspace context. */
+.product-app .app-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  background: var(--surface-soft);
+  border-right: 1px solid var(--border);
+  padding: 24px 13px 18px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+}
+.product-app .brand {
+  gap: 9px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.9px;
+  padding: 0 9px;
+  color: var(--text);
+  min-height: 40px;
+}
+.product-app .brand > span:last-child {
+  display: block;
+  line-height: 1.05;
+}
+.product-app .brand-light {
+  font-weight: 450;
+  color: var(--text-muted);
+}
+.product-app .brand small {
+  display: block;
+  letter-spacing: 1.1px;
+  font-size: 7.5px;
+  font-weight: 600;
+  color: var(--text-faint);
+  margin-top: 7px;
+}
+.product-app .brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: linear-gradient(150deg, #ac90ff, #7b5cdc);
+  margin: 0;
+  box-shadow: 0 3px 14px #8663df2b;
+  color: white;
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+.product-app .brand-mark svg {
+  width: 21px;
+  height: 21px;
+  fill: white;
+}
+.product-app .sidebar-caption {
+  color: var(--text-faint);
+  font-size: 8px;
+  letter-spacing: 1.45px;
+  font-weight: 650;
+  margin: 35px 12px 12px;
+}
+.product-app .app-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.product-app .nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  min-height: 43px;
+  color: var(--text-muted);
+  text-align: left;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.product-app .nav-item svg,
+.product-app .sidebar-action svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.product-app .nav-item:hover {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+.product-app .nav-item.active,
+.product-app .nav-item[aria-current="page"] {
+  background: var(--accent-soft);
+  border-color: #8b73ee29;
+  color: var(--accent);
+}
+.product-app .nav-live-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin-left: auto;
+}
+.product-app .sidebar-footer {
+  margin-top: auto;
+  padding-top: 25px;
+}
+
+.product-app .sidebar-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  width: 100%;
+  font-size: 9px;
+  color: var(--text-muted);
+  text-align: left;
+  border-radius: 6px;
+}
+.product-app .sidebar-action svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-faint);
+}
+.product-app .sidebar-action:hover {
+  background: var(--surface-raised);
+  color: var(--accent);
+}
+.product-app .sidebar-version {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 7px;
+  letter-spacing: 1px;
+  color: var(--text-faint);
+  margin: 18px 10px 0;
+}
+.product-app .sidebar-version > span:last-child {
+  margin-left: auto;
+  color: var(--text-faint);
+}
+.product-app .status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+  display: inline-block;
+  flex: none;
+  box-shadow: 0 0 6px #50d6ac25;
+}
+.product-app .app-shell {
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+}
+.product-app .product-topbar {
+  height: 66px;
+  padding: 0 28px;
+  background: var(--surface-soft);
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+  position: relative;
+}
+.product-app .topbar-context {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  min-width: 0;
+  font-size: 11px;
+}
+.product-app .topbar-context .workspace-name {
+  color: var(--text-faint);
+  font-size: 10px;
+  font-weight: 550;
+}
+.product-app .context-slash {
+  color: var(--text-faint);
+  font-size: 12px;
+}
+.product-app #activeSessionName {
+  font-size: 11px;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 320px;
+}
+.product-app .top-actions {
+  gap: 12px;
+  min-width: 0;
+}
+.product-app .save-status {
+  font-size: 9px;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.product-app .session-wallet {
+  border-left: 1px solid var(--border);
+  padding-left: 18px;
+  margin-left: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: right;
+  min-width: 108px;
+}
+.product-app .session-wallet > span {
+  font-size: 8px;
+  color: var(--text-faint);
+}
+.product-app .session-wallet > strong {
+  font-size: 11px;
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.product-app .top-actions .icon-button {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  width: 30px;
+  height: 30px;
+  font-size: 14px;
+  color: var(--text-muted);
+  min-width: 30px;
+  min-height: 30px;
+}
+.product-app .avatar {
+  width: 28px;
+  height: 28px;
+  border-color: #8b73ee35;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 10px;
+}
+/* Main canvas. */
+.product-app .product-main {
+  padding: 24px 28px 22px;
+  max-width: 1840px;
+  margin: 0 auto;
+}
+.product-app .app-view {
+  min-width: 0;
+}
+.product-app .page-heading,
+.product-app .view-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 23px;
+}
+.product-app .heading-description {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 8px 0 0;
+  line-height: 1.6;
+}
+.product-app .title-dot {
+  color: var(--accent);
+}
+.product-app .heading-actions {
+  gap: 8px;
+  align-items: center;
+}
+.product-app .heading-actions .button > span {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
+}
+.product-app .session-strip {
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+  margin-bottom: 15px;
+  min-height: 36px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.product-app .session-period {
+  gap: 9px;
+}
+.product-app .session-period > span:first-child {
+  font-size: 13px;
+  color: var(--text-faint);
+}
+.product-app .session-zone {
+  font-size: 9px;
+  letter-spacing: 0.2px;
+}
+.product-app .vertical-line {
+  background: var(--border-strong);
+  height: 12px;
+  margin: 0 4px;
+}
+.product-app .demo-badge.real {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--green);
+  background: #4ed4a80a;
+  border: 1px solid #4ed4a828;
+  border-radius: 5px;
+  padding: 5px 8px;
+}
+.product-app .stats-grid {
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.product-app .stat {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  gap: 8px;
+  min-height: 104px;
+  overflow: hidden;
+}
+.product-app .stat:first-child {
+  background: linear-gradient(120deg, var(--surface), var(--accent-soft));
+  border-color: #8b73ee3a;
+}
+.product-app .stat:first-child:after {
+  content: "";
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  right: -28px;
+  bottom: -62px;
+  border: 20px solid #8b73ee0d;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.product-app .stat-title {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  gap: 7px;
+}
+.product-app .small-tag {
+  font-size: 7px;
+  padding: 2px 4px;
+  background: var(--surface-raised);
+  color: var(--text-faint);
+  border-radius: 3px;
+}
+.product-app .stat strong {
+  font-size: 26px;
+  line-height: 1.2;
+  letter-spacing: -1px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.product-app .stat-note {
+  font-size: 8px;
+  color: var(--text-faint);
+}
+.product-app .workspace-grid {
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 16px;
+  align-items: start;
+}
+.product-app .chart-card,
+.product-app .order-card,
+.product-app .journal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.product-app .chart-toolbar {
+  padding: 12px 15px;
+  min-height: 54px;
+  border-color: var(--border);
+  gap: 12px;
+  background: var(--surface);
+}
+.product-app .symbol-group {
+  gap: 8px;
+  min-width: 0;
+}
+.product-app .symbol-group select {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 750;
+  padding: 0 12px 0 0;
+  border: 0;
+  min-height: 25px;
+  background: transparent;
+  width: 56px;
+}
+.product-app .symbol-group > span {
+  font-size: 9px;
+  color: var(--text-faint);
+}
+.product-app .symbol-group .exchange {
+  color: var(--text-faint);
+  background: var(--surface-raised);
+  font-size: 8px;
+  padding: 3px 5px;
+  letter-spacing: 0.3px;
+}
+.product-app .chart-tools {
+  gap: 7px;
+}
+.product-app .timeframes {
+  gap: 1px;
+}
+.product-app .timeframes button {
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 5px 7px;
+  min-height: 28px;
+  font-weight: 550;
+  border-radius: 4px;
+}
+.product-app .timeframes .selected {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.product-app .settings-button {
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 6px 8px;
+  min-height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+.product-app .settings-button:hover,
+.product-app .settings-button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: #8b73ee35;
+}
+.product-app .chart-tools .icon-button {
+  font-size: 14px;
+  min-width: 27px;
+  min-height: 27px;
+}
+.product-app .drawing-toolbar {
+  padding: 7px 11px;
+  gap: 3px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-soft);
+  scrollbar-width: none;
+}
+.product-app .drawing-toolbar button {
+  font-size: 13px;
+  min-width: 29px;
+  min-height: 29px;
+  color: var(--text-muted);
+  padding: 5px 7px;
+  border-radius: 4px;
+}
+.product-app .drawing-toolbar button span {
+  font-size: 9px;
+}
+.product-app .drawing-toolbar button:hover {
+  color: var(--text);
+  background: var(--surface-raised);
+}
+.product-app .drawing-toolbar .selected {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.product-app .drawing-divider {
+  background: var(--border);
+  height: 17px;
+  margin: 0 3px;
+}
+.product-app .drawing-count {
+  font-size: 9px;
+  color: var(--text-faint);
+}
+.product-app .drawing-hint {
+  padding: 7px 16px 0;
+  font-size: 8px;
+  color: var(--text-faint);
+}
+.product-app .chart-legend {
+  min-height: 40px;
+  padding: 9px 16px;
+  gap: 12px;
+  color: var(--text-muted);
+  background: var(--surface);
+  font-size: 9px;
+}
+.product-app .chart-legend strong {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+}
+.product-app .chart-legend #ohlc {
+  font-size: 8px;
+  color: var(--text-muted);
+}
+.product-app .chart-status {
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--text-faint);
+}
+.product-app .chart-container {
+  height: clamp(340px, 42vh, 510px);
+  min-height: 340px;
+  background: var(--surface);
+  border: 0;
+}
+.product-app .replay-panel {
+  padding: 12px 15px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-soft);
+}
+.product-app .replay-controls {
+  gap: 8px;
+}
+.product-app .play-button {
+  background: var(--accent-fill);
+  color: #fff;
+  border-radius: 6px;
+  min-width: 88px;
+  min-height: 34px;
+  padding: 8px 14px;
+  font-size: 11px;
+  gap: 8px;
+}
+.product-app .play-button:hover {
+  background: #a18aff;
+}
+.product-app .play-button #playIcon {
+  color: #fff;
+  font-size: 9px;
+}
+.product-app .step-button {
+  color: var(--text-muted);
+  font-size: 13px;
+  letter-spacing: -2px;
+}
+.product-app .replay-controls select {
+  color: var(--text-muted);
+  background: var(--surface);
+  font-size: 10px;
+  border: 1px solid var(--border);
+  padding: 5px 7px;
+  min-height: 28px;
+}
+.product-app .replay-time {
+  gap: 4px;
+}
+.product-app .replay-time strong {
+  font-size: 10px;
+  color: var(--text);
+  font-weight: 500;
+}
+.product-app .replay-time > span {
+  font-size: 8px;
+  color: var(--text-faint);
+}
+.product-app .progress-track {
+  height: 2px;
+  background: var(--border);
+}
+.product-app .progress-track > div {
+  background: var(--accent);
+  height: 2px;
+}
+.product-app .chart-footer {
+  padding: 9px 16px;
+  font-size: 8px;
+  line-height: 1.5;
+  color: var(--text-faint);
+  background: var(--surface-soft);
+}
+.product-app .kbd-gap {
+  margin-left: 14px;
+}
+/* Execution terminal. */
+.product-app .order-card {
+  padding: 18px 17px;
+  min-height: 0;
+}
+.product-app .panel-title {
+  gap: 8px;
+}
+.product-app .panel-title h2 {
+  font-size: 13px;
+}
+.product-app .market-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 7px;
+  letter-spacing: 0.8px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 4px 6px;
+  border: 1px solid #8b73ee20;
+  border-radius: 4px;
+}
+.product-app .entry-note {
+  font-size: 9px;
+  color: var(--text-faint);
+  line-height: 1.6;
+  margin: 8px 0 15px;
+}
+.product-app #orderKind {
+  font-size: 11px;
+  margin-bottom: 16px;
+  min-height: 35px;
+  padding: 8px 10px;
+}
+.product-app .entry-price-field {
+  margin-bottom: 15px;
+}
+.product-app .entry-price-field input {
+  width: 100%;
+}
+.product-app .order-fields > label {
+  margin-bottom: 7px;
+}
+.product-app .stepper {
+  border-color: var(--border-strong);
+  border-radius: 7px;
+  margin-bottom: 14px;
+  height: 37px;
+}
+.product-app .stepper button {
+  background: var(--surface-raised);
+  font-size: 18px;
+  width: 37px;
+  color: var(--text-muted);
+}
+.product-app .stepper button:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.product-app .stepper input {
+  font-size: 13px;
+  width: calc(100% - 74px);
+  padding: 7px 0;
+  background: var(--input-bg);
+  border: 0;
+  min-height: 0;
+  border-radius: 0;
+}
+.product-app .field-pair {
+  gap: 10px;
+}
+.product-app .field-pair label {
+  font-size: 11px;
+}
+.product-app .field-pair input {
+  min-height: 37px;
+  font-size: 12px;
+  padding: 9px 10px;
+}
+.product-app .risk-sizing {
+  margin-top: 15px;
+}
+.product-app .risk-sizing-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 7px;
+}
+.product-app .risk-sizing-row input {
+  padding: 7px 10px;
+  min-height: 33px;
+  font-size: 11px;
+}
+.product-app .risk-sizing-row .button {
+  font-size: 9px;
+  padding: 6px 9px;
+  min-height: 33px;
+}
+.product-app .risk-summary {
+  border-color: var(--border);
+  border-style: solid;
+  margin: 15px 0;
+  padding: 12px 0;
+  gap: 8px;
+  font-size: 10px;
+}
+.product-app .risk-summary span {
+  color: var(--text-muted);
+}
+.product-app .risk-summary strong {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+}
+.product-app .trade-buttons {
+  gap: 8px;
+}
+.product-app .trade {
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  gap: 2px;
+  min-height: 51px;
+}
+.product-app .trade span {
+  font-size: 8px;
+  letter-spacing: 0.1px;
+}
+.product-app .long {
+  background: #45cea517;
+  border: 1px solid #45cea533;
+  color: var(--green);
+}
+.product-app .long:hover {
+  background: #45cea528;
+  border-color: #45cea561;
+}
+.product-app .short {
+  background: #f0849116;
+  border: 1px solid #f0849133;
+  color: var(--red);
+}
+.product-app .short:hover {
+  background: #f0849128;
+  border-color: #f0849161;
+}
+.product-app .costs {
+  margin: 13px 0 16px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.product-app .costs summary {
+  font-size: 9px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.product-app .costs label {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 11px;
+}
+.product-app .costs input {
+  font-size: 11px;
+  min-height: 31px;
+  padding: 7px 9px;
+}
+.product-app .costs p {
+  font-size: 8px;
+  color: var(--text-faint);
+  line-height: 1.5;
+}
+.product-app .position-box {
+  padding: 16px 12px;
+  min-height: 96px;
+  background: var(--surface-soft);
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+  gap: 6px;
+}
+.product-app .position-icon {
+  font-size: 21px;
+  color: var(--text-faint);
+}
+.product-app .position-box > strong {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.product-app .position-box p {
+  font-size: 8px;
+  color: var(--text-faint);
+  line-height: 1.6;
+}
+.product-app .position-box.active {
+  background: var(--accent-soft);
+  border: 1px solid #8b73ee35;
+  align-items: stretch;
+}
+.product-app .position-box .pos-row {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.product-app .position-box .pos-pnl {
+  font-size: 23px;
+  font-weight: 500;
+  padding-top: 2px;
+}
+.product-app .pos-actions {
+  gap: 6px;
+  margin-top: 7px;
+}
+.product-app .pos-actions button {
+  padding: 7px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 9px;
+  border-radius: 5px;
+}
+.product-app .pos-actions button:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.product-app .order-footnote {
+  font-size: 8px;
+  line-height: 1.6;
+  color: var(--text-faint);
+  margin: 12px 0 0;
+}
+.product-app .session-notepad {
+  margin-top: 17px;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 20px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.product-app .session-notepad > div {
+  position: relative;
+  padding-left: 28px;
+}
+.product-app .session-notepad h2 {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.product-app .session-notepad p {
+  font-size: 8px;
+  color: var(--text-faint);
+  margin: 6px 0 0;
+  line-height: 1.6;
+}
+.product-app .notepad-icon {
+  position: absolute;
+  top: 1px;
+  left: 0;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--accent);
+}
+.product-app #sessionNotes {
+  min-height: 64px;
+  max-height: 280px;
+  font-size: 11px;
+  background: var(--surface-soft);
+  border-color: var(--border);
+  padding: 11px 13px;
+  resize: vertical;
+}
+/* Journal, archives, reports, and strategy modules. */
+.product-app .journal-card {
+  margin-top: 16px;
+}
+.product-app .journal-header {
+  padding: 19px 21px;
+  gap: 18px;
+}
+.product-app .journal-header h2 {
+  font-size: 13px;
+}
+.product-app .journal-header h2 span {
+  font-size: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 3px 6px;
+}
+.product-app .journal-header p {
+  font-size: 9px;
+  color: var(--text-faint);
+  margin-top: 6px;
+}
+.product-app th {
+  font-size: 9px;
+  color: var(--text-muted);
+  background: var(--surface-soft);
+  border-color: var(--border);
+  padding: 12px 19px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.product-app td {
+  font-size: 11px;
+  color: var(--text);
+  padding: 15px 19px;
+  border-color: var(--border);
+  font-variant-numeric: tabular-nums;
+}
+.product-app td small {
+  font-size: 9px;
+  color: var(--text-faint);
+}
+.product-app tbody tr {
+  transition: background 0.15s;
+}
+.product-app tbody tr:hover {
+  background: var(--accent-soft);
+}
+.product-app tr[data-trade-id],
+.product-app tr[data-trade] {
+  cursor: pointer;
+}
+.product-app .side-tag {
+  font-size: 8px;
+  padding: 4px 6px;
+  color: var(--green);
+  background: #45cea515;
+  border-radius: 4px;
+}
+.product-app .side-tag.sell {
+  background: #f0849115;
+  color: var(--red);
+}
+.product-app .positive {
+  color: var(--green) !important;
+}
+.product-app .negative {
+  color: var(--red) !important;
+}
+.product-app .empty-journal {
+  min-height: 160px;
+  padding: 35px 28px;
+  gap: 16px;
+}
+.product-app .empty-icon {
+  width: 42px;
+  height: 42px;
+  border-color: var(--border);
+  background: var(--surface-raised);
+  color: var(--accent);
+  font-size: 23px;
+  border-radius: 10px;
+}
+.product-app .empty-journal strong {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.product-app .empty-journal p {
+  font-size: 10px;
+  color: var(--text-faint);
+  line-height: 1.6;
+  max-width: 400px;
+}
+.product-app .empty-hint {
+  font-size: 8px;
+  color: var(--text-faint);
+}
+.product-app .empty-hint span {
+  color: var(--border-strong);
+}
+.product-app .journal-filters,
+.product-app .view-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 17px;
+}
+.product-app .journal-filters:empty,
+.product-app .journal-summary:empty {
+  display: none;
+}
+.product-app .journal-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.product-app .filter-control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--text-muted);
+  min-width: 135px;
+}
+.product-app .filter-control :is(input, select) {
+  min-height: 35px;
+  font-size: 11px;
+  padding: 8px 10px;
+}
+.product-app .cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.product-app .content-card,
+.product-app .section-card,
+.product-app .session-card,
+.product-app .strategy-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  min-width: 0;
+}
+.product-app .content-card h2,
+.product-app .section-card h2 {
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+.product-app .card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+.product-app .metric-card {
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.product-app .metric-card > span,
+.product-app .metric-label {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.product-app .metric-card > strong,
+.product-app .metric-value {
+  display: block;
+  font-size: 25px;
+  font-weight: 600;
+  margin-top: 7px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.product-app .metric-note {
+  font-size: 9px;
+  color: var(--text-faint);
+  margin-top: 8px;
+}
+.product-app .empty-state {
+  padding: 50px 25px;
+  border: 1px dashed var(--border-strong);
+  background: var(--surface-soft);
+  border-radius: var(--radius);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 11px;
+  color: var(--text-muted);
+}
+.product-app .empty-state h2,
+.product-app .empty-state strong {
+  font-size: 14px;
+  color: var(--text);
+}
+.product-app .empty-state p {
+  margin: 0;
+  max-width: 440px;
+  color: var(--text-faint);
+  font-size: 11px;
+  line-height: 1.75;
+}
+.product-app .empty-state .button {
+  margin-top: 7px;
+}
+.product-app .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 8px;
+  font-weight: 600;
+  padding: 4px 7px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid #8b73ee20;
+}
+.product-app .split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 18px;
+}
+.product-app .report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.product-app .page-footer {
+  font-size: 8px;
+  color: var(--text-faint);
+  line-height: 1.8;
+  margin-top: 20px;
+  gap: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 13px;
+}
+.product-app .page-footer a {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.product-app .page-footer a:hover {
+  color: var(--accent);
+}
+/* Product dialogs. Trading chart settings retain their own detailed controls. */
+.product-app dialog:not(.tv-settings):not(.tv-utility-dialog) {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  padding: 28px;
+  width: min(550px, calc(100vw - 32px));
+  box-shadow: 0 32px 110px #00000069;
+}
+.product-app dialog::backdrop {
+  background: #0b0918a8;
+  backdrop-filter: blur(5px);
+}
+.product-app .dialog-header {
+  margin-bottom: 15px;
+}
+.product-app .dialog-header h2 {
+  font-size: 20px;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
+}
+.product-app .dialog-intro {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.8;
+  margin-bottom: 19px;
+}
+.product-app .dialog-note {
+  font-size: 10px;
+  line-height: 1.8;
+  color: var(--text-muted);
+  margin: 15px 0;
+}
+.product-app .dialog-note a {
+  color: var(--accent);
+}
+.product-app .range-preview {
+  padding: 13px;
+  background: var(--accent-soft);
+  border: 1px solid #8b73ee23;
+  color: var(--text-muted);
+  font-size: 10px;
+  border-radius: 7px;
+  margin: 15px 0;
+}
+.product-app .form-error {
+  font-size: 11px;
+  color: var(--red);
+  line-height: 1.7;
+  margin: 12px 0;
+}
+.product-app .session-setup-fields {
+  margin: 18px 0;
+}
+.product-app .upload-zone {
+  border: 1px dashed var(--border-strong);
+  background: var(--surface-soft);
+  padding: 23px 15px;
+  border-radius: 9px;
+  gap: 9px;
+  margin: 18px 0;
+  color: var(--text-muted);
+}
+.product-app .upload-zone > span {
+  color: var(--text-faint);
+  font-size: 9px;
+}
+.product-app .upload-zone .upload-symbol {
+  font-size: 24px;
+  color: var(--accent);
+}
+.product-app .upload-zone input {
+  background: var(--input-bg);
+  font-size: 10px;
+  min-height: 33px;
+  color: var(--text-muted);
+}
+.product-app .format-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.product-app pre {
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 13px;
+  font-size: 9px;
+}
+.product-app .help-list {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.9;
+  padding-left: 20px;
+}
+.product-app .help-list li {
+  margin-bottom: 11px;
+}
+.product-app .contract-specs {
+  font-size: 10px;
+  gap: 11px;
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 15px;
+  border-radius: 8px;
+}
+.product-app .license {
+  font-size: 9px;
+  line-height: 1.8;
+  color: var(--text-faint);
+}
+.product-app .history-link,
+.product-app .history-key summary {
+  color: var(--accent);
+  font-size: 10px;
+}
+.product-app .history-key label {
+  font-size: 10px;
+}
+.product-app .trade-detail-dialog {
+  width: min(820px, calc(100vw - 32px)) !important;
+}
+.product-app .toast {
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 12px 45px #00000045;
+  z-index: 30;
+  bottom: 25px;
+  font-size: 11px;
+  padding: 13px 19px;
+  border-radius: 9px;
+}
+.product-app .tv-settings,
+.product-app .tv-utility-dialog {
+  font-size: 14px;
+}
+.product-app .tv-settings :is(input, select) {
+  min-height: 0;
+}
+/* Density adjusts to workspace width, with no concealed primary action. */
+@media (min-width: 1800px) {
+  :root {
+    --sidebar-width: 230px;
+  }
+  .product-app .app-sidebar {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .product-app .product-main {
+    padding: 32px 36px;
+  }
+  .product-app .workspace-grid {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 20px;
+  }
+  .product-app .chart-container {
+    height: 520px;
+  }
+  .product-app .stat {
+    padding: 19px 23px;
+    min-height: 118px;
+  }
+  .product-app .stat strong {
+    font-size: 30px;
+  }
+  .product-app .order-card {
+    padding: 22px;
+  }
+  .product-app .product-topbar {
+    padding: 0 36px;
+  }
+  .product-app .heading-description {
+    font-size: 12px;
+  }
+  .product-app h1 {
+    font-size: 27px;
+  }
+  .product-app .button {
+    font-size: 12px;
+  }
+}
+@media (max-width: 1420px) {
+  :root {
+    --sidebar-width: 184px;
+  }
+  .product-app .product-main {
+    padding: 21px 23px;
+  }
+  .product-app .product-topbar {
+    padding: 0 23px;
+  }
+  .product-app .app-sidebar {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .product-app .brand {
+    font-size: 20px;
+    gap: 8px;
+  }
+  .product-app .brand-mark {
+    width: 31px;
+    height: 31px;
+  }
+  .product-app .brand small {
+    font-size: 6.5px;
+  }
+  .product-app .nav-item {
+    font-size: 10px;
+    padding: 10px;
+    gap: 10px;
+  }
+  .product-app .workspace-grid {
+    grid-template-columns: minmax(0, 1fr) 269px;
+    gap: 14px;
+  }
+  .product-app .chart-tools {
+    gap: 4px;
+  }
+  .product-app .settings-button span {
+    display: none;
+  }
+  .product-app .symbol-group #contractName {
+    display: none;
+  }
+  .product-app .stat {
+    padding: 15px 16px;
+  }
+  .product-app .heading-actions .button {
+    font-size: 10px;
+    padding: 9px 10px;
+  }
+  .product-app .session-wallet {
+    padding-left: 13px;
+  }
+  .product-app .save-status {
+    font-size: 8px;
+  }
+  .product-app .top-actions {
+    gap: 10px;
+  }
+  .product-app .chart-legend #ohlc {
+    display: none;
+  }
+  .product-app .page-heading h1 {
+    font-size: 22px;
+  }
+  .product-app .heading-description {
+    font-size: 10px;
+  }
+}
+@media (max-width: 1150px) {
+  :root {
+    --sidebar-width: 72px;
+  }
+  .product-app .app-sidebar {
+    padding: 22px 10px 16px;
+  }
+  .product-app .brand {
+    padding: 0;
+    justify-content: center;
+  }
+  .product-app .brand > span:last-child,
+  .product-app .sidebar-caption,
+  .product-app .nav-item > span,
+  .product-app .sidebar-action,
+  .product-app .sidebar-version {
+    display: none;
+  }
+  .product-app .app-nav {
+    margin-top: 31px;
+    gap: 8px;
+  }
+  .product-app .nav-item {
+    justify-content: center;
+    width: 43px;
+    height: 43px;
+    padding: 11px;
+    align-self: center;
+  }
+  .product-app .nav-item svg {
+    width: 20px;
+    height: 20px;
+  }
+  .product-app .nav-item:hover:after,
+  .product-app .nav-item:focus-visible:after {
+    content: attr(aria-label);
+    position: absolute;
+    left: 50px;
+    top: 7px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    white-space: nowrap;
+    border-radius: 5px;
+    color: var(--text);
+    z-index: 9;
+  }
+  .product-app .product-main {
+    padding: 20px;
+  }
+  .product-app .product-topbar {
+    padding: 0 20px;
+    height: 60px;
+  }
+  .product-app .page-heading {
+    align-items: flex-start;
+  }
+  .product-app .heading-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .product-app .heading-description {
+    max-width: 350px;
+  }
+  .product-app .workspace-grid {
+    grid-template-columns: minmax(0, 1fr) 250px;
+    gap: 12px;
+  }
+  .product-app .order-card {
+    padding: 16px 14px;
+  }
+  .product-app .chart-toolbar {
+    padding: 11px 12px;
+  }
+  .product-app .timeframes button {
+    padding: 5px 6px;
+  }
+  .product-app .chart-tools {
+    gap: 3px;
+  }
+  .product-app .stat strong {
+    font-size: 24px;
+  }
+  .product-app .stat-title {
+    font-size: 9px;
+    min-height: 0;
+  }
+  .product-app .chart-container {
+    height: 370px;
+    min-height: 320px;
+  }
+  .product-app .chart-footer .kbd-gap {
+    display: none;
+  }
+  .product-app .topbar-context {
+    gap: 8px;
+  }
+  .product-app #activeSessionName {
+    max-width: 230px;
+    font-size: 10px;
+  }
+  .product-app .save-status {
+    display: none;
+  }
+  .product-app .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 880px) {
+  .product-app .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+  .product-app .chart-container {
+    height: 390px;
+  }
+  .product-app .order-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 24px;
+    padding: 21px;
+  }
+  .product-app .order-card > .panel-title,
+  .product-app .order-card > .entry-note,
+  .product-app .order-card > label[for="orderKind"],
+  .product-app .order-card > #orderKind,
+  .product-app .order-card > .entry-price-field,
+  .product-app .order-card > .order-fields,
+  .product-app .order-card > .risk-sizing,
+  .product-app .order-card > .risk-summary,
+  .product-app .order-card > .trade-buttons {
+    grid-column: 1;
+  }
+  .product-app .order-card > .costs {
+    grid-column: 2;
+    grid-row: 1/6;
+    align-self: start;
+    margin: 0;
+    padding-bottom: 15px;
+  }
+  .product-app .order-card > #positionBox {
+    grid-column: 2;
+    grid-row: 6/12;
+    align-self: start;
+    margin-top: 14px;
+    min-height: 140px;
+  }
+  .product-app .order-card > .order-footnote {
+    grid-column: 1/-1;
+    margin-top: 16px;
+  }
+  .product-app .stats-grid {
+    gap: 10px;
+  }
+  .product-app .stat {
+    padding: 14px;
+  }
+  .product-app .stat strong {
+    font-size: 23px;
+  }
+  .product-app .stat-note {
+    font-size: 7px;
+  }
+  .product-app .page-heading {
+    gap: 15px;
+    flex-direction: column;
+    margin-bottom: 19px;
+  }
+  .product-app .heading-actions {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+  }
+  .product-app .heading-description {
+    max-width: none;
+  }
+  .product-app .session-notepad {
+    grid-template-columns: 165px 1fr;
+    gap: 14px;
+  }
+  .product-app .view-heading {
+    margin-bottom: 22px;
+  }
+  .product-app .split-layout {
+    grid-template-columns: 1fr;
+  }
+  .product-app .report-grid {
+    grid-template-columns: 1fr;
+  }
+  .product-app .session-wallet {
+    display: none;
+  }
+  .product-app .chart-toolbar {
+    min-height: 51px;
+  }
+  .product-app .settings-button span {
+    display: inline;
+  }
+  .product-app .chart-legend #ohlc {
+    display: inline;
+  }
+  .product-app .page-footer {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+@media (max-width: 650px) {
+  :root {
+    --sidebar-width: 0;
+  }
+  .product-app .app-sidebar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: auto;
+    display: block;
+    padding: 0;
+    background: var(--surface-soft);
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    z-index: 8;
+  }
+  .product-app .app-sidebar > .brand,
+  .product-app .sidebar-footer {
+    display: none;
+  }
+  .product-app .app-nav {
+    margin: 0;
+    flex-direction: row;
+    gap: 1px;
+    overflow-x: auto;
+    padding: 8px 10px;
+    scrollbar-width: none;
+  }
+  .product-app .nav-item {
+    width: auto;
+    min-width: max-content;
+    height: 34px;
+    min-height: 34px;
+    gap: 7px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 9px;
+  }
+  .product-app .nav-item svg {
+    width: 15px;
+    height: 15px;
+  }
+  .product-app .nav-item > span {
+    display: inline;
+  }
+  .product-app .nav-item .nav-live-dot {
+    display: none;
+  }
+  .product-app .nav-item:hover:after,
+  .product-app .nav-item:focus-visible:after {
+    display: none;
+  }
+  .product-app .app-shell {
+    margin-left: 0;
+  }
+  .product-app .product-topbar {
+    height: 53px;
+    padding: 0 15px;
+  }
+  .product-app .topbar-context .workspace-name {
+    display: inline;
+    font-size: 9px;
+  }
+  .product-app #activeSessionName {
+    max-width: 200px;
+    font-size: 10px;
+  }
+  .product-app .top-actions {
+    gap: 8px;
+  }
+  .product-app .avatar {
+    display: none;
+  }
+  .product-app .top-actions .icon-button {
+    height: 27px;
+    width: 27px;
+    min-height: 27px;
+    min-width: 27px;
+  }
+  .product-app .product-main {
+    padding: 20px 14px 17px;
+  }
+  .product-app .page-heading h1 {
+    font-size: 21px;
+  }
+  .product-app .heading-description {
+    font-size: 9px;
+    margin-top: 7px;
+  }
+  .product-app .eyebrow {
+    font-size: 8px;
+    letter-spacing: 1.4px;
+  }
+  .product-app .heading-actions {
+    width: 100%;
+    gap: 7px;
+  }
+  .product-app .heading-actions .button {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    font-size: 9px;
+    padding: 9px 7px;
+    min-height: 36px;
+  }
+  .product-app .heading-actions #historyOpen {
+    flex-basis: auto;
+  }
+  .product-app .heading-actions .button > span {
+    font-size: 12px;
+  }
+  .product-app .session-strip {
+    margin-bottom: 13px;
+    gap: 9px;
+    padding: 10px 0;
+    min-height: 0;
+  }
+  .product-app .session-period {
+    gap: 5px;
+    font-size: 9px;
+  }
+  .product-app .session-period .text-button {
+    font-size: 9px;
+  }
+  .product-app .session-zone {
+    font-size: 8px;
+  }
+  .product-app .demo-badge.real {
+    font-size: 7px;
+  }
+  .product-app .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 9px;
+    margin-bottom: 14px;
+  }
+  .product-app .stat {
+    padding: 14px 16px;
+    min-height: 99px;
+    gap: 7px;
+  }
+  .product-app .stat strong {
+    font-size: 25px;
+  }
+  .product-app .stat-title {
+    font-size: 9px;
+  }
+  .product-app .stat-note {
+    font-size: 8px;
+  }
+  .product-app .small-tag {
+    display: inline;
+    font-size: 6px;
+  }
+  .product-app .workspace-grid {
+    gap: 14px;
+  }
+  .product-app .chart-toolbar {
+    flex-wrap: wrap;
+    gap: 9px;
+    padding: 10px 11px;
+  }
+  .product-app .chart-tools {
+    width: 100%;
+    justify-content: space-between;
+    gap: 5px;
+  }
+  .product-app .timeframes {
+    flex: 1;
+    justify-content: space-between;
+    margin-right: 5px;
+  }
+  .product-app .timeframes button {
+    font-size: 9px;
+    padding: 5px 7px;
+  }
+  .product-app .settings-button span {
+    display: none;
+  }
+  .product-app .settings-button {
+    font-size: 11px;
+    min-height: 28px;
+    padding: 5px 7px;
+  }
+  .product-app .symbol-group {
+    gap: 8px;
+  }
+  .product-app .symbol-group #contractName {
+    display: inline;
+    font-size: 8px;
+  }
+  .product-app .symbol-group select {
+    font-size: 14px;
+  }
+  .product-app .drawing-toolbar {
+    padding: 6px 8px;
+    gap: 3px;
+  }
+  .product-app .drawing-toolbar button {
+    font-size: 13px;
+    padding: 5px 6px;
+    min-width: 29px;
+  }
+  .product-app .drawing-toolbar button span {
+    display: none;
+  }
+  .product-app .drawing-hint {
+    font-size: 7px;
+    padding: 7px 12px 0;
+  }
+  .product-app .chart-legend {
+    padding: 9px 12px;
+    gap: 10px;
+    min-height: 37px;
+  }
+  .product-app .chart-legend #ohlc {
+    display: none;
+  }
+  .product-app .chart-legend strong {
+    font-size: 15px;
+  }
+  .product-app .chart-container {
+    height: 335px;
+    min-height: 300px;
+  }
+  .product-app .replay-panel {
+    padding: 11px 9px;
+    gap: 6px;
+  }
+  .product-app .replay-controls {
+    gap: 4px;
+  }
+  .product-app .play-button {
+    font-size: 10px;
+    padding: 8px 10px;
+    min-width: 76px;
+    min-height: 32px;
+  }
+  .product-app .replay-time strong {
+    font-size: 8px;
+  }
+  .product-app .replay-time > span {
+    font-size: 7px;
+  }
+  .product-app .chart-footer {
+    font-size: 7px;
+    padding: 9px 12px;
+  }
+  .product-app .order-card {
+    padding: 19px;
+    display: block;
+  }
+  .product-app .panel-title h2 {
+    font-size: 14px;
+  }
+  .product-app .entry-note {
+    font-size: 10px;
+  }
+  .product-app .order-card label {
+    font-size: 11px;
+  }
+  .product-app #orderKind {
+    font-size: 12px;
+    min-height: 38px;
+  }
+  .product-app .stepper {
+    height: 40px;
+  }
+  .product-app .field-pair input {
+    min-height: 40px;
+  }
+  .product-app .risk-sizing-row {
+    grid-template-columns: 1fr auto;
+  }
+  .product-app .risk-sizing-row .button {
+    font-size: 10px;
+    padding: 7px 12px;
+  }
+  .product-app .risk-sizing-row input {
+    font-size: 12px;
+    min-height: 37px;
+  }
+  .product-app .risk-summary {
+    font-size: 11px;
+    padding: 13px 0;
+  }
+  .product-app .risk-summary strong {
+    font-size: 12px;
+  }
+  .product-app .trade {
+    min-height: 55px;
+    font-size: 14px;
+  }
+  .product-app .trade span {
+    font-size: 9px;
+  }
+  .product-app .order-card > .costs {
+    margin: 17px 0;
+  }
+  .product-app .costs summary {
+    font-size: 10px;
+  }
+  .product-app .order-card > #positionBox {
+    margin-top: 0;
+    min-height: 120px;
+  }
+  .product-app .position-box > strong {
+    font-size: 12px;
+  }
+  .product-app .position-box p {
+    font-size: 9px;
+  }
+  .product-app .position-box .pos-row {
+    font-size: 11px;
+  }
+  .product-app .pos-actions button {
+    font-size: 10px;
+  }
+  .product-app .order-footnote {
+    font-size: 9px;
+  }
+  .product-app .session-notepad {
+    display: block;
+    padding: 17px;
+    margin-top: 14px;
+  }
+  .product-app .session-notepad > div {
+    padding-left: 26px;
+    margin-bottom: 13px;
+  }
+  .product-app .session-notepad h2 {
+    font-size: 12px;
+  }
+  .product-app .session-notepad p {
+    font-size: 9px;
+  }
+  .product-app #sessionNotes {
+    min-height: 83px;
+    font-size: 11px;
+  }
+  .product-app .view-heading h1 {
+    font-size: 23px;
+  }
+  .product-app .journal-summary {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 9px;
+  }
+  .product-app .journal-header {
+    padding: 18px 15px;
+    gap: 12px;
+  }
+  .product-app .journal-header p {
+    font-size: 8px;
+    max-width: 180px;
+  }
+  .product-app .journal-header h2 {
+    font-size: 12px;
+  }
+  .product-app th {
+    padding: 11px 16px;
+    font-size: 8px;
+  }
+  .product-app td {
+    padding: 13px 16px;
+    font-size: 10px;
+  }
+  .product-app .empty-journal {
+    padding: 28px 17px;
+    min-height: 150px;
+    gap: 13px;
+  }
+  .product-app .empty-journal strong {
+    font-size: 11px;
+  }
+  .product-app .empty-journal p {
+    font-size: 9px;
+  }
+  .product-app .empty-hint {
+    display: none;
+  }
+  .product-app .cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .product-app .content-card,
+  .product-app .section-card,
+  .product-app .session-card,
+  .product-app .strategy-card {
+    padding: 18px;
+  }
+  .product-app .view-toolbar,
+  .product-app .journal-filters {
+    gap: 10px;
+  }
+  .product-app .filter-control {
+    min-width: calc(50% - 5px);
+    flex: 1;
+  }
+  .product-app .page-footer {
+    font-size: 7px;
+    gap: 7px;
+    margin-top: 18px;
+  }
+  .product-app dialog:not(.tv-settings):not(.tv-utility-dialog) {
+    padding: 22px;
+    width: calc(100vw - 28px);
+  }
+  .product-app .dialog-header h2 {
+    font-size: 18px;
+  }
+  .product-app .dialog-intro {
+    font-size: 11px;
+  }
+  .product-app .dialog-note {
+    font-size: 10px;
+  }
+  .product-app .field-pair input[type="date"] {
+    font-size: 10px;
+    padding: 9px 7px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-app * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+.journal-metrics {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  padding: 16px 0;
+}
+.journal-metrics span {
+  display: flex;
+  gap: 10px;
+  color: var(--muted);
+}
+.journal-metrics strong {
+  color: var(--p-text);
+}
+.filter-grid {
+  display: grid;
+  grid-template-columns: 2fr repeat(5, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+.filter-control {
+  font-size: 12px;
+}
+.filter-control input,
+.filter-control select {
+  width: 100%;
+  margin-top: 7px;
+}
+.trade-row-note {
+  display: block;
+  margin-top: 5px;
+}
+.trade-detail-stats {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+.trade-detail-stats strong {
+  font-size: 30px;
+}
+.trade-rules {
+  padding: 16px 0;
+}
+.trade-rules label {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0;
+}
+.trade-rules input {
+  width: 16px;
+  accent-color: var(--p-accent);
+}
+.trade-detail-dialog textarea,
+#playbookDialog textarea {
+  width: 100%;
+  background: var(--p-bg);
+  color: var(--p-text);
+  border: 1px solid var(--p-border);
+  padding: 12px;
+  border-radius: 8px;
+  resize: vertical;
+  font: inherit;
+}
+.trade-detail-dialog label,
+#playbookDialog label {
+  margin-top: 16px;
+}
+.attachment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 14px 0;
+}
+.attachment-grid img {
+  width: 100%;
+  height: 95px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--p-border);
+}
+.attachment-label {
+  margin: 0 !important;
+}
+.protection-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.protection-fields label,
+.partial-controls label {
+  font-size: 11px;
+  color: var(--p-muted);
+}
+.protection-fields input,
+.partial-controls input {
+  width: 100%;
+  padding: 7px;
+  font-size: 12px;
+  margin-top: 5px;
+}
+.protection-fields button {
+  grid-column: 1/-1;
+}
+.partial-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 10px 0;
+}
+.partial-controls label {
+  flex: 1;
+  margin: 0;
+}
+.comparison-card {
+  margin-top: 16px;
+  border-top: 1px solid var(--p-border);
+  padding: 16px;
+}
+.comparison-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.comparison-header h3 {
+  font-size: 14px;
+  margin: 0;
+}
+.comparison-header .eyebrow {
+  font-size: 9px;
+  margin-bottom: 5px;
+}
+.comparison-chart {
+  height: 235px;
+}
+.comparison-card > p {
+  font-size: 11px;
+}
+.rule-preview {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--p-muted);
+  padding-left: 18px;
+}
+.model-notes {
+  margin-top: 18px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.symbol-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 8px;
+  background: var(--p-accent-soft);
+  color: var(--p-accent);
+  border-radius: 5px;
+}
+.session-result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+}
+.session-result strong {
+  font-size: 24px;
+}
+.session-result span {
+  font-size: 12px;
+  color: var(--p-muted);
+}
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+}
+.card-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.session-card h3,
+.playbook-card h3 {
+  margin: 18px 0 8px;
+}
+.session-card p,
+.playbook-card p {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.data-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+.data-banner p {
+  max-width: 630px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+#saveStatus[data-state="offline"],
+#saveStatus[data-state="pending"] {
+  color: #dcaf68;
+}
+#saveStatus[data-state="conflict"],
+#saveStatus[data-state="error"] {
+  color: #f3949b;
+}
+#saveStatus[data-state="saved"] {
+  color: #8bbfa6;
+}
+[data-trade-id] {
+  cursor: pointer;
+}
+[data-trade-id]:hover {
+  background: var(--p-hover);
+}
+[data-trade-id]:focus-visible {
+  outline: 2px solid var(--p-accent);
+  outline-offset: -2px;
+}
+.journal-summary {
+  overflow: auto;
+}
+@media (max-width: 1100px) {
+  .filter-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 650px) {
+  .filter-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .journal-metrics {
+    gap: 14px;
+    font-size: 12px;
+  }
+  .data-banner {
+    display: block;
+  }
+  .data-banner .card-actions {
+    margin-top: 20px;
+  }
+  .attachment-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+:root {
+  --p-bg: var(--app-bg);
+  --p-text: var(--text);
+  --p-border: var(--border);
+  --p-muted: var(--text-muted);
+  --p-accent: var(--accent);
+  --p-accent-soft: var(--accent-soft);
+  --p-hover: var(--surface-raised);
+  --muted: var(--text-muted);
+}
+
+/* Append after the complete product stylesheet. Functional text remains readable at every breakpoint. */
+:root {
+  --text-muted: #aaa7bd;
+  --text-faint: #9692aa;
+  --muted: var(--text-muted);
+  --panel: var(--surface);
+  --line: var(--border);
+  --soft: var(--surface-raised);
+  --ink: var(--text);
+  --positive: var(--green);
+  --negative: var(--red);
+}
+:root[data-theme="dark"] {
+  --text-muted: #aaa7bd;
+  --text-faint: #9692aa;
+  --muted: var(--text-muted);
+  --panel: var(--surface);
+  --line: var(--border);
+  --soft: var(--surface-raised);
+  --ink: var(--text);
+}
+:root[data-theme="light"] {
+  --text-muted: #756f88;
+  --text-faint: #777183;
+  --muted: var(--text-muted);
+  --panel: var(--surface);
+  --line: var(--border);
+  --soft: var(--surface-raised);
+  --ink: var(--text);
+}
+.product-app [hidden] {
+  display: none !important;
+}
+.product-app .nav-item {
+  font-size: 13px;
+  min-height: 45px;
+}
+.product-app .nav-item:hover:after,
+.product-app .nav-item:focus-visible:after {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.product-app .sidebar-caption {
+  font-size: 10px;
+  letter-spacing: 1.1px;
+  margin-top: 30px;
+}
+.product-app .brand small {
+  font-size: 9px;
+  letter-spacing: 0.7px;
+}
+.product-app .sidebar-version {
+  font-size: 9px;
+  letter-spacing: 0.8px;
+}
+
+.product-app .sidebar-action {
+  font-size: 11px;
+  min-height: 34px;
+}
+.product-app .sidebar-action svg {
+  width: 16px;
+  height: 16px;
+}
+.product-app .topbar-context .workspace-name {
+  font-size: 12px;
+}
+.product-app #activeSessionName {
+  font-size: 13px;
+  max-width: 340px;
+}
+.product-app .save-status {
+  font-size: 11px;
+}
+.product-app .session-wallet > span {
+  font-size: 11px;
+}
+.product-app .session-wallet > strong {
+  font-size: 13px;
+}
+.product-app .top-actions {
+  gap: 12px;
+}
+.product-app .top-actions .icon-button {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  font-size: 16px;
+}
+.product-app .avatar {
+  width: 31px;
+  height: 31px;
+  font-size: 12px;
+}
+.product-app .eyebrow {
+  font-size: 10px;
+  letter-spacing: 1.35px;
+}
+.product-app .heading-description {
+  font-size: 13px;
+  line-height: 1.65;
+}
+.product-app .button,
+.product-app .heading-actions .button {
+  font-size: 12px;
+  min-height: 39px;
+  padding: 10px 13px;
+}
+.product-app .button.compact {
+  font-size: 12px;
+  min-height: 35px;
+  padding: 8px 11px;
+}
+.product-app .text-button,
+.product-app .session-period .text-button {
+  font-size: 12px;
+}
+.product-app .session-strip {
+  font-size: 12px;
+}
+.product-app .session-zone {
+  font-size: 11px;
+}
+.product-app .demo-badge.real {
+  font-size: 10px;
+  letter-spacing: 0.2px;
+  padding: 5px 8px;
+}
+.product-app .stat {
+  min-height: 115px;
+  gap: 9px;
+}
+.product-app .stat-title {
+  font-size: 12px;
+  line-height: 1.5;
+  min-height: 18px;
+}
+.product-app .stat-note {
+  font-size: 11px;
+  line-height: 1.5;
+}
+.product-app .small-tag {
+  font-size: 9px;
+}
+.product-app .symbol-group > span,
+.product-app .symbol-group #contractName {
+  font-size: 11px;
+}
+.product-app .symbol-group .exchange {
+  font-size: 10px;
+}
+.product-app .timeframes button {
+  font-size: 12px;
+  min-height: 31px;
+  padding: 6px 7px;
+}
+.product-app .settings-button {
+  font-size: 12px;
+  min-height: 31px;
+  padding: 6px 8px;
+}
+.product-app .chart-tools .icon-button {
+  min-width: 31px;
+  min-height: 31px;
+  font-size: 16px;
+}
+.product-app .drawing-toolbar button span {
+  font-size: 11px;
+}
+.product-app .drawing-hint,
+.product-app .drawing-count {
+  font-size: 11px;
+  line-height: 1.5;
+}
+.product-app .chart-legend {
+  font-size: 11px;
+  gap: 11px;
+  min-height: 43px;
+}
+.product-app .chart-legend #ohlc,
+.product-app .chart-legend #barChange,
+.product-app .chart-legend #statusVolume {
+  font-size: 11px;
+}
+.product-app .chart-status {
+  font-size: 10px;
+}
+.product-app .replay-controls {
+  gap: 9px;
+}
+.product-app .play-button {
+  font-size: 13px;
+  min-width: 100px;
+  min-height: 36px;
+  padding: 9px 14px;
+}
+.product-app .play-button #playIcon {
+  font-size: 11px;
+}
+.product-app .replay-controls select {
+  font-size: 12px;
+  min-height: 31px;
+}
+.product-app .replay-time strong {
+  font-size: 12px;
+}
+.product-app .replay-time > span {
+  font-size: 11px;
+}
+.product-app .chart-footer {
+  font-size: 11px;
+  line-height: 1.6;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.product-app .panel-title h2 {
+  font-size: 15px;
+}
+.product-app .market-label {
+  font-size: 10px;
+  letter-spacing: 0.4px;
+}
+.product-app .entry-note {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.product-app .order-card label,
+.product-app .field-pair label {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.product-app .order-card label span {
+  font-size: 11px;
+  float: none;
+  display: block;
+  margin-top: 3px;
+}
+.product-app .order-card :is(input, select),
+.product-app .field-pair input {
+  font-size: 13px;
+  min-height: 39px;
+}
+.product-app #orderKind {
+  font-size: 13px;
+  min-height: 39px;
+}
+.product-app .stepper {
+  height: 41px;
+}
+.product-app .stepper input {
+  font-size: 14px;
+  min-height: 0;
+}
+.product-app .risk-sizing-row input {
+  font-size: 13px;
+  min-height: 38px;
+}
+.product-app .risk-sizing-row .button {
+  font-size: 12px;
+  min-height: 38px;
+  padding: 8px 10px;
+}
+.product-app .risk-summary {
+  font-size: 12px;
+  line-height: 1.5;
+  gap: 10px;
+}
+.product-app .risk-summary strong {
+  font-size: 13px;
+}
+.product-app .trade {
+  font-size: 15px;
+  min-height: 58px;
+}
+.product-app .trade span {
+  font-size: 11px;
+}
+.product-app .costs summary,
+.product-app .costs label {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.product-app .costs input {
+  font-size: 13px;
+  min-height: 37px;
+}
+.product-app .costs p,
+.product-app .order-footnote {
+  font-size: 11px;
+  line-height: 1.65;
+}
+.product-app .position-box > strong {
+  font-size: 13px;
+}
+.product-app .position-box p {
+  font-size: 11px;
+  line-height: 1.6;
+}
+.product-app .position-box .pos-row {
+  font-size: 12px;
+}
+.product-app .position-box .pos-pnl {
+  font-size: 25px;
+}
+.product-app .pos-actions button {
+  font-size: 12px;
+  min-height: 35px;
+}
+.product-app .session-notepad {
+  grid-template-columns: 220px 1fr;
+}
+.product-app .session-notepad h2 {
+  font-size: 13px;
+}
+.product-app .session-notepad p {
+  font-size: 11px;
+  line-height: 1.65;
+}
+.product-app #sessionNotes {
+  font-size: 13px;
+  min-height: 76px;
+}
+.product-app .journal-header h2 {
+  font-size: 15px;
+}
+.product-app .journal-header h2 span {
+  font-size: 11px;
+}
+.product-app .journal-header p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.product-app th {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.product-app td {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.product-app td small,
+.product-app .side-tag {
+  font-size: 11px;
+}
+.product-app .empty-journal strong {
+  font-size: 14px;
+}
+.product-app .empty-journal p {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.product-app .empty-hint {
+  font-size: 11px;
+}
+.product-app .filter-control,
+.product-app .filter-control :is(input, select) {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.product-app .filter-control :is(input, select) {
+  min-height: 39px;
+}
+.product-app .content-card h2,
+.product-app .section-card h2 {
+  font-size: 15px;
+}
+.product-app .metric-card > span,
+.product-app .metric-label {
+  font-size: 12px;
+}
+.product-app .metric-note {
+  font-size: 11px;
+  line-height: 1.5;
+}
+.product-app .badge {
+  font-size: 11px;
+}
+.product-app .empty-state p {
+  font-size: 13px;
+  line-height: 1.75;
+}
+.product-app .empty-state h2,
+.product-app .empty-state strong {
+  font-size: 16px;
+}
+.product-app .page-footer {
+  font-size: 11px;
+  line-height: 1.65;
+}
+.product-app .dialog-intro {
+  font-size: 13px;
+  line-height: 1.75;
+}
+.product-app .dialog-note,
+.product-app .contract-specs,
+.product-app .range-preview {
+  font-size: 12px;
+  line-height: 1.75;
+}
+.product-app .form-error {
+  font-size: 13px;
+}
+.product-app .upload-zone > span,
+.product-app .upload-zone input {
+  font-size: 12px;
+}
+.product-app .format-label {
+  font-size: 13px;
+}
+.product-app pre {
+  font-size: 11px;
+}
+.product-app .help-list {
+  font-size: 13px;
+  line-height: 1.8;
+}
+.product-app .license {
+  font-size: 11px;
+}
+.product-app .history-link,
+.product-app .history-key summary,
+.product-app .history-key label {
+  font-size: 12px;
+}
+.product-app .toast {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.product-app .comparison-header .eyebrow {
+  font-size: 10px;
+}
+.product-app .comparison-card > p {
+  font-size: 12px;
+}
+/* Readability needs enough width; the order terminal stacks before it becomes cramped. */
+@media (min-width: 1151px) and (max-width: 1420px) {
+  :root {
+    --sidebar-width: 202px;
+  }
+  .product-app .workspace-grid {
+    grid-template-columns: minmax(0, 1fr) 285px;
+    gap: 15px;
+  }
+  .product-app .app-sidebar {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+  .product-app .nav-item {
+    gap: 10px;
+    padding: 11px;
+  }
+  .product-app .sidebar-action {
+    font-size: 11px;
+  }
+  .product-app .brand small {
+    font-size: 9px;
+  }
+  .product-app .brand {
+    font-size: 21px;
+  }
+  .product-app .save-status {
+    display: none;
+  }
+  .product-app .product-main {
+    padding: 23px;
+  }
+  .product-app .page-heading {
+    flex-wrap: wrap;
+  }
+  .product-app .heading-description {
+    font-size: 13px;
+  }
+}
+@media (max-width: 1150px) {
+  .product-app .workspace-grid {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 14px;
+  }
+  .product-app .heading-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .product-app .page-heading {
+    flex-wrap: wrap;
+  }
+  .product-app .topbar-context .workspace-name {
+    font-size: 11px;
+  }
+  .product-app #activeSessionName {
+    font-size: 12px;
+    max-width: 290px;
+  }
+  .product-app .stat-title {
+    font-size: 12px;
+  }
+  .product-app .stat-note {
+    font-size: 11px;
+  }
+  .product-app .order-card {
+    padding: 18px 16px;
+  }
+  .product-app .chart-legend #ohlc {
+    display: none;
+  }
+}
+@media (min-width: 651px) and (max-width: 1150px) {
+  .product-app .sidebar-action {
+    font-size: 0;
+    width: 43px;
+    height: 38px;
+    padding: 8px;
+    display: flex;
+    justify-content: center;
+    margin: 4px auto;
+  }
+  .product-app .sidebar-action svg {
+    width: 20px;
+    height: 20px;
+  }
+  .product-app .nav-item {
+    min-height: 43px;
+    height: 43px;
+  }
+}
+@media (max-width: 980px) {
+  .product-app .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+  .product-app .order-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 28px;
+    padding: 22px;
+  }
+  .product-app .order-card > .panel-title,
+  .product-app .order-card > .entry-note,
+  .product-app .order-card > label[for="orderKind"],
+  .product-app .order-card > #orderKind,
+  .product-app .order-card > .entry-price-field,
+  .product-app .order-card > .order-fields,
+  .product-app .order-card > .risk-sizing,
+  .product-app .order-card > .risk-summary,
+  .product-app .order-card > .trade-buttons {
+    grid-column: 1;
+  }
+  .product-app .order-card > .costs {
+    grid-column: 2;
+    grid-row: 1/6;
+    align-self: start;
+    margin-top: 0;
+  }
+  .product-app .order-card > #positionBox {
+    grid-column: 2;
+    grid-row: 6/12;
+    align-self: start;
+    margin-top: 15px;
+    min-height: 160px;
+  }
+  .product-app .order-card > .order-footnote {
+    grid-column: 1/-1;
+  }
+  .product-app .page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .product-app .heading-description {
+    max-width: none;
+  }
+  .product-app .heading-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .product-app .session-notepad {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+  .product-app .chart-tools {
+    gap: 8px;
+  }
+  .product-app .timeframes {
+    gap: 4px;
+  }
+}
+@media (max-width: 650px) {
+  .product-app .app-sidebar {
+    height: auto;
+    overflow: visible;
+  }
+  .product-app .app-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    gap: 4px;
+    padding: 8px;
+    scroll-padding: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .product-app .nav-item {
+    font-size: 12px;
+    min-height: 40px;
+    height: 40px;
+    padding: 9px 11px;
+    width: auto;
+    flex: 0 0 auto;
+    gap: 8px;
+  }
+  .product-app .nav-item svg {
+    width: 17px;
+    height: 17px;
+  }
+  .product-app .nav-item > span {
+    display: inline;
+  }
+  .product-app .nav-item .nav-live-dot {
+    display: none;
+  }
+  .product-app .nav-item:hover:after,
+  .product-app .nav-item:focus-visible:after {
+    display: none;
+  }
+  .product-app .product-topbar {
+    height: 59px;
+    gap: 10px;
+    padding: 0 14px;
+  }
+  .product-app .topbar-context {
+    gap: 7px;
+    flex: 1;
+    min-width: 0;
+  }
+  .product-app .topbar-context .workspace-name,
+  .product-app .context-slash {
+    display: none;
+  }
+  .product-app #activeSessionName {
+    font-size: 13px;
+    max-width: none;
+    min-width: 0;
+  }
+  .product-app .top-actions {
+    gap: 8px;
+    flex: none;
+  }
+  .product-app .top-actions .icon-button {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+  }
+  .product-app .heading-description {
+    font-size: 12px;
+  }
+  .product-app .eyebrow {
+    font-size: 10px;
+  }
+  .product-app .heading-actions {
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: stretch;
+  }
+  .product-app .heading-actions .button {
+    font-size: 12px;
+    min-height: 41px;
+    padding: 10px 12px;
+    flex: 1 1 calc(50% - 4px);
+    white-space: normal;
+  }
+  .product-app .heading-actions #historyOpen {
+    flex: 1 1 100%;
+  }
+  .product-app .heading-actions .button > span {
+    font-size: 15px;
+  }
+  .product-app .session-strip {
+    gap: 10px;
+    font-size: 11px;
+  }
+  .product-app .session-period {
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .product-app .session-period .text-button {
+    font-size: 11px;
+  }
+  .product-app .session-zone {
+    font-size: 11px;
+  }
+  .product-app .demo-badge.real {
+    font-size: 10px;
+  }
+  .product-app .stats-grid {
+    gap: 10px;
+  }
+  .product-app .stat {
+    padding: 16px;
+    min-height: 118px;
+  }
+  .product-app .stat-title {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .product-app .stat-note {
+    font-size: 11px;
+  }
+  .product-app .stat strong {
+    font-size: 26px;
+  }
+  .product-app .small-tag {
+    font-size: 9px;
+  }
+  .product-app .chart-toolbar {
+    padding: 11px;
+    gap: 10px;
+  }
+  .product-app .chart-tools {
+    gap: 5px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
+    max-width: 100%;
+    flex-wrap: nowrap;
+  }
+  .product-app .timeframes {
+    gap: 2px;
+    flex: 1 0 auto;
+    justify-content: flex-start;
+    margin-right: 4px;
+  }
+  .product-app .timeframes button {
+    font-size: 12px;
+    padding: 6px;
+    min-width: 29px;
+    min-height: 33px;
+  }
+  .product-app .settings-button {
+    min-height: 33px;
+    font-size: 13px;
+    padding: 6px;
+    flex: none;
+  }
+  .product-app .chart-tools .icon-button {
+    min-height: 33px;
+    min-width: 30px;
+    flex: none;
+  }
+  .product-app .symbol-group #contractName {
+    font-size: 11px;
+  }
+  .product-app .drawing-toolbar {
+    gap: 4px;
+  }
+  .product-app .drawing-toolbar button {
+    min-height: 34px;
+    min-width: 31px;
+    font-size: 15px;
+  }
+  .product-app .drawing-hint {
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .product-app .chart-legend {
+    font-size: 11px;
+    gap: 9px;
+    flex-wrap: wrap;
+  }
+  .product-app .chart-status {
+    font-size: 10px;
+  }
+  .product-app .chart-container {
+    height: 360px;
+    min-height: 320px;
+  }
+  .product-app .replay-panel {
+    padding: 12px 10px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .product-app .replay-controls {
+    gap: 6px;
+  }
+  .product-app .play-button {
+    font-size: 12px;
+    min-width: 88px;
+    min-height: 36px;
+    padding: 9px 12px;
+  }
+  .product-app .replay-controls select {
+    font-size: 12px;
+    min-height: 31px;
+  }
+  .product-app .replay-time {
+    flex: 1;
+    align-items: flex-end;
+  }
+  .product-app .replay-time strong {
+    font-size: 11px;
+  }
+  .product-app .replay-time > span {
+    font-size: 11px;
+  }
+  .product-app .chart-footer {
+    font-size: 11px;
+    padding: 10px 12px;
+    line-height: 1.6;
+  }
+  .product-app .order-card {
+    display: block;
+    padding: 21px;
+  }
+  .product-app .order-card label,
+  .product-app .field-pair label {
+    font-size: 12px;
+  }
+  .product-app #orderKind {
+    font-size: 13px;
+    min-height: 41px;
+  }
+  .product-app .order-card > .costs {
+    margin: 19px 0;
+  }
+  .product-app .order-card > #positionBox {
+    margin-top: 0;
+    min-height: 130px;
+  }
+  .product-app .position-box > strong {
+    font-size: 13px;
+  }
+  .product-app .position-box p {
+    font-size: 11px;
+  }
+  .product-app .position-box .pos-row {
+    font-size: 12px;
+  }
+  .product-app .pos-actions button {
+    font-size: 12px;
+    min-height: 37px;
+  }
+  .product-app .risk-sizing-row .button {
+    font-size: 12px;
+    padding: 8px 11px;
+    min-height: 40px;
+  }
+  .product-app .risk-summary {
+    font-size: 12px;
+    gap: 10px;
+  }
+  .product-app .risk-summary strong {
+    font-size: 13px;
+  }
+  .product-app .trade {
+    font-size: 15px;
+    min-height: 60px;
+  }
+  .product-app .trade span {
+    font-size: 11px;
+  }
+  .product-app .entry-note,
+  .product-app .costs summary {
+    font-size: 12px;
+  }
+  .product-app .order-footnote {
+    font-size: 11px;
+  }
+  .product-app .session-notepad {
+    display: block;
+    padding: 18px;
+  }
+  .product-app .session-notepad h2 {
+    font-size: 13px;
+  }
+  .product-app .session-notepad p {
+    font-size: 11px;
+  }
+  .product-app #sessionNotes {
+    font-size: 13px;
+    min-height: 92px;
+  }
+  .product-app .journal-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 19px 17px;
+  }
+  .product-app .journal-header h2 {
+    font-size: 15px;
+  }
+  .product-app .journal-header p {
+    font-size: 12px;
+    max-width: none;
+  }
+  .product-app .journal-header .button {
+    font-size: 12px;
+  }
+  .product-app th {
+    font-size: 12px;
+    padding: 12px 16px;
+  }
+  .product-app td {
+    font-size: 13px;
+    padding: 14px 16px;
+  }
+  .product-app td small {
+    font-size: 11px;
+  }
+  .product-app .empty-journal strong {
+    font-size: 14px;
+  }
+  .product-app .empty-journal p {
+    font-size: 12px;
+  }
+  .product-app .page-footer {
+    font-size: 11px;
+    line-height: 1.75;
+  }
+  .product-app .page-footer a {
+    white-space: normal;
+  }
+  .product-app .dialog-intro {
+    font-size: 13px;
+  }
+  .product-app .dialog-note,
+  .product-app .range-preview {
+    font-size: 12px;
+  }
+  .product-app .field-pair input[type="date"] {
+    font-size: 12px;
+    padding: 10px 8px;
+  }
+  .product-app .filter-control,
+  .product-app .filter-control :is(input, select) {
+    font-size: 13px;
+  }
+}
+
+:root[data-theme="dark"] {
+  --app-bg: #111017;
+  --surface: #191820;
+  --surface-raised: #201f29;
+  --surface-soft: #15141c;
+  --input-bg: #14131b;
+  --text: #eeeef6;
+  --text-muted: #aaa7bb;
+  --text-faint: #8b879c;
+  --border: #2b2938;
+  --border-strong: #3a364d;
+  --accent: #a18aff;
+  --accent-fill: #8b73ee;
+  --accent-soft: #8b73ee19;
+  --green: #50d6ac;
+  --red: #fa8797;
+  --lime: #a18aff;
+  --muted: var(--text-muted);
+  background: var(--app-bg);
+  color: var(--text);
+}
+.product-app .an-root {
+  --an-bg: var(--surface);
+  --an-ink: var(--text);
+  --an-muted: var(--text-muted);
+  --an-line: var(--border);
+  --an-soft: var(--surface-raised);
+  --an-positive: var(--green);
+  --an-negative: var(--red);
+}
+.product-app #saveStatus[role="button"] {
+  cursor: pointer;
+  max-width: 270px;
+  white-space: normal;
+  text-align: right;
+  line-height: 1.5;
+}
+.product-app #saveStatus[data-state="conflict"] {
+  color: var(--red);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.setup-options {
+  margin: 18px 0;
+  padding: 14px 0;
+  border-top: 1px solid var(--p-border);
+  border-bottom: 1px solid var(--p-border);
+}
+.setup-options > summary,
+.data-sources > summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--p-muted);
+}
+.setup-options[open] > summary {
+  margin-bottom: 16px;
+}
+.data-sources {
+  margin-top: 20px;
+}
+.data-sources[open] > summary {
+  margin-bottom: 18px;
+}
+#setupYears {
+  margin: 18px 0;
+}
+#setupError {
+  white-space: normal;
+}
+
+.session-instruments {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  border: 0;
+  padding: 0;
+  margin: 20px 0 12px;
+  min-width: 0;
+}
+.session-instruments > legend {
+  font-size: 12px;
+  color: var(--p-muted);
+  margin-bottom: 9px;
+}
+.session-instrument {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  margin: 0 !important;
+  padding: 12px;
+  border: 1px solid var(--p-border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.session-instrument:has(input:checked) {
+  border-color: var(--p-accent);
+  background: var(--p-accent-soft);
+}
+.session-instrument input {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  margin: 0;
+  accent-color: var(--p-accent);
+}
+.session-instrument span {
+  min-width: 0;
+}
+.session-instrument strong {
+  display: block;
+  font-size: 13px;
+}
+.session-instrument small {
+  display: block;
+  color: var(--p-muted);
+  font-size: 10px;
+  margin-top: 4px;
+}
+@media (max-width: 420px) {
+  .session-instruments {
+    gap: 8px;
+  }
+  .session-instrument {
+    padding: 10px;
+    gap: 7px;
+  }
+}
+
+/* Two equal chart panes share replay controls. */
+.product-app .chart-panes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  background: var(--surface);
+}
+.product-app .chart-panes.is-dual {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.product-app .chart-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+.product-app .chart-pane[hidden] {
+  display: none !important;
+}
+.product-app .chart-panes .comparison-card {
+  margin: 0;
+  padding: 0;
+  border-top: 0;
+  border-left: 1px solid var(--p-border);
+  background: var(--surface);
+}
+.product-app .chart-pane > .chart-legend,
+.product-app .chart-pane > .comparison-header {
+  height: 48px;
+  min-height: 48px;
+  max-height: 48px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 8px 12px;
+  gap: 10px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  border-bottom: 1px solid var(--p-border);
+}
+.product-app .comparison-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.product-app .comparison-header h3,
+.product-app .chart-pane-symbol {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.product-app .comparison-header select {
+  font-size: 11px;
+  min-height: 30px;
+  height: 30px;
+  max-width: 112px;
+  padding: 4px 7px;
+}
+.product-app
+  .chart-panes.is-dual
+  :is(#statusTitle, #ohlc, #barChange, #statusVolume) {
+  display: none;
+}
+.product-app .chart-panes .chart-container,
+.product-app .chart-panes .comparison-chart {
+  width: 100%;
+  height: clamp(300px, 42vh, 520px);
+  min-height: 300px;
+  flex: none;
+}
+.product-app .chart-pane > .pane-notice {
+  height: 34px;
+  min-height: 34px;
+  max-height: 34px;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  border-top: 1px solid var(--p-border);
+}
+.product-app .chart-card .chart-toolbar {
+  flex-wrap: wrap;
+}
+.product-app .chart-card .chart-tools {
+  margin-left: auto;
+}
+body.charts-expanded {
+  overflow: hidden;
+}
+.product-app .chart-card.charts-expanded {
+  position: fixed;
+  inset: 12px;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  border-radius: 10px;
+  background: var(--surface);
+}
+.product-app .charts-expanded .chart-panes {
+  flex: 1;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr);
+}
+.product-app .charts-expanded .chart-panes .chart-container,
+.product-app .charts-expanded .chart-panes .comparison-chart {
+  height: 0;
+  min-height: 0;
+  flex: 1;
+}
+.product-app .charts-expanded > .chart-toolbar,
+.product-app .charts-expanded > .drawing-toolbar,
+.product-app .charts-expanded > .drawing-hint,
+.product-app .charts-expanded > .replay-panel,
+.product-app .charts-expanded > .progress-track,
+.product-app .charts-expanded > .chart-footer {
+  flex: none;
+}
+@media (max-width: 700px) {
+  .product-app .chart-panes.is-dual {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .product-app .chart-panes .comparison-card {
+    border-left: 0;
+    border-top: 1px solid var(--p-border);
+  }
+  .product-app .chart-card.charts-expanded {
+    inset: 6px;
+  }
+  .product-app .charts-expanded .chart-panes.is-dual {
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+  .product-app .charts-expanded .drawing-hint,
+  .product-app .charts-expanded .chart-footer {
+    display: none;
+  }
+  .product-app .chart-pane > .pane-notice {
+    font-size: 9px;
+    padding: 8px;
+  }
+}
+@media (max-height: 540px) {
+  .product-app .charts-expanded .drawing-toolbar,
+  .product-app .charts-expanded .drawing-hint,
+  .product-app .charts-expanded .chart-footer {
+    display: none;
+  }
+}
+
+.product-app .chart-legend .chart-pane-symbol {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Replay is a working terminal; setup and review live in their own sections. */
+.product-app .replay-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 16px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.product-app .replay-period,
+.product-app .replay-result {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.product-app .replay-result strong {
+  font-size: 15px;
+}
+.product-app .replay-notes,
+.product-app .source-details {
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.product-app .replay-notes summary,
+.product-app .source-details summary,
+.product-app .backup-menu summary,
+.product-app .risk-sizing summary {
+  cursor: pointer;
+  padding: 10px 0;
+}
+.product-app .replay-notes textarea {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  min-height: 80px;
+  resize: vertical;
+}
+.product-app .backup-menu summary {
+  font-size: 12px;
+  color: var(--p-muted);
+}
+.product-app .risk-sizing summary {
+  font-size: 12px;
+  color: var(--p-muted);
+}
+.product-app #view-replay .drawing-hint {
+  font-size: 10px;
+  padding: 4px 12px;
+  min-height: 22px;
+}
+.product-app #view-replay .order-card {
+  padding: 18px;
+}
+.product-app #view-replay .order-footnote {
+  margin-bottom: 0;
+  font-size: 10px;
+}
+.product-app:has(#view-replay:not([hidden])) .page-footer {
+  display: none;
+}
+@media (min-width: 901px) {
+  .product-app:has(#view-replay:not([hidden])) .product-main {
+    padding-top: 20px;
+  }
+  .product-app #view-replay .chart-panes .chart-container,
+  .product-app #view-replay .chart-panes .comparison-chart {
+    height: clamp(280px, calc(100dvh - 500px), 800px);
+    min-height: 280px;
+  }
+  .product-app #view-replay .charts-expanded .chart-panes .chart-container,
+  .product-app #view-replay .charts-expanded .chart-panes .comparison-chart {
+    height: 0;
+  }
+}
+@media (max-width: 700px) {
+  .product-app .replay-context {
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .product-app .replay-period,
+  .product-app .replay-result {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .product-app .replay-result {
+    text-align: right;
+    align-items: flex-end;
+  }
+}
+
+.product-app #view-replay .position-box:not(.active) {
+  min-height: 0;
+  padding: 14px;
+  display: block;
+  text-align: center;
+}
+
+.orderflow-controls {display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;font-size:12px;color:var(--p-muted)}
+.orderflow-controls label {display:flex;gap:6px;align-items:center}.orderflow-controls select,.orderflow-controls button {padding:5px 8px;max-width:180px}
+.orderflow-controls [hidden] {display:none!important}.orderflow-controls #tradeClockWrap {flex-basis:100%}
+#feedStatus[data-state="interrupted"] {color:#f47d91}#feedStatus[data-state="live"]{color:#36c8a6}
+.chart-container {position:relative}.footprint-overlay {position:absolute;inset:0;pointer-events:none;z-index:4}.footprint-notice {position:absolute;left:8px;top:3px;z-index:5;font:10px monospace;pointer-events:none;background:var(--surface);color:var(--text);max-width:90%}
+.trade-import {margin:16px 0;padding:12px;border:1px solid var(--border);border-radius:8px}.trade-import summary{cursor:pointer}.trade-import p{font-size:12px;max-width:700px}
+body[data-orderflow-source="demo"] .replay-context,body[data-orderflow-source="live"] .replay-context,
+body[data-orderflow-source="demo"] #chartCard > .replay-panel,body[data-orderflow-source="live"] #chartCard > .replay-panel {display:none}
+.order-card[inert] {opacity:.5}
+body[data-orderflow-source="demo"] .chart-drawings,body[data-orderflow-source="live"] .chart-drawings {display:none}

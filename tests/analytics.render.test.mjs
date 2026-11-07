@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { renderAnalytics } from '../dist/analytics.mjs';
+import { renderAnalytics } from '../frontend/src/replay/analytics.ts';
 
 // The renderer uses only its supplied container: it also works without a global document.
 function container() {

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {curatedArchives,readCuratedDataset,decodeCuratedPart,isSupersededCuratedDataset,currentCuratedArchive} from '../dist/curated-data.mjs';
-import {Replay,dayKey} from '../dist/engine.mjs';
-import {WorkspaceStore,blankWorkspace} from '../dist/workspace-store.mjs';
-import {validateWorkspace} from '../dist/workspace-validation.mjs';
+import {curatedArchives,readCuratedDataset,decodeCuratedPart,isSupersededCuratedDataset,currentCuratedArchive} from '../frontend/src/replay/curated-data.ts';
+import {Replay,dayKey} from '../frontend/src/replay/engine.ts';
+import {WorkspaceStore,blankWorkspace} from '../frontend/src/replay/workspace-store.ts';
+import {validateWorkspace} from '../frontend/src/replay/workspace-validation.ts';
 
 test('shipped real archives decode exactly, preserve prices and replay across actual contracts',async()=>{
  assert.ok(curatedArchives.length>=2);
