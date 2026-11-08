@@ -1,0 +1,173 @@
+{
+  "sourceRepository": "https://github.com/kfccolonel1/BARS",
+  "sourceCommit": "b8f2d8ab36e44c289036ce093bf7c9f04073a7d9",
+  "retrievedAt": "2026-11-08",
+  "priceTransformation": "None",
+  "syntheticBars": 0,
+  "license": "No LICENSE file; GitHub repository license is null. Publisher labels do not independently establish original feed provenance or redistribution rights.",
+  "sources": {
+    "nq.csv": {
+      "url": "https://raw.githubusercontent.com/kfccolonel1/BARS/b8f2d8ab36e44c289036ce093bf7c9f04073a7d9/NQ/1min/NQ_1min_2026-01-01_2026-10-08_stitched.csv",
+      "sha256": "6a0aaa144118160da036409310df4e57cf41f7d23d9a07ce04671da50a154d65"
+    },
+    "es.csv": {
+      "url": "https://raw.githubusercontent.com/kfccolonel1/BARS/b8f2d8ab36e44c289036ce093bf7c9f04073a7d9/ES/1min/ES_1min_2025-06-20_2026-10-09_stitched.csv",
+      "sha256": "36baf1581b5a7ea2533812c101b7057cc6166162e14e089cb699650fd5c7635d"
+    },
+    "nq-tv.csv": {
+      "url": "https://raw.githubusercontent.com/kfccolonel1/BARS/b8f2d8ab36e44c289036ce093bf7c9f04073a7d9/raw/NQ/1min/NQ_1min_2025-07-13_2026-07-31_tradingview.csv",
+      "sha256": "052a063884174c089abf72e303d150597775f5fb5018c2350682472fe212e6b0"
+    },
+    "nq-ib.csv": {
+      "url": "https://raw.githubusercontent.com/kfccolonel1/BARS/b8f2d8ab36e44c289036ce093bf7c9f04073a7d9/raw/NQ/1min/NQ_1min_2026-05-31_2026-08-28_ibkr-ss50.csv",
+      "sha256": "048f5bcaa7b18c6456750f6f1832e069df2401b4d1aac59118acffe82fac87f6"
+    },
+    "es-m.csv": {
+      "url": "https://raw.githubusercontent.com/kfccolonel1/BARS/b8f2d8ab36e44c289036ce093bf7c9f04073a7d9/raw/ES/1min/ib/ES_1min_2026-03-08_2026-06-16_ibkr-ESM6.csv",
+      "sha256": "9dd593a8800fd2577b055115d9417e4a7f6ec8aa72b9c4334dae09df4f22c258"
+    },
+    "es-u.csv": {
+      "url": "https://raw.githubusercontent.com/kfccolonel1/BARS/b8f2d8ab36e44c289036ce093bf7c9f04073a7d9/raw/ES/1min/ib/ES_1min_2026-06-07_2026-09-15_ibkr-ESU6.csv",
+      "sha256": "26fda76b0579b073b3d25025dcc7473f3811b48cb875b0817c690addddaa3aee"
+    },
+    "catalog.json": {
+      "url": "https://raw.githubusercontent.com/kfccolonel1/BARS/b8f2d8ab36e44c289036ce093bf7c9f04073a7d9/catalog.json",
+      "sha256": "ee0f57f28cc3761724dcf8a9204bb3882e213f68d1d0641584c6ae93cff3f48b"
+    },
+    "README.md": {
+      "url": "https://raw.githubusercontent.com/kfccolonel1/BARS/b8f2d8ab36e44c289036ce093bf7c9f04073a7d9/README.md",
+      "sha256": "cc5e1f10a2020573da49f8846d978623a8ad6dfeb6f795c40b1f95d57c3a35a1"
+    }
+  },
+  "archives": {
+    "NQ": {
+      "baselineArchive": "curated-NQ-history-2024-2026-v2",
+      "recentArchive": "curated-NQ-recent-2026",
+      "updatedArchive": "curated-NQ-history-2024-2026-v3",
+      "insertedBars": 126017,
+      "insertedSourceLabels": {
+        "alfordlabs": 126017
+      },
+      "monthlyInserted": {
+        "2026-05": 27322,
+        "2026-06": 30120,
+        "2026-07": 31140,
+        "2026-08": 29340,
+        "2026-09": 8095
+      },
+      "coverage": {
+        "fromUTC": "2026-05-04T04:38:00+00:00",
+        "untilUTCExclusive": "2026-09-09T04:55:00+00:00",
+        "expectedMinutes": 126017,
+        "presentMinutes": 126017,
+        "missingScheduledMinutes": 0,
+        "outsideScheduledHours": 0,
+        "calendar": "America/New_York; Sun 18:00–Fri 17:00; daily 17:00–18:00 halt; four listed 13:00 ET early closes",
+        "earlyCloseDates": [
+          "2026-05-25",
+          "2026-06-19",
+          "2026-07-03",
+          "2026-09-07"
+        ],
+        "calendarSource": "https://www.cmegroup.com/trading-hours.html"
+      },
+      "oldRowsPreserved": 848300,
+      "archiveCount": 974317,
+      "partsReused": 29,
+      "validation": {
+        "unalignedTimestamps": 0,
+        "duplicateTimestamps": 0,
+        "invalidOHLC": 0,
+        "offTickPrices": 0,
+        "invalidVolume": 0
+      },
+      "comparisons": {
+        "nq-ib.csv": {
+          "-60": {
+            "overlap": 88968,
+            "exactOHLC": 90
+          },
+          "0": {
+            "overlap": 89032,
+            "exactOHLC": 89032
+          },
+          "60": {
+            "overlap": 88967,
+            "exactOHLC": 90
+          }
+        },
+        "nq-tv.csv": {
+          "-60": {
+            "overlap": 88159,
+            "exactOHLC": 90
+          },
+          "0": {
+            "overlap": 88222,
+            "exactOHLC": 84147
+          },
+          "60": {
+            "overlap": 88157,
+            "exactOHLC": 90
+          }
+        }
+      }
+    },
+    "ES": {
+      "baselineArchive": "curated-ES-history-2024-2026",
+      "recentArchive": "curated-ES-recent-2026",
+      "updatedArchive": "curated-ES-history-2024-2026-v2",
+      "insertedBars": 88015,
+      "insertedSourceLabels": {
+        "publisher-labelled export": 88015
+      },
+      "monthlyInserted": {
+        "2026-06": 19440,
+        "2026-07": 31140,
+        "2026-08": 29340,
+        "2026-09": 8095
+      },
+      "coverage": {
+        "fromUTC": "2026-06-10T21:00:00+00:00",
+        "untilUTCExclusive": "2026-09-09T04:55:00+00:00",
+        "expectedMinutes": 88015,
+        "presentMinutes": 88015,
+        "missingScheduledMinutes": 0,
+        "outsideScheduledHours": 0,
+        "calendar": "America/New_York; Sun 18:00–Fri 17:00; daily 17:00–18:00 halt; four listed 13:00 ET early closes",
+        "earlyCloseDates": [
+          "2026-05-25",
+          "2026-06-19",
+          "2026-07-03",
+          "2026-09-07"
+        ],
+        "calendarSource": "https://www.cmegroup.com/trading-hours.html"
+      },
+      "oldRowsPreserved": 815679,
+      "archiveCount": 903694,
+      "partsReused": 30,
+      "validation": {
+        "unalignedTimestamps": 0,
+        "duplicateTimestamps": 0,
+        "invalidOHLC": 0,
+        "offTickPrices": 0,
+        "invalidVolume": 0
+      },
+      "comparisons": {
+        "es.csv": {
+          "-60": {
+            "overlap": 87950,
+            "exactOHLC": 224
+          },
+          "0": {
+            "overlap": 88015,
+            "exactOHLC": 79757
+          },
+          "60": {
+            "overlap": 87951,
+            "exactOHLC": 224
+          }
+        }
+      }
+    }
+  }
+}

@@ -90,3 +90,5 @@ Historical data provenance and execution limitations are preserved in [the origi
 Footprint, trade CSV import, demo streaming, and Databento setup: [docs/orderflow.md](docs/orderflow.md).
 
 `packages/orderflow/` owns the shared trade format, contract specifications, CSV parsing, deduplication, and footprint aggregation used by replay and streaming.
+
+Bundled NQ/ES summer 2026 gap repair, pinned source files, validation and saved-session compatibility: [docs/summer-2026-data.md](docs/summer-2026-data.md).

@@ -44,8 +44,8 @@ test('a corrupted packed data asset is rejected before any prices are used',asyn
 });
 
 test('restored October fills every missing minute while preserving original candles',async()=>{
- const legacy=curatedArchives.find(a=>a.id==='curated-NQ-history-2024-2026'),current=currentCuratedArchive(legacy.id);
- assert.equal(current.id,'curated-NQ-history-2024-2026-v2');assert.equal(isSupersededCuratedDataset(legacy.id),true);assert.equal(isSupersededCuratedDataset(current.id),false);
+ const legacy=curatedArchives.find(a=>a.id==='curated-NQ-history-2024-2026'),current=curatedArchives.find(a=>a.id==='curated-NQ-history-2024-2026-v2');
+ assert.equal(current.id,'curated-NQ-history-2024-2026-v2');assert.equal(isSupersededCuratedDataset(legacy.id),true);assert.equal(isSupersededCuratedDataset(current.id),true);
  const oldPart=legacy.parts.find(p=>p.month==='2025-10'),newPart=current.parts.find(p=>p.month==='2025-10');
  const read=async p=>(await decodeCuratedPart(await readFile(new URL('../market-archives/'+p.id+'.b64',import.meta.url),'utf8'),p,'NQ')).bars;
  const old=await read(oldPart),bars=await read(newPart),map=new Map(bars.map(b=>[b.time,b]));
