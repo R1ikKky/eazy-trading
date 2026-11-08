@@ -91,8 +91,6 @@ export interface Elements {
   setupYears: HTMLElement;
   fromDate: HTMLInputElement;
   toDate: HTMLInputElement;
-  rangePreview: HTMLElement;
-  availableRange: HTMLElement;
   setupError: HTMLElement;
   importDialog: HTMLDialogElement;
   importSymbol: HTMLSelectElement;

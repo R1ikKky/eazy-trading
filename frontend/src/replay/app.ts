@@ -594,15 +594,6 @@ function setupAvailability(reset = false) {
     windows = commonHistoryWindows(records, selected),
     first = windows[0]?.from,
     last = windows.at(-1)?.to;
-  $("availableRange").textContent = windows.length
-    ? "Даты для " +
-      selected.join(" + ") +
-      ": " +
-      windows.map((w) => dateText(w.from) + " — " + dateText(w.to)).join("; ") +
-      ". Время — Нью-Йорк."
-    : selected.length
-      ? "За общий период данных пока нет"
-      : "Выберите хотя бы один инструмент";
   for (const id of ["fromDate", "toDate"]) {
     $(id).min = first || "";
     $(id).max = last || "";
@@ -724,12 +715,9 @@ function previewRange() {
       $("toDate").value,
       setupPreferredId,
     );
-    $("rangePreview").textContent =
-      "Свечи загрузятся автоматически. Дни без данных не заполняются.";
     $("setupError").textContent = "";
     button.disabled = settingUp;
   } catch (error) {
-    $("rangePreview").textContent = "Выберите период для теста";
     $("setupError").textContent = error.message;
     button.disabled = true;
   }

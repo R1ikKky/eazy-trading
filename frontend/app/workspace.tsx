@@ -795,17 +795,6 @@ export function ReplayWorkspace() {
               <input id="toDate" type="date" required />
             </div>
           </div>
-          <div
-            className="range-preview"
-            id="rangePreview"
-            role="status"
-            aria-live="polite"
-          />
-          <p className="muted dialog-note" id="availableRange" />
-          <p className="muted dialog-note">
-            Текущая сессия сохранится. Свечи нового периода будут открываться по
-            мере replay.
-          </p>
           <div id="setupError" className="form-error" role="alert" />
           <button className="button primary full" type="submit">
             Начать сессию
