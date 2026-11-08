@@ -24,6 +24,7 @@ test("Nest API, PostgreSQL transactions, persistence, and SQLite migration", asy
   url.pathname = "/" + database;
   process.env.DATABASE_URL = url.toString();
   process.env.PUBLIC_ORIGIN = "http://127.0.0.1:3100";
+  process.env.AUTH_REGISTRATION_ENABLED = "true";
   const require = createRequire(import.meta.url);
   const { createApp } = require("../dist/main.js");
   let app: any;
@@ -32,6 +33,7 @@ test("Nest API, PostgreSQL transactions, persistence, and SQLite migration", asy
     await app.listen(0, "127.0.0.1");
     let port = app.getHttpServer().address().port;
     process.env.API_PORT = String(port);
+    let authCookie = "";
     const call = (
       path: string,
       method = "GET",
@@ -41,6 +43,7 @@ test("Nest API, PostgreSQL transactions, persistence, and SQLite migration", asy
       fetch(`http://127.0.0.1:${port}/api/${path}`, {
         method,
         headers: {
+          ...(authCookie ? { cookie: authCookie } : {}),
           ...(method !== "GET"
             ? {
                 origin: process.env.PUBLIC_ORIGIN!,
@@ -53,6 +56,17 @@ test("Nest API, PostgreSQL transactions, persistence, and SQLite migration", asy
           ? {}
           : { body: Buffer.isBuffer(value) ? value : JSON.stringify(value) }),
       });
+    assert.equal((await call("workspace")).status, 401);
+    const registration = await call("auth/register", "POST", {
+      email: "integration@example.test",
+      username: "integration",
+      password: "Integration-test-pass-2026",
+    });
+    assert.equal(registration.status, 201);
+    authCookie = registration.headers
+      .getSetCookie()
+      .map((s) => s.split(";")[0])
+      .join("; ");
     const blank = {
       version: 1,
       revision: 0,

@@ -1,7 +1,15 @@
 import { validateWorkspace } from "./workspace-validation";
 import { readArchive } from "./archive";
 import { isCuratedDataset, readCuratedDataset } from "./curated-data";
-const CACHE = "replay-lab-workspace-v1";
+const LEGACY_CACHE = "replay-lab-workspace-v1";
+function cacheKey() {
+  if (typeof sessionStorage === "undefined") return LEGACY_CACHE;
+  return (
+    LEGACY_CACHE +
+    ":" +
+    (sessionStorage.getItem("replay-user-id") || "signed-out")
+  );
+}
 export const blankWorkspace = () => ({
   version: 1,
   sessions: [],
@@ -59,7 +67,7 @@ export class WorkspaceStore {
   cache() {
     try {
       localStorage.setItem(
-        CACHE,
+        cacheKey(),
         JSON.stringify({ value: this.value, dirty: this.dirty }),
       );
     } catch {
@@ -72,7 +80,7 @@ export class WorkspaceStore {
   async load() {
     let cached;
     try {
-      cached = JSON.parse(localStorage.getItem(CACHE) || "null");
+      cached = JSON.parse(localStorage.getItem(cacheKey()) || "null");
     } catch {}
     if (cached?.value) {
       try {

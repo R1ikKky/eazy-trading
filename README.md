@@ -20,7 +20,7 @@ PORT=3100 POSTGRES_PORT=55432 docker compose -p replay-lab-next up -d --build
 
 Use a different PostgreSQL port if one is already occupied. Do not use `docker compose down -v` unless you intend to delete the database. The former `replay-data` volume is not modified or imported automatically.
 
-This is still a **local, single-owner app**, bound to loopback, with a fixed `local-owner` identity. It does not provide public registration/login. The API ignores caller-supplied identity headers, and both layers enforce the configured origin. Add authentication before exposing it publicly.
+Authentication is required. Before starting, configure `AUTH_OWNER_EMAIL`, `AUTH_OWNER_USERNAME` and `AUTH_BOOTSTRAP_PASSWORD` in `.env` or Dokploy Environment to create your account and claim existing data. Registration is disabled by default. See [authentication setup](docs/authentication.md) for Google/GitHub OAuth and token behavior.
 
 ## Development
 
@@ -53,10 +53,10 @@ npm start
 Browser checks require the new app running against a test database on port 3100:
 
 ```sh
-npm run test:browser
+TEST_AUTH_LOGIN=owner TEST_AUTH_PASSWORD=YOUR_TEST_PASSWORD npm run test:browser
 ```
 
-`BROWSER_BASE_URL` changes the URL, and `CHROMIUM_PATH` changes the Chromium executable (default `/usr/bin/chromium`). These tests create a session in that test workspace.
+`BROWSER_BASE_URL` changes the URL, and `CHROMIUM_PATH` changes the Chromium executable (default `/usr/bin/chromium`). Use a disposable instance with registration enabled and OAuth credentials unset. These tests create accounts and sessions in that test workspace.
 
 ## Import existing local data
 

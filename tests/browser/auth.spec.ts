@@ -1,0 +1,67 @@
+import { test, expect } from "@playwright/test";
+
+test("password signup, private workspace, automatic refresh, logout and login", async ({
+  page,
+  context,
+}) => {
+  const base = process.env.BROWSER_BASE_URL || "http://127.0.0.1:3100";
+  const username = "browser_" + Date.now();
+  const password = "Browser-test-password-2026";
+  expect((await page.request.get("/api/workspace")).status()).toBe(401);
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/login/);
+  await expect(
+    page.getByRole("button", { name: "Continue with Google" }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Continue with GitHub" }),
+  ).toBeDisabled();
+  await page
+    .getByRole("button", { name: "Create an account", exact: true })
+    .click();
+  await page.getByLabel("Username", { exact: true }).fill(username);
+  await page
+    .getByLabel("Email", { exact: true })
+    .fill(username + "@example.test");
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page
+    .getByRole("button", { name: "Create account", exact: true })
+    .click();
+  await expect(page.locator("#saveStatus")).toHaveAttribute(
+    "data-state",
+    "saved",
+    { timeout: 30000 },
+  );
+  const cookies = await context.cookies(base + "/api/auth/me");
+  expect(cookies.find((c) => c.name === "replay_access")?.httpOnly).toBe(true);
+  expect(cookies.find((c) => c.name === "replay_refresh")?.httpOnly).toBe(true);
+  expect(await page.evaluate(() => document.cookie)).not.toContain(
+    "replay_access",
+  );
+  const refreshBefore = cookies.find((c) => c.name === "replay_refresh")!.value;
+  await context.clearCookies({ name: "replay_access" });
+  expect(
+    await page.evaluate(async () => (await fetch("/api/workspace")).status),
+  ).toBe(200);
+  const refreshAfter = (await context.cookies(base + "/api/auth/me")).find(
+    (c) => c.name === "replay_refresh",
+  )!.value;
+  expect(refreshAfter).not.toBe(refreshBefore);
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(page).toHaveURL(/\/login/);
+  expect((await page.request.get("/api/workspace")).status()).toBe(401);
+  await page.getByLabel("Username or email").fill(username);
+  await page.getByLabel("Password", { exact: true }).fill("wrong password");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.locator(".auth-error")).toContainText(
+    "Invalid login or password",
+  );
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.locator("#saveStatus")).toHaveAttribute(
+    "data-state",
+    "saved",
+    { timeout: 30000 },
+  );
+  await page.screenshot({ path: "/tmp/replay-auth-workspace.png" });
+});

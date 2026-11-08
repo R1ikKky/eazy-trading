@@ -20,6 +20,16 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     environment:
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-}
+      AUTH_REGISTRATION_ENABLED: ${AUTH_REGISTRATION_ENABLED:-false}
+      AUTH_OWNER_EMAIL: ${AUTH_OWNER_EMAIL:-}
+      AUTH_OWNER_USERNAME: ${AUTH_OWNER_USERNAME:-owner}
+      AUTH_BOOTSTRAP_PASSWORD: ${AUTH_BOOTSTRAP_PASSWORD:-}
+      AUTH_ALLOWED_EMAILS: ${AUTH_ALLOWED_EMAILS:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
       ORDERFLOW_FEED: ${ORDERFLOW_FEED:-disabled}
       ORDERFLOW_NQ_CONTRACT: ${ORDERFLOW_NQ_CONTRACT:-}
       ORDERFLOW_ES_CONTRACT: ${ORDERFLOW_ES_CONTRACT:-}
@@ -34,7 +44,7 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/workspace').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 10

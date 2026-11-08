@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import { AccountMenu } from "./auth-boundary";
 
 // The replay terminal owns its chart DOM. Load it only after React mounts the page.
 export function ReplayWorkspace() {
@@ -120,6 +121,7 @@ export function ReplayWorkspace() {
             <strong id="activeSessionName">Выберите сессию</strong>
           </div>
           <div className="top-actions">
+            <AccountMenu />
             <span id="saveStatus" className="save-status" role="status">
               <span className="status-dot" />
               Сохранено локально

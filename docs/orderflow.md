@@ -71,7 +71,7 @@ Put these values in the root `.env` for Compose, then:
 PORT=3100 POSTGRES_PORT=55432 docker compose -p replay-lab-migration up -d
 ```
 
-Open **Source → Live**. Status progresses disabled/connecting/live/interrupted; live means actual trade events have arrived. Both access and data-rights switches are required before a real subscription is started. Missing credentials/contracts keep the real feed disabled. The application remains a local single-owner app; these switches are not a multi-tenant entitlement/billing system. Only expose customer access after your deployment's authentication and contracted CME/Databento redistribution requirements are satisfied.
+Open **Source → Live**. Status progresses disabled/connecting/live/interrupted; live means actual trade events have arrived. Both access and data-rights switches are required before a real subscription is started. Missing credentials/contracts keep the real feed disabled. The application requires authentication and isolates user workspaces; these switches are deployment-wide controls, not a per-user entitlement/billing system. Only expose customer access after your deployment's authentication and contracted CME/Databento redistribution requirements are satisfied.
 
 For local API development, install `backend/providers/requirements.txt` in a Python venv and set `DATABENTO_PYTHON` to its interpreter. Disabled/demo mode never imports the SDK or needs a key. Normal tests/startup work without a provider account.
 

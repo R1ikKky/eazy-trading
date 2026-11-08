@@ -1,4 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { authenticateTestPage } from "./auth-helper";
+test.beforeEach(async ({ page }) => {
+  await authenticateTestPage(page);
+});
 test("footprint uses trade CSV, replay cutoffs, grouping, chart toggle, and a deduplicated demo reconnect", async ({
   page,
 }) => {

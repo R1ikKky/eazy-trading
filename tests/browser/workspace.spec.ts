@@ -1,4 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { authenticateTestPage } from "./auth-helper";
+test.beforeEach(async ({ page }) => {
+  await authenticateTestPage(page);
+});
 test("paired replay, orders, notes, themes, and session restoration", async ({
   page,
 }) => {

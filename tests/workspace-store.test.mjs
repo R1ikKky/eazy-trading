@@ -2,7 +2,10 @@
 import assert from 'node:assert/strict';
 import { WorkspaceStore, blankWorkspace, escapeHTML } from '../frontend/src/replay/workspace-store.ts';
 
-const CACHE = 'replay-lab-workspace-v1';
+const CACHE = 'replay-lab-workspace-v1:test-owner';
+const savedSessionStorage = Object.getOwnPropertyDescriptor(globalThis, 'sessionStorage');
+let currentUser = 'test-owner';
+Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: { getItem: () => currentUser } });
 const savedGlobals = { fetch: globalThis.fetch, setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout, localStorage: Object.getOwnPropertyDescriptor(globalThis, 'localStorage') };
 const cache = new Map(); const timers = new Map(); const responses = []; const calls = [];
 let timerId = 0;
@@ -25,6 +28,14 @@ function cacheDraft(value, dirty) { cache.set(CACHE, JSON.stringify({ value, dir
 function savedCache() { return JSON.parse(cache.get(CACHE)); }
 
 try {
+  // An offline draft belonging to another account is never restored.
+  {
+    const { store } = fresh(); cacheDraft(workspace(9, 'private-owner-theme'), true);
+    currentUser = 'different-owner'; responses.push(new TypeError('Offline'));
+    assert.deepEqual(await store.load(), blankWorkspace());
+    assert.equal(JSON.parse(cache.get(CACHE)).value.settings.theme, 'private-owner-theme');
+    currentUser = 'test-owner';
+  }
   // Successful initial cloud load persists the authoritative workspace on this device.
   {
     const { store, status } = fresh(); responses.push(answer(workspace(4)));
@@ -121,6 +132,7 @@ try {
   assert.equal(responses.length, 0);
   console.log('WorkspaceStore integration passed: cloud/offline cache, generation-aware saves, revision conflicts, explicit remote recovery, failed-save safety, attachment contract and lost-response reload recovery.');
 } finally {
+  if (savedSessionStorage) Object.defineProperty(globalThis, 'sessionStorage', savedSessionStorage); else delete globalThis.sessionStorage;
   globalThis.fetch = savedGlobals.fetch; globalThis.setTimeout = savedGlobals.setTimeout; globalThis.clearTimeout = savedGlobals.clearTimeout;
   if (savedGlobals.localStorage) Object.defineProperty(globalThis, 'localStorage', savedGlobals.localStorage); else delete globalThis.localStorage;
 }

@@ -23,7 +23,7 @@ src/
   common/
     exceptions/             # API error helper
     filters/                # exception-to-HTTP mapping
-    guards/                 # local-owner origin and host protection
+    guards/                 # origin and host protection
     http/                   # bounded raw-body and JSON readers
     validation/             # shared JSON/id predicates
   config/                   # environment loading and project paths
@@ -33,6 +33,7 @@ src/
     data-source.ts          # TypeORM CLI entry
     migrations/             # versioned migrations; synchronize is disabled
   modules/
+    auth/                   # password login, OAuth, sessions, global auth guard
     workspace/              # controller, service, entity, DTO and validation
     datasets/               # datasets and archive manifests
     attachments/            # private screenshots
@@ -41,6 +42,6 @@ src/
 test/                       # PostgreSQL HTTP integration tests
 ```
 
-Each feature owns its controller and service. Persisted features register their entities through `TypeOrmModule.forFeature`; services use `DataSource` transactions for atomic writes. Shared infrastructure is not mixed into feature code. Public API URLs, schema names, migration version, owner identity, and save formats remain compatible.
+Each feature owns its controller and service. Persisted features register their entities through `TypeOrmModule.forFeature`; services use `DataSource` transactions for atomic writes. Shared infrastructure is not mixed into feature code. Public API URLs, schema names, migration version, and save formats remain compatible. User identity comes from the authenticated session. See [authentication setup](../docs/authentication.md).
 
 The immutable archive assets live in the shared root `data/` and `market-archives/` directories. Defaults resolve relative to the project location, so running from the repository root, backend folder, or Docker uses the same files. `MARKET_CATALOG` and `MARKET_ARCHIVES_DIR` can override those locations.

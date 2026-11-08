@@ -2,16 +2,18 @@ import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import type { Request } from "express";
 import { fail } from "../exceptions/api-error";
 
-// This remains a single-owner local application. Never trust a client-supplied identity.
-export const OWNER = "local-owner";
 @Injectable()
 export class LocalGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
     const origin = process.env.PUBLIC_ORIGIN || "http://127.0.0.1:3000";
+    const callback =
+      request.method === "GET" &&
+      /^\/api\/auth\/(google|github)\/callback$/.test(request.path);
     if (
-      request.headers["sec-fetch-site"] === "cross-site" ||
-      (request.headers.origin && request.headers.origin !== origin)
+      !callback &&
+      (request.headers["sec-fetch-site"] === "cross-site" ||
+        (request.headers.origin && request.headers.origin !== origin))
     ) {
       fail(
         403,
