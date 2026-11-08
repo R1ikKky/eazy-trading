@@ -1,9 +1,7 @@
 export interface Elements {
   backupExport: HTMLButtonElement;
   backupImport: HTMLButtonElement;
-  activeSessionName: HTMLElement;
   saveStatus: HTMLElement;
-  sessionBalance: HTMLElement;
   themeToggle: HTMLButtonElement;
   help: HTMLButtonElement;
   "view-replay": HTMLElement;

@@ -173,17 +173,6 @@ export function createProduct({
   }
   function updateHeader() {
     const s = active();
-    if ($("activeSessionName"))
-      $("activeSessionName").textContent = s?.name || "Выберите сессию";
-    if ($("sessionBalance")) {
-      const open = s?.snapshot?.position,
-        net =
-          (s?.snapshot?.trades || []).reduce(
-            (v: any, t: any) => v + (Number.isFinite(t.pnl) ? t.pnl : 0),
-            0,
-          ) + (open?.realizedNet || 0);
-      $("sessionBalance").textContent = money((s?.capital || 50000) + net);
-    }
     if ($("sessionNotes") && document.activeElement !== $("sessionNotes"))
       $("sessionNotes").value = s?.notes || "";
   }
@@ -246,9 +235,9 @@ export function createProduct({
       b.updatedAt.localeCompare(a.updatedAt),
     );
     box.innerHTML =
-      '<div class="view-toolbar"><span class="muted">' +
+      '<div class="view-toolbar sessions-toolbar"><span>Все сессии</span><span class="session-count">' +
       sessions.length +
-      " сессий</span></div>" +
+      "</span></div>" +
       (sessions.length
         ? '<div class="cards-grid">' +
           sessions
@@ -294,7 +283,7 @@ export function createProduct({
             })
             .join("") +
           "</div>"
-        : '<div class="empty-state"><h3>Начните первый тест</h3><p>Назовите сессию, выберите диапазон и стратегию. Результаты останутся в журнале.</p><button class="button primary" data-product="new-session">Создать сессию</button></div>');
+        : '<div class="sessions-empty"><div class="empty-market" aria-hidden="true"><svg viewBox="0 0 240 112" fill="none"><path class="empty-grid" d="M0 28h240M0 56h240M0 84h240M40 0v112M80 0v112M120 0v112M160 0v112M200 0v112"/><g class="empty-candles"><path d="M48 68v28M80 41v45M112 52v34M144 26v41M176 13v40M208 22v37"/><rect x="42" y="75" width="12" height="12" rx="2"/><rect x="74" y="52" width="12" height="23" rx="2"/><rect x="106" y="59" width="12" height="16" rx="2"/><rect x="138" y="35" width="12" height="20" rx="2"/><rect x="170" y="23" width="12" height="16" rx="2"/><rect x="202" y="30" width="12" height="17" rx="2"/></g></svg></div><h2>Сессий пока нет</h2></div>');
   }
   function renderJournal() {
     const rows = filterTrades(allTrades(), filter),

@@ -115,21 +115,12 @@ export function ReplayWorkspace() {
       </aside>
       <div className="app-shell">
         <header className="topbar product-topbar">
-          <div className="topbar-context">
-            <span className="workspace-name">Лаборатория</span>
-            <span className="context-slash">/</span>
-            <strong id="activeSessionName">Выберите сессию</strong>
-          </div>
           <div className="top-actions">
             <AccountMenu />
             <span id="saveStatus" className="save-status" role="status">
               <span className="status-dot" />
               Сохранено локально
             </span>
-            <div className="session-wallet">
-              <span>Капитал сессии</span>
-              <strong id="sessionBalance">$50,000.00</strong>
-            </div>
             <button
               type="button"
               className="icon-button theme-toggle"
@@ -139,15 +130,6 @@ export function ReplayWorkspace() {
               title="Включить светлую тему"
             >
               <span aria-hidden="true">☀</span>
-            </button>
-            <button
-              type="button"
-              className="icon-button"
-              id="help"
-              aria-label="Как работает симулятор"
-              title="Справка и горячие клавиши"
-            >
-              ?
             </button>
           </div>
         </header>
@@ -617,11 +599,7 @@ export function ReplayWorkspace() {
           >
             <div className="view-heading">
               <div>
-                <p className="eyebrow">TRAINING HISTORY</p>
-                <h1>Ваши сессии</h1>
-                <p className="heading-description">
-                  Продолжайте практику с того места, где остановились.
-                </p>
+                <h1>Сессии</h1>
               </div>
               <div className="heading-actions">
                 <button
@@ -652,10 +630,6 @@ export function ReplayWorkspace() {
               <div>
                 <p className="eyebrow">TRADE JOURNAL</p>
                 <h1>Журнал сделок</h1>
-                <p className="heading-description">
-                  Разбирайте входы, сохраняйте выводы, находите свою
-                  закономерность.
-                </p>
               </div>
             </div>
             <div id="journalFilters" className="journal-filters" />
@@ -802,20 +776,19 @@ export function ReplayWorkspace() {
             </details>
             <div id="dataContent" className="view-content" />
           </section>
-          <footer className="page-footer">
-            <span>
-              Сессии, сделки и заметки сохраняются на этом сервере. Статус
-              сохранения — в верхней панели.
-            </span>
-            <a
-              href="https://www.tradingview.com/"
-              target="_blank"
-              rel="noopener"
-            >
-              График: TradingView Lightweight Charts™
-            </a>
-          </footer>
         </main>
+        <div className="workspace-utilities">
+          <button
+            type="button"
+            className="workspace-help"
+            id="help"
+            aria-label="Как работает симулятор"
+            title="Справка и горячие клавиши"
+          >
+            <span aria-hidden="true">?</span>
+            <span>Справка</span>
+          </button>
+        </div>
       </div>
       <dialog id="setupDialog">
         <form id="setupForm">
@@ -1017,6 +990,11 @@ export function ReplayWorkspace() {
             ×
           </button>
         </div>
+        <p className="chart-credit">
+          <a href="https://www.tradingview.com/" target="_blank" rel="noopener">
+            TradingView Lightweight Charts™
+          </a>
+        </p>
         <ol className="help-list">
           <li>
             Выберите NQ или ES и диапазон дат. Встроенный архив содержит
