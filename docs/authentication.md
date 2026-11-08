@@ -4,7 +4,7 @@ All workspace, attachment, dataset, market-data and order-flow APIs require auth
 
 ## Initial deployment / existing data
 
-Set these in Dokploy **Environment**, using your own email and a new password of at least 12 characters, then redeploy:
+Set these in Dokploy **Environment**, using your own email and password, then redeploy:
 
 ```dotenv
 PUBLIC_ORIGIN=https://eazy-trading.ru
@@ -25,7 +25,7 @@ Keep the existing PostgreSQL password, database volume and feed settings. The do
 
 Open `/login` and sign in as `owner` or your email. Only the explicitly configured owner receives existing `local-owner` workspaces, datasets and screenshots. New registrations receive empty, isolated workspaces. Existing browser drafts use separate per-account cache keys; the old shared cache is not imported into an account automatically. Export unsaved old drafts before upgrading. SQLite imports should run before the owner is bootstrapped so the migration can assign their data.
 
-After the owner account has been created, remove AUTH_BOOTSTRAP_PASSWORD and redeploy. Bootstrap never resets an existing account password. Keep AUTH_OWNER_EMAIL configured to reserve it. Back up PostgreSQL before upgrades.
+After the owner account has been created, remove AUTH_BOOTSTRAP_PASSWORD and redeploy. The bootstrap password does not use the registration password-length check and cannot block startup for being short. Normal signup still requires at least 12 characters. Bootstrap never resets an existing account password. Keep AUTH_OWNER_EMAIL configured to reserve it. Back up PostgreSQL before upgrades.
 
 AUTH_JWT_SECRET may be left blank: a cryptographically random, stable signing secret is generated and persisted in PostgreSQL. Alternatively set a random secret of at least 32 bytes, e.g. generated with `openssl rand -hex 32`; keep it server-side and consistent across API replicas. Changing the secret invalidates access tokens; existing refresh sessions can obtain new access tokens.
 

@@ -28,7 +28,7 @@ test("authentication: isolation, JWT TTL, rotating refresh/reuse, logout, OAuth 
   process.env.AUTH_JWT_SECRET = "test-secret-".repeat(8);
   process.env.AUTH_REGISTRATION_ENABLED = "true";
   process.env.AUTH_OWNER_EMAIL = "owner@example.test";
-  process.env.AUTH_BOOTSTRAP_PASSWORD = "Owner-private-password-2026";
+  process.env.AUTH_BOOTSTRAP_PASSWORD = "short";
   process.env.AUTH_ALLOWED_EMAILS = "";
   process.env.GOOGLE_CLIENT_ID = "google-test";
   process.env.GOOGLE_CLIENT_SECRET = "google-secret";
@@ -101,7 +101,7 @@ test("authentication: isolation, JWT TTL, rotating refresh/reuse, logout, OAuth 
     assert.equal((await call("health")).status, 200);
     const ownerLogin = await call("auth/login", "POST", {
       login: "owner",
-      password: "Owner-private-password-2026",
+      password: "short",
     });
     assert.equal(ownerLogin.status, 201);
     const ownerWorkspace = await (

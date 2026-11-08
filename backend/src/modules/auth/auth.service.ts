@@ -63,7 +63,7 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     if (process.env.AUTH_OWNER_EMAIL && process.env.AUTH_BOOTSTRAP_PASSWORD) {
       const email = emailInput(process.env.AUTH_OWNER_EMAIL);
       const passwordHash = await hashPassword(
-        passwordInput(process.env.AUTH_BOOTSTRAP_PASSWORD),
+        process.env.AUTH_BOOTSTRAP_PASSWORD,
       );
       await this.db.transaction(async (m) => {
         await m.query(
