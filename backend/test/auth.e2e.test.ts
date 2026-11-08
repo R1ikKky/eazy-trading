@@ -318,6 +318,7 @@ test("authentication: isolation, JWT TTL, rotating refresh/reuse, logout, OAuth 
     // Fake only fixed provider HTTPS endpoints. App HTTP still uses native fetch.
     let expectedChallenge = "";
     let badVerified = false;
+    let githubEmail = "github@example.test";
     globalThis.fetch = async (input: any, init: any) => {
       const endpoint = String(input);
       if (
@@ -352,7 +353,7 @@ test("authentication: isolation, JWT TTL, rotating refresh/reuse, logout, OAuth 
         return new Response(
           JSON.stringify([
             {
-              email: "github@example.test",
+              email: githubEmail,
               primary: true,
               verified: !badVerified,
             },
@@ -388,6 +389,34 @@ test("authentication: isolation, JWT TTL, rotating refresh/reuse, logout, OAuth 
       { "sec-fetch-site": "cross-site" },
     );
     assert.equal(okGoogle.headers.get("location"), "/");
+    // Deployment policy failures must be visible without leaking tokens or provider responses.
+    process.env.AUTH_REGISTRATION_ENABLED = "false";
+    const closed = await flow("github");
+    const deniedSignup = await call(
+      `auth/github/callback?state=${closed.state}&code=fixture-code`,
+      "GET",
+      undefined,
+      closed.jar,
+    );
+    assert.equal(
+      deniedSignup.headers.get("location"),
+      "/login?error=oauth&reason=REGISTRATION_DISABLED",
+    );
+    process.env.AUTH_REGISTRATION_ENABLED = "true";
+    githubEmail = "alice@example.test";
+    const collision = await flow("github");
+    assert.equal(
+      (
+        await call(
+          `auth/github/callback?state=${collision.state}&code=fixture-code`,
+          "GET",
+          undefined,
+          collision.jar,
+        )
+      ).headers.get("location"),
+      "/login?error=oauth&reason=ACCOUNT_EXISTS",
+    );
+    githubEmail = "github@example.test";
     const googleJar = cookies(okGoogle);
     assert.equal(
       (await (await call("auth/me", "GET", undefined, googleJar)).json()).email,

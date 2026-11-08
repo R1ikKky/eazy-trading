@@ -6,6 +6,7 @@ import {
   Req,
   Res,
   HttpException,
+  Logger,
 } from "@nestjs/common";
 import type { Request, Response } from "express";
 import { AuthService } from "./auth.service";
@@ -123,9 +124,35 @@ export class AuthController {
       this.reply(res, await this.auth.issue(user));
       setCookie(res, `replay_oauth_${provider}`, "", 0, "/api/auth");
       res.redirect("/");
-    } catch {
+    } catch (error) {
+      const body = error instanceof HttpException ? error.getResponse() : null;
+      const code =
+        body && typeof body === "object" && "error" in body
+          ? String(body.error)
+          : "INTERNAL_ERROR";
+      const known = [
+        "ACCOUNT_EXISTS",
+        "REGISTRATION_DISABLED",
+        "ACCESS_DENIED",
+        "INVALID_OAUTH_STATE",
+        "OAUTH_FAILED",
+        "OAUTH_UNAVAILABLE",
+        "PROVIDER_DISABLED",
+      ];
+      const safeCode = known.includes(code) ? code : "INTERNAL_ERROR";
+      Logger.warn(
+        `OAuth callback failed: provider=${provider === "google" || provider === "github" ? provider : "unknown"}, code=${safeCode}`,
+        "AuthController",
+      );
       setCookie(res, `replay_oauth_${provider}`, "", 0, "/api/auth");
-      res.redirect("/login?error=oauth");
+      const reason = [
+        "ACCOUNT_EXISTS",
+        "REGISTRATION_DISABLED",
+        "ACCESS_DENIED",
+      ].includes(safeCode)
+        ? `&reason=${safeCode}`
+        : "";
+      res.redirect("/login?error=oauth" + reason);
     }
   }
 }

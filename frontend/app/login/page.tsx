@@ -17,10 +17,20 @@ export default function Login() {
       .catch(() =>
         setError("Unable to load sign-in options. Reload to try again."),
       );
-    if (new URLSearchParams(location.search).has("error"))
+    const params = new URLSearchParams(location.search);
+    if (params.has("error")) {
+      const messages: Record<string, string> = {
+        ACCOUNT_EXISTS:
+          "An account with this email already exists. Sign in using its original method. Google and GitHub accounts are not linked automatically.",
+        REGISTRATION_DISABLED:
+          "New accounts are currently disabled. Sign in with an existing account or ask the site owner to enable registration.",
+        ACCESS_DENIED: "This email is not permitted to access this site.",
+      };
       setError(
-        "Social sign-in could not be completed. Try your original sign-in method.",
+        messages[params.get("reason") || ""] ||
+          "Social sign-in could not be completed. Please try again. If it continues, contact the site owner.",
       );
+    }
   }, []);
   return (
     <main className="auth-page">

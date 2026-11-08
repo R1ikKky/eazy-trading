@@ -72,3 +72,16 @@ BROWSER_BASE_URL=http://127.0.0.1:3200 TEST_AUTH_LOGIN=owner TEST_AUTH_PASSWORD=
 ```
 
 Integration tests create/drop their own temporary databases. Browser tests require a disposable running instance with registration enabled, OAuth credentials unset, demo feed enabled, and test owner credentials. They exercise real password signup/login/logout, automatic refresh, normal replay and footprint controls. OAuth integration tests mock only provider HTTPS endpoints while exercising actual app routes, PostgreSQL, state, cookies and token exchange. Real Google/GitHub redirects require your configured provider apps and are not validated by fixtures.
+
+## OAuth troubleshooting
+
+If a provider redirects back to `/login?error=oauth`, check the message on the page and the API container logs. Callback logs contain only the provider name and a fixed diagnostic code, never authorization codes, tokens, secrets or provider response bodies.
+
+- `REGISTRATION_DISABLED`: the identity has no existing social account and new accounts are disabled. Enable AUTH_REGISTRATION_ENABLED to allow signup, or use an existing sign-in method.
+- `ACCOUNT_EXISTS`: that email already belongs to another sign-in method. Use that method; enabling registration does not link accounts.
+- `ACCESS_DENIED`: the email is outside AUTH_ALLOWED_EMAILS.
+- `INVALID_OAUTH_STATE`: restart login in the same browser; the state expired, was consumed or its browser cookie is missing.
+- `OAUTH_FAILED`: the provider did not return a usable token or verified identity.
+- `OAUTH_UNAVAILABLE`: a provider HTTPS request failed; check server connectivity and provider client credentials/callback settings.
+
+`/api/auth/providers` reports configuration presence and registration policy. A provider showing true does not prove its credentials are valid or that a real OAuth exchange has succeeded.
