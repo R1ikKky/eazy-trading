@@ -3,7 +3,7 @@ import { authenticateTestPage } from "./auth-helper";
 test.beforeEach(async ({ page }) => {
   await authenticateTestPage(page);
 });
-test("footprint uses trade CSV, replay cutoffs, grouping, chart toggle, and a deduplicated demo reconnect", async ({
+test("footprint mode and a deduplicated demo reconnect", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -31,59 +31,11 @@ test("footprint uses trade CSV, replay cutoffs, grouping, chart toggle, and a de
   await expect(page.locator(".footprint-notice")).toContainText(
     "Tick trade data required",
   );
-  await page.locator(".trade-import summary").click();
-  await page
-    .locator("#tradeCSV")
-    .setInputFiles("tests/fixtures/trades-nq-synthetic.csv");
-  await expect(page.locator("#setupDialog")).toBeVisible({ timeout: 30000 });
-  await page.locator("#sessionName").fill("Footprint synthetic verification");
-  await page.locator("#sessionES").uncheck();
-  await page.locator("#sessionNQ").check();
-  await page.locator("#fromDate").fill("2024-01-08");
-  await page.locator("#toDate").fill("2024-01-08");
-  await page.locator("#setupForm button[type=submit]").click();
-  await expect(page.locator("#setupDialog")).not.toBeVisible();
-  const slider = page.locator("#tradeClock");
-  const seek = async (ms: number) =>
-    slider.evaluate((e: HTMLInputElement, v) => {
-      e.value = String(v);
-      e.dispatchEvent(new Event("input", { bubbles: true }));
-    }, ms);
-  await seek(40001);
-  await expect(page.locator(".footprint-overlay")).toHaveAttribute(
-    "data-volume",
-    "30",
-  );
-  await expect(page.locator(".footprint-overlay")).toHaveAttribute(
-    "data-delta",
-    "15",
-  );
-  await seek(10001);
-  await expect(page.locator(".footprint-overlay")).toHaveAttribute(
-    "data-volume",
-    "11",
-  );
-  await seek(40001);
-  await expect(page.locator(".footprint-overlay")).toHaveAttribute(
-    "data-volume",
-    "30",
-  );
-  await page.locator("#footprintGrouping").selectOption("4");
-  await expect(page.locator(".footprint-overlay")).toHaveAttribute(
-    "data-volume",
-    "30",
-  );
-  const clock = await page.locator("#tradeClockLabel").textContent();
+  await expect(page.locator(".trade-import")).toHaveCount(0);
   const replay = await page.locator("#progressLabel").textContent();
   await page.locator("#chartDisplay").selectOption("candles");
   await page.locator("#chartDisplay").selectOption("footprint");
-  expect(await page.locator("#tradeClockLabel").textContent()).toBe(clock);
   expect(await page.locator("#progressLabel").textContent()).toBe(replay);
-  await page.locator('[data-tf="5"]').click();
-  await expect(page.locator("#footprintSummary")).toContainText("V 30");
-  await page.locator("#step").click();
-  await seek(40001);
-  await expect(page.locator("#footprintSummary")).toContainText("V 50");
   const bounds = await page.locator("#chart").boundingBox();
   await page.mouse.move(
     bounds!.x + bounds!.width / 2,
@@ -123,7 +75,7 @@ test("footprint uses trade CSV, replay cutoffs, grouping, chart toggle, and a de
   await expect(page.locator("#footprintSummary")).toContainText("NQZ6");
   await page.locator("#orderflowSource").selectOption("replay");
   await expect(page.locator("#orderflowSource")).toHaveValue("replay");
-  expect(await page.locator("#progressLabel").textContent()).toContain("2");
+  expect(await page.locator("#progressLabel").textContent()).toBe(replay);
   await expect(page.locator("#saveStatus")).toHaveAttribute(
     "data-state",
     "saved",
@@ -135,10 +87,8 @@ test("footprint uses trade CSV, replay cutoffs, grouping, chart toggle, and a de
   );
   await page.locator("[data-view=replay]").click();
   await page.locator("#chartDisplay").selectOption("footprint");
-  await seek(40001);
-  await expect(page.locator(".footprint-overlay")).toHaveAttribute(
-    "data-volume",
-    "20",
+  await expect(page.locator(".footprint-notice")).toContainText(
+    "Tick trade data required",
   );
   expect(errors).toEqual([]);
 });

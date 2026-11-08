@@ -87,7 +87,7 @@ Browser theme/chart preferences and offline drafts remain tied to their original
 
 Historical data provenance and execution limitations are preserved in [the original README](docs/legacy-readme.md). Archived setup notes are in [docs/legacy-local-setup.md](docs/legacy-local-setup.md). Existing Python market-data preparation tools remain available; they are not application servers.
 
-Footprint, trade CSV import, demo streaming, and Databento setup: [docs/orderflow.md](docs/orderflow.md).
+Footprint, demo streaming, and Databento setup: [docs/orderflow.md](docs/orderflow.md).
 
 `packages/orderflow/` owns the shared trade format, contract specifications, CSV parsing, deduplication, and footprint aggregation used by replay and streaming.
 

@@ -8,30 +8,7 @@ Every candle shows `V` (all executed volume, including unknown side) and `Δ` (b
 
 Existing market archives contain OHLCV, not tick executions. Choosing Footprint on them displays **Tick trade data required**. OHLCV cannot reconstruct authentic order flow.
 
-## Import real historical trades
-
-Open **Data → Import tick trades for Footprint**, then select a UTF-8 CSV:
-
-```csv
-time,contract,price,size,side,id
-2026-11-02T14:30:00.123456789Z,NQZ6,21000.25,5,buy,source-trade-1
-2026-11-02T14:30:00.223456789Z,NQZ6,21000.00,3,sell,source-trade-2
-2026-11-02T14:30:00.323456789Z,NQZ6,21000.00,2,unknown,source-trade-3
-```
-
-- `time`: integer Unix nanoseconds or ISO time with UTC/explicit offset; nanoseconds are retained.
-- `contract`: exact quarterly contract, e.g. NQZ6 / NQZ26, not NQ.c.0 or a root symbol.
-- `side`: buy/sell/unknown, or Databento B/A/N. **A = sell aggressor, B = buy aggressor**.
-- `size`: positive integer contracts; price must lie on the contract tick grid.
-- `id`: optional unique source identity; identical retries deduplicate; conflicting records with one ID are rejected. Without IDs, each CSV row has a distinct identity.
-
-One instrument, sorted event timestamps, 100,000 trades and 8 MB maximum per file. This importer is for the canonical CSV above; convert other provider CSV column names/price encodings explicitly before import. It does not assign an aggressor to an ambiguous trade.
-
-The app saves both minute bars and the original events through its existing private dataset API into PostgreSQL. It then opens normal session setup with that dataset selected. Select its dates, start the session, and choose Footprint. No account is needed. Imported trades remain available when restoring that session.
-
-The existing replay clock advances one minute per step. **Within minute** inspects 0–59.999 seconds of the current revealed minute. Moving it backward rebuilds the partial candle from only trades at or before the selected instant. The chart in either drawing mode uses those same filtered trades. The ordinary trading simulator still executes with its documented minute-OHLC rules; tick inspection does not turn it into a tick-fill engine. Context before the selected session is included only when present in the imported tape.
-
-`tests/fixtures/trades-nq-synthetic.csv` is an explicitly **synthetic test fixture**, not market data. It contains a displacement, pullback, and unknown aggressor example for local verification.
+Historical tick-trade CSV import is not available in the user interface. The Footprint view works with the live/demo trade stream; replay archives contain OHLCV only and cannot reconstruct authentic order flow.
 
 ## Demo stream (no provider key)
 
@@ -46,7 +23,7 @@ Open a replay session, select **Source → Demo**, then **Chart → Footprint**.
 
 Click **Demo disconnect / reconnect**. The server pauses for two seconds, shows interrupted, then reconnects and resends an overlapping block before continuing. IDs deduplicate the overlap. Existing candle volume stays steady during the pause and rises only for new trades. Switch instruments to inspect the other stream; the historical comparison pane is hidden while streaming to avoid mixing historical and current clocks.
 
-The frontend polls `/api/orderflow/stream` every 500 ms. Epoch/cursor snapshots handle browser reconnects without additive replay of the same snapshot. A connection failure shows interrupted. Server memory retains at most 200,000 events, compacting to 100,000; retention loss is explicitly marked as a gap. Gap notices remain visible. Live history is not a durable recording service: a server restart starts a new epoch with an explicit gap/partial-initial-candle notice. Use archived trade CSVs for repeatable historical reviews.
+The frontend polls `/api/orderflow/stream` every 500 ms. Epoch/cursor snapshots handle browser reconnects without additive replay of the same snapshot. A connection failure shows interrupted. Server memory retains at most 200,000 events, compacting to 100,000; retention loss is explicitly marked as a gap. Gap notices remain visible. Live history is not a durable recording service: a server restart starts a new epoch with an explicit gap/partial-initial-candle notice. Use a live market-data provider for trade-level history; this app does not currently import archived tick trades.
 
 ## Switch to Databento after purchase
 

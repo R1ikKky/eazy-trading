@@ -3786,7 +3786,6 @@ body.charts-expanded {
 .orderflow-controls [hidden] {display:none!important}.orderflow-controls #tradeClockWrap {flex-basis:100%}
 #feedStatus[data-state="interrupted"] {color:#f47d91}#feedStatus[data-state="live"]{color:#36c8a6}
 .chart-container {position:relative}.footprint-overlay {position:absolute;inset:0;pointer-events:none;z-index:4}.footprint-notice {position:absolute;left:8px;top:3px;z-index:5;font:10px monospace;pointer-events:none;background:var(--surface);color:var(--text);max-width:90%}
-.trade-import {margin:16px 0;padding:12px;border:1px solid var(--border);border-radius:8px}.trade-import summary{cursor:pointer}.trade-import p{font-size:12px;max-width:700px}
 body[data-orderflow-source="demo"] .replay-context,body[data-orderflow-source="live"] .replay-context,
 body[data-orderflow-source="demo"] #chartCard > .replay-panel,body[data-orderflow-source="live"] #chartCard > .replay-panel {display:none}
 .order-card[inert] {opacity:.5}

@@ -79,10 +79,7 @@ export function ReplayWorkspace() {
             <span>Аналитика</span>
           </button>
         </nav>
-      </aside>
-      <div className="app-shell">
-        <header className="topbar product-topbar">
-          <div className="top-actions">
+        <div className="sidebar-account">
             <AccountMenu />
             <span id="saveStatus" className="save-status" role="status">
               <span className="status-dot" />
@@ -98,8 +95,9 @@ export function ReplayWorkspace() {
             >
               <span aria-hidden="true">☀</span>
             </button>
-          </div>
-        </header>
+        </div>
+      </aside>
+      <div className="app-shell">
         <main className="product-main">
           <section
             id="view-replay"
@@ -173,21 +171,6 @@ export function ReplayWorkspace() {
                 <output id="tradeClockLabel" />
               </label>
             </div>
-            <details className="trade-import">
-              <summary>Import tick trades for Footprint</summary>
-              <p>
-                CSV: time,contract,price,size,side,id · UTC ISO or integer
-                nanoseconds. Side: buy/sell/unknown (or B/A/N). Up to 100,000
-                trades / 8 MB. One instrument per file.
-              </p>
-              <input
-                id="tradeCSV"
-                type="file"
-                accept=".csv,text/csv"
-                aria-label="Import trade CSV"
-              />
-              <span id="tradeImportStatus" role="status" />
-            </details>
             <div className="workspace-grid">
               <section className="chart-card" id="chartCard">
                 <div className="chart-toolbar">

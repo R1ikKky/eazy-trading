@@ -1,5 +1,4 @@
 import { createFootprint } from "./footprint";
-import { parseTradeCSV, footprint, seconds } from "@replay-lab/orderflow";
 import type { Instrument } from "./types";
 import { element as $ } from "./dom";
 import { importArchive } from "./archive";
@@ -1465,41 +1464,3 @@ if (document.modelContext?.registerTool) {
   });
   window.addEventListener("pagehide", () => lifecycle.abort(), { once: true });
 }
-
-$("tradeCSV").onchange = async (event: any) => {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  try {
-    if (file.size > 8 * 1024 * 1024)
-      throw Error("Maximum trade CSV size: 8 MB");
-    const trades = parseTradeCSV(await file.text());
-    const next = trades[0]?.instrument;
-    if (!next || trades.some((t) => t.instrument !== next))
-      throw Error("Import one instrument per file");
-    const bars = footprint(trades, next, trades.at(-1)!.timeNs).map((c) => ({
-      time: c.time,
-      open: c.open,
-      high: c.high,
-      low: c.low,
-      close: c.close,
-      volume: c.volume,
-      contract: c.contract,
-    }));
-    if (new Set(bars.map((b) => b.time)).size !== bars.length)
-      throw Error("Overlapping contracts: import each contract separately");
-    const d: any = {
-      symbol: next,
-      name: file.name,
-      source: "user_csv",
-      bars,
-      days: bars.map((b) => dayKey(b.time)),
-      metadata: { tradeEvents: trades },
-    };
-    const id = await product.saveDataset(d, next);
-    datasetMap.set(id, d);
-    $("tradeImportStatus").textContent = "Saved " + trades.length + " trades";
-    openSetup(next, id);
-  } catch (error) {
-    $("tradeImportStatus").textContent = error.message;
-  }
-};

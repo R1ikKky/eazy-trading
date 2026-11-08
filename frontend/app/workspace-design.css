@@ -210,7 +210,7 @@ body.product-app .account-menu button {
 body.product-app .account-menu button:hover {
   color: var(--text);
 }
-body.product-app .top-actions .theme-toggle {
+body.product-app .sidebar-account .theme-toggle {
   display: grid;
   place-items: center;
   min-width: 36px;
@@ -240,6 +240,37 @@ body.product-app .save-status {
   color: var(--text-faint);
   border: 0;
   background: none;
+}
+body.product-app .sidebar-account {
+  margin-top: auto;
+  padding: 20px 8px 0;
+  border-top: 1px solid var(--border-strong);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 36px;
+  gap: 12px 8px;
+  align-items: center;
+}
+body.product-app .sidebar-account .account-menu {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+}
+body.product-app .sidebar-account .account-menu button {
+  grid-column: 2;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  width: fit-content;
+  text-align: left;
+}
+body.product-app .sidebar-account .save-status {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+body.product-app .sidebar-account .theme-toggle {
+  grid-column: 2;
+  grid-row: 1;
 }
 body.product-app .product-main {
   width: 100%;
@@ -750,7 +781,6 @@ body.product-app .an-table th,
 body.product-app .an-table td {
   border-color: var(--border-strong);
 }
-body.product-app .trade-import,
 body.product-app .source-card {
   border-radius: 20px;
   border-color: var(--border-strong);
@@ -963,6 +993,21 @@ body.product-app .auth-card .auth-error {
     border: 1px solid var(--border);
     display: block;
   }
+  body.product-app .sidebar-account {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 7px;
+    padding: 7px 10px 0;
+    gap: 10px;
+  }
+  body.product-app .sidebar-account .account-menu {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+  }
+  body.product-app .sidebar-account .account-menu button {
+    margin-left: auto;
+  }
   body.product-app .app-sidebar > .brand,
   body.product-app .sidebar-caption {
     display: none;
@@ -998,7 +1043,7 @@ body.product-app .auth-card .auth-error {
   }
   body.product-app .app-shell {
     margin: 12px 14px 14px;
-    height: calc(100dvh - 108px);
+    height: calc(100dvh - 164px);
     min-height: 0;
     border-radius: 26px;
   }
@@ -1043,7 +1088,7 @@ body.product-app .auth-card .auth-error {
   }
   body.product-app .app-shell {
     margin: 10px;
-    height: calc(100dvh - 100px);
+    height: calc(100dvh - 156px);
     min-height: 0;
     border-radius: 24px;
   }
@@ -1070,7 +1115,7 @@ body.product-app .auth-card .auth-error {
   body.product-app .top-actions {
     gap: 10px;
   }
-  body.product-app .top-actions .theme-toggle {
+  body.product-app .sidebar-account .theme-toggle {
     width: 32px;
     height: 32px;
     min-width: 32px;
