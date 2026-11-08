@@ -36,7 +36,14 @@ export default function Login() {
     <main className="auth-page">
       <section className="auth-card">
         <a className="auth-brand" href="/">
-          ▶ replaylab
+          <span className="auth-brand-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M8 5v14l11-7Z" />
+            </svg>
+          </span>
+          <span>
+            replay<span className="auth-brand-light">lab</span>
+          </span>
         </a>
         <h1>{register ? "Create an account" : "Welcome back"}</h1>
         <p className="oauth-label">Login with</p>
@@ -156,6 +163,7 @@ export default function Login() {
             <label>
               Username or email
               <input
+                placeholder="Username or email"
                 name="login"
                 autoComplete="username"
                 required
@@ -166,6 +174,9 @@ export default function Login() {
           <label>
             Password
             <input
+              placeholder={
+                register ? "At least 12 characters" : "Enter your password"
+              }
               name="password"
               type="password"
               autoComplete={register ? "new-password" : "current-password"}
