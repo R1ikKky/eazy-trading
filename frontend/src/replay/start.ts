@@ -8,5 +8,7 @@ export function startReplay(): Promise<void> {
     await import("./app");
     const { installDropdowns } = await import("./dropdowns");
     installDropdowns();
+    const { installReplayIsland } = await import("./replay-island");
+    installReplayIsland();
   })());
 }

@@ -1,0 +1,194 @@
+body.product-app .island-trade-toggle { display: none; }
+body.product-app #orderTicket:not(:popover-open) { display: none; }
+body.product-app #orderTicket:popover-open {
+  display: block;
+  position: fixed;
+  inset: 90px 20px auto auto;
+  margin: 0;
+  width: min(340px, calc(100vw - 28px));
+  max-height: calc(100dvh - 110px);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 22px;
+  border: 1px solid var(--border-strong);
+  border-radius: 24px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 18px 60px #0004;
+}
+body.product-app #orderTicket .panel-title { display: flex; align-items: center; }
+body.product-app #orderTicket .panel-title h2 { margin-right: auto; }
+body.product-app #orderTicket .ticket-close {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+}
+/* Replay trades the permanent sidebar and ticket column for a floating dock. */
+body.product-app:has(#view-replay:not([hidden])) .app-sidebar {
+  position: fixed;
+  inset: 14px auto auto 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 28px);
+  height: 64px;
+  margin: 0;
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 23px;
+  background: var(--surface);
+  box-shadow: 0 8px 30px #0002;
+  z-index: 30;
+}
+body.product-app:has(#view-replay:not([hidden])) .app-sidebar > .brand {
+  display: flex;
+  padding: 0 6px 0 0;
+  gap: 8px;
+  font-size: 19px;
+  flex: none;
+}
+body.product-app:has(#view-replay:not([hidden])) .brand-mark {
+  width: 32px;
+  height: 32px;
+  flex-basis: 32px;
+  border-radius: 11px;
+}
+body.product-app:has(#view-replay:not([hidden])) .sidebar-caption { display: none; }
+body.product-app:has(#view-replay:not([hidden])) .app-nav {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+body.product-app:has(#view-replay:not([hidden])) .nav-item {
+  width: auto;
+  min-width: max-content;
+  min-height: 40px;
+  height: 40px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  gap: 8px;
+  flex: none;
+}
+body.product-app:has(#view-replay:not([hidden])) .island-trade-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: none;
+  height: 40px;
+  min-width: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  background: var(--accent-fill);
+  color: #34382c;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+body.product-app .island-trade-toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+body.product-app:has(#orderTicket:popover-open) .island-trade-toggle {
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+body.product-app:has(#view-replay:not([hidden])) .sidebar-account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0 0 0 12px;
+  border-top: 0;
+  border-left: 1px solid var(--border-strong);
+  flex: none;
+}
+body.product-app:has(#view-replay:not([hidden])) .sidebar-account .account-menu {
+  display: flex;
+  gap: 8px;
+}
+body.product-app:has(#view-replay:not([hidden])) .sidebar-account .account-menu > span:not(.account-avatar) {
+  max-width: 88px;
+}
+body.product-app:has(#view-replay:not([hidden])) .sidebar-account .save-status {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 24px;
+  overflow: hidden;
+  font-size: 0;
+  padding: 0;
+}
+body.product-app:has(#view-replay:not([hidden])) .save-status::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+}
+body.product-app:has(#view-replay:not([hidden])) .save-status[data-state='pending']::before { background: var(--accent); }
+body.product-app:has(#view-replay:not([hidden])) .save-status:is([data-state='error'], [data-state='conflict'], [data-state='offline'])::before { background: var(--red); }
+body.product-app:has(#view-replay:not([hidden])) .app-shell {
+  margin: 94px 14px 14px;
+  height: calc(100dvh - 108px);
+  min-height: 0;
+}
+body.product-app:has(#view-replay:not([hidden])) .workspace-grid { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 1100px) {
+  body.product-app:has(#view-replay:not([hidden])) .brand > span:last-child { display: none; }
+  body.product-app:has(#view-replay:not([hidden])) .app-sidebar { gap: 8px; }
+  body.product-app:has(#view-replay:not([hidden])) .nav-item { padding: 10px; }
+}
+@media (max-width: 850px) {
+  body.product-app:has(#view-replay:not([hidden])) .nav-item > span { display: none; }
+  body.product-app:has(#view-replay:not([hidden])) .sidebar-account .account-menu > span:not(.account-avatar) { display: none; }
+}
+@media (max-width: 640px) {
+  body.product-app:has(#view-replay:not([hidden])) .app-sidebar {
+    top: 10px;
+    max-width: calc(100% - 20px);
+    height: 54px;
+    padding: 6px;
+    gap: 4px;
+    border-radius: 20px;
+  }
+  body.product-app:has(#view-replay:not([hidden])) .app-sidebar > .brand { display: none; }
+  body.product-app:has(#view-replay:not([hidden])) .app-nav { gap: 0; }
+  body.product-app:has(#view-replay:not([hidden])) .nav-item {
+    width: 34px;
+    min-width: 34px;
+    height: 38px;
+    min-height: 38px;
+    padding: 8px;
+    border-radius: 13px;
+  }
+  body.product-app:has(#view-replay:not([hidden])) .nav-item svg { width: 18px; height: 18px; flex-basis: 18px; }
+  body.product-app:has(#view-replay:not([hidden])) .sidebar-account { padding-left: 6px; gap: 4px; }
+  body.product-app:has(#view-replay:not([hidden])) .sidebar-account .profile-trigger { padding: 0; }
+  body.product-app:has(#view-replay:not([hidden])) .sidebar-account .theme-toggle { width: 32px; height: 32px; min-width: 32px; }
+  body.product-app:has(#view-replay:not([hidden])) .sidebar-account .save-status { display: none; }
+  body.product-app:has(#view-replay:not([hidden])) .island-trade-toggle { width: 36px; min-width: 36px; height: 38px; padding: 8px; }
+  body.product-app:has(#view-replay:not([hidden])) .island-trade-toggle > span { display: none; }
+  body.product-app:has(#view-replay:not([hidden])) .app-shell { margin: 76px 10px 10px; height: calc(100dvh - 86px); }
+}

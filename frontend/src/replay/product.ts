@@ -152,6 +152,8 @@ export function createProduct({
     )
       return;
     if (onNavigate?.(next) === false) return;
+    const ticket = document.getElementById("orderTicket");
+    if (next !== "replay" && ticket?.matches(":popover-open")) ticket.hidePopover();
     view = next;
     for (const el of document.querySelectorAll<HTMLElement>('[id^="view-"]'))
       el.hidden = el.id !== "view-" + next;

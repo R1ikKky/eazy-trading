@@ -30,7 +30,7 @@ export function installDropdowns() {
       maxOptions: null, controlInput: null, closeAfterSelect: true, openOnFocus: false,
       dropdownParent: "body",
     });
-    select.closest("dialog")?.appendChild(ui.dropdown);
+    select.closest("dialog, [popover]")?.appendChild(ui.dropdown);
     ui.wrapper.classList.add("replay-select");
     ui.dropdown.classList.add("replay-select-menu");
     // A popover escapes scroll-container clipping and remains above modal dialogs.

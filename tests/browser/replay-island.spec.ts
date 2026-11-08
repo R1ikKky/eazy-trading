@@ -1,0 +1,51 @@
+import { test, expect } from "@playwright/test";
+import { authenticateTestPage } from "./auth-helper";
+
+test.beforeEach(async ({ page }) => authenticateTestPage(page));
+test("replay dock frees chart width and holds the floating trade ticket", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/");
+  await expect(page.locator("#saveStatus")).toHaveAttribute("data-state", "saved", { timeout: 30000 });
+  await expect(page.locator("#rangeLabel")).toContainText("2024", { timeout: 30000 });
+  await page.locator('[data-view="replay"]').click();
+  const dock = page.locator(".app-sidebar");
+  const trade = page.getByRole("button", { name: "Панель сделки", exact: true });
+  const ticket = page.locator("#orderTicket");
+  const dockBounds = (await dock.boundingBox())!;
+  expect(dockBounds.y).toBeLessThan(20);
+  expect(dockBounds.height).toBeLessThan(80);
+  expect((await page.locator("#chartCard").boundingBox())!.width).toBeGreaterThan(1300);
+  await page.screenshot({ path: "/tmp/replay-island-desktop.png" });
+  await trade.click();
+  await expect(ticket).toBeVisible();
+  const kind = page.getByRole("combobox", { name: "Тип заявки", exact: true });
+  await kind.click();
+  await page.getByRole("option", { name: "Limit · лимитная", exact: true }).click();
+  await expect(ticket).toBeVisible();
+  await expect(page.locator("#entryPriceWrap")).toBeVisible();
+  await page.screenshot({ path: "/tmp/replay-island-ticket.png" });
+  await page.keyboard.press("Escape");
+  await expect(ticket).not.toBeVisible();
+  await trade.click();
+  await page.locator('[data-view="sessions"]').click();
+  await expect(ticket).not.toBeVisible();
+  const sidebar = (await dock.boundingBox())!;
+  expect(sidebar.x).toBeLessThan(20);
+  expect(sidebar.height).toBeGreaterThan(900);
+  await page.locator('[data-view="replay"]').click();
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+    const bounds = (await dock.boundingBox())!;
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    await trade.click();
+    const panel = (await ticket.boundingBox())!;
+    expect(panel.x).toBeGreaterThanOrEqual(0);
+    expect(panel.x + panel.width).toBeLessThanOrEqual(width);
+    expect(panel.y + panel.height).toBeLessThanOrEqual(845);
+    await page.screenshot({ path: `/tmp/replay-island-${width}.png` });
+    await page.getByRole("button", { name: "Закрыть панель сделки", exact: true }).click();
+  }
+  expect(errors).toEqual([]);
+});

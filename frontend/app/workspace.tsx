@@ -80,6 +80,10 @@ export function ReplayWorkspace() {
             <span>Аналитика</span>
           </button>
         </nav>
+        <button className="island-trade-toggle" type="button" popoverTarget="orderTicket" aria-haspopup="dialog" aria-label="Панель сделки">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 17h14M9 3v8M15 13v8" /></svg>
+          <span>Сделка</span>
+        </button>
         <div className="sidebar-account">
             <AccountMenu />
             <span id="saveStatus" className="save-status" role="status">
@@ -398,12 +402,13 @@ export function ReplayWorkspace() {
                   <span id="baseInterval">Шаг: 1 мин · ET</span>
                 </div>
               </section>
-              <aside className="order-card">
+              <aside className="order-card" id="orderTicket" popover="auto" role="dialog" aria-labelledby="orderTicketTitle">
                 <div className="panel-title">
-                  <h2>Новая сделка</h2>
+                  <h2 id="orderTicketTitle">Новая сделка</h2>
                   <span className="market-label" id="orderTypeBadge">
                     MARKET
                   </span>
+                  <button className="ticket-close icon-button" type="button" popoverTarget="orderTicket" popoverTargetAction="hide" aria-label="Закрыть панель сделки">×</button>
                 </div>
                 <p className="entry-note" id="orderHint">
                   Вход на открытии следующей свечи
