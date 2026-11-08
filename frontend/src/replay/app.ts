@@ -1174,7 +1174,6 @@ document.querySelectorAll<HTMLElement>("[data-tf]").forEach(
       render();
     }),
 );
-$("fit").onclick = () => chart?.timeScale().fitContent();
 document.addEventListener("keydown", (e) => {
   if ($("view-replay").hidden) return;
   if (

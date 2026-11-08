@@ -19,7 +19,6 @@ export interface Elements {
   compareToggle: HTMLButtonElement;
   chartExpand: HTMLButtonElement;
   settingsOpen: HTMLButtonElement;
-  fit: HTMLButtonElement;
   drawUndo: HTMLButtonElement;
   drawDelete: HTMLButtonElement;
   drawClear: HTMLButtonElement;

@@ -241,14 +241,6 @@ export function ReplayWorkspace() {
                     >
                       ⚙ <span>Настройки</span>
                     </button>
-                    <button
-                      id="fit"
-                      className="icon-button"
-                      title="Показать все открытые свечи"
-                      aria-label="Масштаб по всем свечам"
-                    >
-                      ⛶
-                    </button>
                   </div>
                 </div>
                 <div
