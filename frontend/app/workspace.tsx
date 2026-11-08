@@ -78,18 +78,6 @@ export function ReplayWorkspace() {
             </svg>
             <span>Аналитика</span>
           </button>
-          <button
-            type="button"
-            className="nav-item"
-            data-view="data"
-            aria-label="Данные"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <ellipse cx="12" cy="5" rx="8" ry="3" />
-              <path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0" />
-            </svg>
-            <span>Данные</span>
-          </button>
         </nav>
       </aside>
       <div className="app-shell">
@@ -128,6 +116,13 @@ export function ReplayWorkspace() {
                 <span>Результат сессии</span>
                 <strong id="netStat">$0.00</strong>
               </div>
+              <button
+                id="dataBadge"
+                className="demo-badge real"
+                aria-label="Источник исторических данных"
+              >
+                Исторические данные
+              </button>
             </div>
             <div
               className="orderflow-controls"
@@ -178,6 +173,21 @@ export function ReplayWorkspace() {
                 <output id="tradeClockLabel" />
               </label>
             </div>
+            <details className="trade-import">
+              <summary>Import tick trades for Footprint</summary>
+              <p>
+                CSV: time,contract,price,size,side,id · UTC ISO or integer
+                nanoseconds. Side: buy/sell/unknown (or B/A/N). Up to 100,000
+                trades / 8 MB. One instrument per file.
+              </p>
+              <input
+                id="tradeCSV"
+                type="file"
+                accept=".csv,text/csv"
+                aria-label="Import trade CSV"
+              />
+              <span id="tradeImportStatus" role="status" />
+            </details>
             <div className="workspace-grid">
               <section className="chart-card" id="chartCard">
                 <div className="chart-toolbar">
@@ -582,6 +592,13 @@ export function ReplayWorkspace() {
               </div>
               <div className="heading-actions">
                 <button
+                  id="historyOpen"
+                  type="button"
+                  className="button secondary"
+                >
+                  История данных
+                </button>
+                <button
                   type="button"
                   className="button secondary"
                   data-view="playbooks"
@@ -696,64 +713,6 @@ export function ReplayWorkspace() {
               </div>
             </div>
             <div id="playbooksContent" className="view-content" />
-          </section>
-          <section
-            id="view-data"
-            className="app-view"
-            data-app-view="data"
-            hidden
-          >
-            <div className="view-heading">
-              <div>
-                <p className="eyebrow">MARKET DATA</p>
-                <h1>Исторические данные</h1>
-                <p className="heading-description">
-                  Покрытие архива, источники и импорт данных для replay.
-                </p>
-              </div>
-              <div className="heading-actions">
-                <button
-                  id="historyOpen"
-                  className="button secondary"
-                  type="button"
-                >
-                  О данных
-                </button>
-                <button
-                  id="importOpen"
-                  className="button primary"
-                  type="button"
-                >
-                  Импорт CSV
-                </button>
-              </div>
-            </div>
-            <details className="source-details">
-              <summary>Источник текущей сессии</summary>
-              <button
-                id="dataBadge"
-                className="demo-badge real"
-                aria-label="Источник исторических данных"
-              >
-                Исторические данные
-              </button>
-            </details>
-            <details className="trade-import">
-              <summary>Import tick trades for Footprint</summary>
-              <p>
-                CSV: time,contract,price,size,side,id · UTC ISO or integer
-                nanoseconds. Side: buy/sell/unknown (or B/A/N). Up to 100,000
-                trades / 8 MB. One instrument per file.
-              </p>
-              <input
-                id="tradeCSV"
-                type="file"
-                accept=".csv,text/csv"
-                aria-label="Import trade CSV"
-              />
-              <span id="tradeImportStatus" role="status" />
-            </details>
-            <div id="dataContent" className="view-content" />
           </section>
         </main>
         <div className="workspace-utilities">
@@ -1154,9 +1113,8 @@ export function ReplayWorkspace() {
           </button>
         </div>
         <p className="dialog-intro">
-          Для теста выберите NQ или ES и диапазон дат в форме «Новая сессия».
-          Сайт подберёт исторические данные автоматически. Доступные периоды и
-          сведения об источниках показаны в разделе «Данные».
+          Доступная история зависит от инструмента и выбранных дат. В форме
+          новой сессии сайт подберёт подходящие архивы автоматически.
         </p>
         <div className="content-card">
           <strong>Цена и время проверены</strong>
@@ -1186,7 +1144,7 @@ export function ReplayWorkspace() {
           не покупает.
         </p>
         <button type="button" className="button primary full" id="historyData">
-          Посмотреть доступные даты
+          Выбрать даты сессии
         </button>
         <button
           type="button"
@@ -1196,6 +1154,9 @@ export function ReplayWorkspace() {
           Добавить свой CSV
         </button>
       </dialog>
+      <button id="importOpen" type="button" hidden>
+        Импорт CSV
+      </button>
       <dialog id="settingsDialog" className="tv-settings" />
       <dialog id="tradeDetailDialog" className="trade-detail-dialog" />
       <input

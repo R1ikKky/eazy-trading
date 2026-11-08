@@ -942,7 +942,7 @@ $("setupYears").onclick = (e) => {
 };
 $("historyData").onclick = () => {
   $("historyDialog").close();
-  product.navigate("data");
+  $("setupOpen").click();
 };
 $("fromDate").onchange = previewRange;
 $("toDate").onchange = previewRange;

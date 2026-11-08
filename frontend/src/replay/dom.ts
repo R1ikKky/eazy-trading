@@ -85,8 +85,6 @@ export interface Elements {
   analyticsContent: HTMLElement;
   "view-playbooks": HTMLElement;
   playbooksContent: HTMLElement;
-  "view-data": HTMLElement;
-  dataContent: HTMLElement;
   setupDialog: HTMLDialogElement;
   setupForm: HTMLFormElement;
   sessionName: HTMLInputElement;

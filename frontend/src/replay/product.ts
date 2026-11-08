@@ -1,7 +1,5 @@
 import { element as $ } from "./dom";
 import { dayKey } from "./engine";
-import { curatedArchives, isSupersededCuratedDataset } from "./curated-data";
-import { historyChoices, historyWindows } from "./history-selection";
 import { validateWorkspace } from "./workspace-validation";
 import {
   WorkspaceStore,
@@ -151,7 +149,6 @@ export function createProduct({
         "journal",
         "analytics",
         "playbooks",
-        "data",
       ].includes(next)
     )
       return;
@@ -598,119 +595,6 @@ export function createProduct({
     };
     dialog.showModal();
   }
-  function coverageHTML() {
-    const records = ws().settings.datasets || {};
-    return (
-      '<div class="cards-grid year-coverage">' +
-      [2024, 2025, 2026]
-        .map(
-          (year) =>
-            '<article class="content-card"><span class="eyebrow">' +
-            year +
-            (year === 2026 ? " · ПО ДОСТУПНУЮ ДАТУ" : "") +
-            "</span>" +
-            ["NQ", "ES"]
-              .map((symbol) => {
-                const months = new Set(
-                  historyChoices(records, symbol)
-                    .flatMap((d) =>
-                      Array.isArray(d.months)
-                        ? d.months
-                        : d.from.slice(0, 7) === d.to.slice(0, 7)
-                          ? [d.from.slice(0, 7)]
-                          : [],
-                    )
-                    .filter((m) => m.startsWith(year + "-")),
-                );
-                return (
-                  "<p><strong>" +
-                  symbol +
-                  "</strong> · " +
-                  (months.size
-                    ? months.size + " месяцев с данными"
-                    : "Пока нет данных") +
-                  "</p>"
-                );
-              })
-              .join("") +
-            "</article>",
-        )
-        .join("") +
-      '</div><p class="muted dialog-note">Месяц с данными может содержать пропуски. Дни без котировок не заполняются.</p>'
-    );
-  }
-  function renderData() {
-    const box = $("dataContent"),
-      records = Object.values<any>(ws().settings.datasets || {}).filter(
-        (d) => !isSupersededCuratedDataset(d.id),
-      );
-    const cards = ["NQ", "ES"]
-      .map((symbol) => {
-        const windows = historyWindows(records, symbol);
-        return (
-          '<article class="content-card"><span class="symbol-pill">' +
-          symbol +
-          "</span><h3>" +
-          symbol +
-          " · " +
-          (symbol === "NQ" ? "Nasdaq-100" : "S&amp;P 500") +
-          '</h3><p class="muted">Реальные минутные свечи</p>' +
-          windows
-            .map((w) => "<p>" + esc(w.from) + " → " + esc(w.to) + "</p>")
-            .join("") +
-          '<button class="button primary compact" data-open-dataset="' +
-          symbol +
-          '">Выбрать даты и начать →</button></article>'
-        );
-      })
-      .join("");
-    const sources = records
-      .map((d) => {
-        const curated = curatedArchives.find((a) => a.id === d.id),
-          meta = curated?.metadata,
-          provider =
-            meta?.provider ||
-            (d.source === "user_csv"
-              ? "Ваш CSV"
-              : "FirstRate Data / HF Market Data");
-        return (
-          '<article class="content-card"><div class="card-top"><span class="symbol-pill">' +
-          esc(d.symbol) +
-          '</span><span class="muted">1m' +
-          (meta?.adjusted ? " · скорректированная серия" : "") +
-          "</span></div><h3>" +
-          esc(d.name) +
-          '</h3><p class="muted">' +
-          esc(d.from) +
-          " → " +
-          esc(d.to) +
-          '</p><div class="session-result"><strong>' +
-          Number(d.count).toLocaleString("ru-RU") +
-          '</strong><span>минутных свечей</span></div><p class="muted">' +
-          esc(provider) +
-          "</p>" +
-          (meta
-            ? '<p class="dialog-note">' +
-              esc(meta.summary || meta.note) +
-              '</p><a class="text-button" href="' +
-              esc(meta.sourceUrl) +
-              '" target="_blank" rel="noopener">Источник данных ↗</a>'
-            : "") +
-          (meta?.adjusted
-            ? '<p class="dialog-note">Дополнительная серия с корректировкой цены. Автоматически для новых тестов не используется.</p>'
-            : "") +
-          "</article>"
-        );
-      })
-      .join("");
-    box.innerHTML =
-      coverageHTML() +
-      '<div class="cards-grid">' +
-      cards +
-      '</div><details class="data-sources"><summary>Источники и сведения о данных</summary><div class="cards-grid">' +
-      sources +
-      '</div></details><div class="content-card model-notes"><h3>Модель исполнения</h3><p>Минутные OHLC, фиксированное проскальзывание и комиссия. Заявка активируется после её создания. Если SL и TP попали в одну свечу и порядок неизвестен, сначала применяется SL.</p><p>Когда источник содержит код или идентификатор контракта, на его смене позиция закрывается по последней цене старого контракта. Без этих данных смену контракта определить нельзя. Просадка строится по закрытым сделкам.</p></div>';
-  }
   function renderView() {
     if (!loaded) return;
     updateHeader();
@@ -745,7 +629,6 @@ export function createProduct({
       draw();
     }
     if (view === "playbooks") renderPlaybooks();
-    if (view === "data") renderData();
   }
   document
     .querySelectorAll<HTMLElement>("[data-view]")
@@ -1004,7 +887,6 @@ export function createProduct({
       ) {
         ws().settings.datasets[d.id] = entry;
         store.changed();
-        if (view === "data") renderData();
       }
     },
     refresh() {

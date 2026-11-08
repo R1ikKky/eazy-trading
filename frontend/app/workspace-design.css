@@ -148,7 +148,8 @@ body.product-app .nav-item::after {
 }
 body.product-app .app-shell {
   margin: 14px 14px 14px calc(var(--sidebar-width) + 28px);
-  min-height: calc(100dvh - 28px);
+  height: calc(100dvh - 28px);
+  min-height: 0;
   display: flex;
   flex-direction: column;
   border-radius: 28px;
@@ -245,6 +246,11 @@ body.product-app .product-main {
   max-width: none;
   min-width: 0;
   flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding: 24px 34px 28px;
   margin: 0;
 }
@@ -1067,7 +1073,8 @@ body.product-app .auth-card .auth-error {
   }
   body.product-app .app-shell {
     margin: 12px 14px 14px;
-    min-height: calc(100dvh - 100px);
+    height: calc(100dvh - 108px);
+    min-height: 0;
     border-radius: 26px;
   }
   body.product-app .app-shell header.product-topbar {
@@ -1114,6 +1121,8 @@ body.product-app .auth-card .auth-error {
   }
   body.product-app .app-shell {
     margin: 10px;
+    height: calc(100dvh - 100px);
+    min-height: 0;
     border-radius: 24px;
   }
   body.product-app .app-shell header.product-topbar {

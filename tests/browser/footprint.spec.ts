@@ -31,7 +31,6 @@ test("footprint uses trade CSV, replay cutoffs, grouping, chart toggle, and a de
   await expect(page.locator(".footprint-notice")).toContainText(
     "Tick trade data required",
   );
-  await page.locator("[data-view=data]").click();
   await page.locator(".trade-import summary").click();
   await page
     .locator("#tradeCSV")
