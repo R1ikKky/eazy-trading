@@ -8,6 +8,7 @@ test("password signup, private workspace, automatic refresh, logout and login", 
   const username = "browser_" + Date.now();
   const password = "Browser-test-password-2026";
   expect((await page.request.get("/api/workspace")).status()).toBe(401);
+  expect((await page.request.patch("/api/auth/me", { headers: { origin: base }, data: { displayName: "Unauthorized" } })).status()).toBe(401);
   await page.goto("/");
   await expect(page).toHaveURL(/\/login/);
   await expect(
@@ -47,7 +48,24 @@ test("password signup, private workspace, automatic refresh, logout and login", 
     (c) => c.name === "replay_refresh",
   )!.value;
   expect(refreshAfter).not.toBe(refreshBefore);
-  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Sign out", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Настройки профиля", exact: true }).click();
+  await page.getByLabel("Отображаемое имя", { exact: true }).fill("Profile test name");
+  await page.getByRole("button", { name: "Сохранить изменения", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Изменения сохранены." })).toBeVisible();
+  expect((await (await page.request.get("/api/auth/me")).json()).displayName).toBe("Profile test name");
+  expect((await page.request.patch("/api/auth/me", {
+    headers: { origin: base }, data: { displayName: "" },
+  })).status()).toBe(400);
+  expect((await page.request.patch("/api/auth/me", {
+    headers: { origin: base }, data: { displayName: "Other", email: "changed@example.test" },
+  })).status()).toBe(400);
+  await page.getByRole("button", { name: "Закрыть настройки профиля", exact: true }).click();
+  await expect(page.locator(".profile-trigger")).toContainText("Profile test name");
+  await page.reload();
+  await expect(page.locator(".profile-trigger")).toContainText("Profile test name");
+  await page.request.post("/api/auth/logout", { headers: { origin: base } });
+  await page.goto("/");
   await expect(page).toHaveURL(/\/login/);
   expect((await page.request.get("/api/workspace")).status()).toBe(401);
   await page.getByLabel("Username or email").fill(username);

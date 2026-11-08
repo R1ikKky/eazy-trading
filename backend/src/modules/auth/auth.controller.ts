@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Param,
   Req,
   Res,
@@ -92,6 +93,9 @@ export class AuthController {
   }
   @Get("me") me(@Req() req: Request) {
     return this.auth.me(userId(req));
+  }
+  @Patch("me") updateProfile(@Req() req: Request) {
+    return this.auth.updateProfile(userId(req), readJson(req, 4096));
   }
   @Public() @Get(":provider/start") async start(
     @Param("provider") provider: string,

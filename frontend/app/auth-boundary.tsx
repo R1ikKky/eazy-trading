@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import {
   ensureSession,
   installAuthFetch,
@@ -11,6 +11,7 @@ type User = {
   email: string | null;
   displayName: string;
 };
+const UpdateUserContext = createContext<(user: User) => void>(() => {});
 const UserContext = createContext<User | null>(null);
 export function AuthBoundary({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -51,37 +52,66 @@ export function AuthBoundary({ children }: { children: React.ReactNode }) {
         </p>
       </main>
     );
-  return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
+  return <UserContext.Provider value={user}><UpdateUserContext.Provider value={setUser}>{children}</UpdateUserContext.Provider></UserContext.Provider>;
 }
 export function AccountMenu() {
   const user = useContext(UserContext);
+  const updateUser = useContext(UpdateUserContext);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
   return (
-    <div className="account-menu">
-      <span className="account-avatar" aria-hidden="true">
-        {(user?.username || user?.displayName || "R").slice(0, 1).toUpperCase()}
-      </span>
-      <span title={user?.email || ""}>
-        {user?.username || user?.displayName}
-      </span>
-      <button
-        type="button"
-        disabled={busy}
-        onClick={async () => {
-          setBusy(true);
-          try {
-            const result = await fetch("/api/auth/logout", { method: "POST" });
-            if (!result.ok) throw Error();
-            sessionStorage.removeItem("replay-user-id");
-            location.replace("/login");
-          } catch {
-            setBusy(false);
-            alert("Could not sign out. Try again.");
-          }
-        }}
-      >
-        Sign out
+    <>
+      <button type="button" className="account-menu profile-trigger"
+        aria-label="Настройки профиля" aria-haspopup="dialog"
+        onClick={() => {
+          setName(user?.displayName || "");
+          setMessage("");
+          dialog.current?.showModal();
+        }}>
+        <span className="account-avatar" aria-hidden="true">
+          {(user?.displayName || user?.username || "R").slice(0, 1).toUpperCase()}
+        </span>
+        <span>{user?.displayName || user?.username}</span>
       </button>
-    </div>
+      <dialog ref={dialog} className="profile-settings" aria-labelledby="profile-title">
+        <div className="dialog-header">
+          <h2 id="profile-title">Настройки профиля</h2>
+          <button type="button" className="icon-button" aria-label="Закрыть настройки профиля"
+            onClick={() => dialog.current?.close()}>×</button>
+        </div>
+        <form onSubmit={async (event) => {
+          event.preventDefault();
+          setBusy(true);
+          setMessage("");
+          try {
+            const response = await fetch("/api/auth/me", {
+              method: "PATCH", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ displayName: name }),
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || "Не удалось сохранить профиль.");
+            updateUser(result);
+            setName(result.displayName);
+            setMessage("Изменения сохранены.");
+          } catch (error) {
+            setMessage(error instanceof Error ? error.message : "Не удалось сохранить профиль.");
+          } finally { setBusy(false); }
+        }}>
+          <label htmlFor="profile-name">Отображаемое имя</label>
+          <input id="profile-name" value={name} onChange={(e) => setName(e.target.value)}
+            required maxLength={100} autoComplete="name" disabled={busy} />
+          <dl className="profile-details">
+            <div><dt>Логин</dt><dd>{user?.username || "—"}</dd></div>
+            <div><dt>Email</dt><dd>{user?.email || "—"}</dd></div>
+          </dl>
+          <p role="status" className="profile-message">{message}</p>
+          <button type="submit" className="button primary full" disabled={busy || !name.trim()}>
+            {busy ? "Сохранение…" : "Сохранить изменения"}
+          </button>
+        </form>
+      </dialog>
+    </>
   );
 }

@@ -303,6 +303,17 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
       await this.db.getRepository(AuthUser).findOneByOrFail({ id }),
     );
   }
+  async updateProfile(id: string, body: unknown) {
+    if (!body || typeof body !== "object" || Array.isArray(body))
+      fail(400, "INVALID_PROFILE", "Enter a display name.");
+    const values = body as Record<string, unknown>;
+    const name = typeof values.displayName === "string" ? values.displayName.trim() : "";
+    if (Object.keys(values).some((key) => key !== "displayName") ||
+        !name || name.length > 100 || /[\u0000-\u001f\u007f]/.test(name))
+      fail(400, "INVALID_PROFILE", "Use a display name between 1 and 100 characters.");
+    await this.db.getRepository(AuthUser).update({ id }, { displayName: name });
+    return this.me(id);
+  }
   async oauthUser(
     provider: string,
     subject: string,
