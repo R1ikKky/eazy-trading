@@ -568,18 +568,6 @@ export function ReplayWorkspace() {
                 </p>
               </aside>
             </div>
-            <details className="replay-notes">
-              <summary>Заметки к сессии</summary>
-              <label className="sr-only" htmlFor="sessionNotes">
-                Заметки к текущей сессии
-              </label>
-              <textarea
-                id="sessionNotes"
-                rows={2}
-                placeholder="Что ищете на графике? Какой сценарий отменит вход?"
-                defaultValue={""}
-              />
-            </details>
           </section>
           <section
             id="view-sessions"
@@ -715,33 +703,6 @@ export function ReplayWorkspace() {
             <div id="playbooksContent" className="view-content" />
           </section>
         </main>
-        <div className="workspace-utilities">
-          <button
-            type="button"
-            className="workspace-help"
-            id="help"
-            aria-label="Как работает симулятор"
-            title="Справка и горячие клавиши"
-          >
-            <span aria-hidden="true">?</span>
-            <span>Справка</span>
-          </button>
-          <details className="backup-menu">
-            <summary>Резервные копии</summary>
-            <button id="backupExport" className="sidebar-action" type="button">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 3v12m-5-5 5 5 5-5M5 16v5h14v-5" />
-              </svg>
-              Резервная копия
-            </button>
-            <button id="backupImport" className="sidebar-action" type="button">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 16V4m-5 5 5-5 5 5M5 16v5h14v-5" />
-              </svg>
-              Восстановить копию
-            </button>
-          </details>
-        </div>
       </div>
       <dialog id="setupDialog">
         <form id="setupForm">
@@ -932,105 +893,6 @@ export function ReplayWorkspace() {
           инструмента.
         </p>
       </dialog>
-      <dialog id="helpDialog">
-        <div className="dialog-header">
-          <h2>Как работает Replay Lab</h2>
-          <button
-            className="icon-button"
-            data-close="helpDialog"
-            aria-label="Закрыть"
-          >
-            ×
-          </button>
-        </div>
-        <p className="chart-credit">
-          <a href="https://www.tradingview.com/" target="_blank" rel="noopener">
-            TradingView Lightweight Charts™
-          </a>
-        </p>
-        <ol className="help-list">
-          <li>
-            Выберите NQ или ES и диапазон дат. Встроенный архив содержит
-            настоящие минутные свечи за январь 2024: 30 118 NQ и 30 107 ES. Для
-            других периодов импортируйте архивы CSV; они и сессии сохраняются в
-            вашем аккаунте. Нажмите на метку источника, чтобы увидеть точное
-            покрытие.
-          </li>
-          <li>
-            Открывайте свечи кнопкой шага или включите replay. Таймфреймы 3m,
-            5m, 15m, 30m и 1h строятся только из уже открытых минут. Каждый шаг
-            равен одной минутной свече.
-          </li>
-          <li>
-            Выберите Market, Limit или Stop. Market ставит вход на следующее
-            доступное открытие, Limit ждёт указанную цену или лучше, Stop
-            активируется на следующих свечах. Стоп и тейк отсчитываются от цены
-            исполнения. Ручной выход также ждёт следующую свечу.
-          </li>
-          <li>
-            Стоп при гэпе исполняется по открытию, с неблагоприятным
-            проскальзыванием. Тейк — по заданной цене. Если задеты оба уровня,
-            выбран стоп и поставлена отметка «SL + TP».
-          </li>
-          <li>
-            BE переносит стоп на цену входа; BE + издержки учитывает комиссию и
-            заданное проскальзывание выхода. Можно менять SL/TP и закрывать
-            позицию по частям. Проскальзывание применяется к рыночным входам и
-            выходам и к стопам.
-          </li>
-          <li>
-            В непрерывной серии при смене контракта позиция закрывается по
-            последнему доступному close старого контракта с проскальзыванием и
-            комиссией. Разница цен между контрактами не считается прибылью.
-          </li>
-          <li>
-            На конце диапазона открытая позиция остаётся открытой.
-            Нереализованный P&amp;L показан отдельно и не включён в статистику.
-          </li>
-        </ol>
-        <p className="dialog-note muted">
-          Пропуски данных не заполняются. Следующий шаг переходит к следующей
-          имеющейся свече. При смене инструмента или периода предыдущая сессия
-          сохраняется в архиве. Настройки ⚙ содержат Symbol, Status line, Scales
-          and lines и Canvas. Меню по правому клику открывает таблицу свечей,
-          список объектов и настройки. Палитра поддерживает прозрачность. Cancel
-          отменяет просмотр, Ok сохраняет изменения. Индикаторы доступны в
-          разделе Indicators. Уровни и разметка сохраняются в отдельной сессии и
-          синхронизируются с аккаунтом. Журнал хранит заметки, теги, правила
-          стратегии и изображения; аналитика объединяет закрытые сделки
-          сохранённых сессий. При откате replay объекты, созданные позже,
-          скрываются. Это Lightweight Charts с дополнительными инструментами;
-          Pine Script и полноценный редактор TradingView здесь не подключены.
-        </p>
-        <div className="contract-specs">
-          <a
-            href="https://www.cmegroup.com/markets/equities/nasdaq/e-mini-nasdaq-100.contractSpecs.html"
-            target="_blank"
-            rel="noopener"
-          >
-            NQ · $20 / пункт · тик $5
-          </a>
-          <a
-            href="https://www.cmegroup.com/markets/equities/sp/e-mini-sandp500.contractSpecs.html"
-            target="_blank"
-            rel="noopener"
-          >
-            ES · $50 / пункт · тик $12.50
-          </a>
-        </div>
-        <p className="license">
-          TradingView Lightweight Charts™
-          <br />
-          <span id="copyright">Copyright © TradingView, Inc.</span>{" "}
-          <a href="vendor/LICENSE" target="_blank" rel="noopener">
-            Apache 2.0
-          </a>{" "}
-          ·{" "}
-          <a href="vendor/NOTICE" target="_blank" rel="noopener">
-            NOTICE
-          </a>
-        </p>
-      </dialog>
       <dialog id="sourceDialog">
         <div className="dialog-header">
           <h2>Источник данных</h2>
@@ -1159,12 +1021,6 @@ export function ReplayWorkspace() {
       </button>
       <dialog id="settingsDialog" className="tv-settings" />
       <dialog id="tradeDetailDialog" className="trade-detail-dialog" />
-      <input
-        type="file"
-        id="backupFile"
-        accept=".json,application/json"
-        hidden
-      />
       <div
         id="toast"
         className="toast"

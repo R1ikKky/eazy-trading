@@ -907,10 +907,6 @@ $("historyImport").onclick = () => {
   $("historyDialog").close();
   $("importOpen").click();
 };
-$("help").onclick = () => {
-  pause();
-  $("helpDialog").showModal();
-};
 $("importOpen").onclick = () => {
   pause();
   $("importSymbol").value = symbol;
@@ -1398,7 +1394,6 @@ bootstrap().catch((error) => {
   toast(error.message);
   $("chartError").hidden = false;
 });
-$("copyright").textContent = "Copyright (с) 2025 TradingView, Inc.";
 function readState() {
   if (!replay) return { loading: !product?.store.ready, hasSession: false };
   return {

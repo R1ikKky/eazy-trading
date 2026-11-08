@@ -1,9 +1,6 @@
 export interface Elements {
-  backupExport: HTMLButtonElement;
-  backupImport: HTMLButtonElement;
   saveStatus: HTMLElement;
   themeToggle: HTMLButtonElement;
-  help: HTMLButtonElement;
   "view-replay": HTMLElement;
   historyOpen: HTMLButtonElement;
   importOpen: HTMLButtonElement;
@@ -70,7 +67,6 @@ export interface Elements {
   fee: HTMLInputElement;
   slip: HTMLInputElement;
   positionBox: HTMLElement;
-  sessionNotes: HTMLTextAreaElement;
   "view-sessions": HTMLElement;
   sessionsContent: HTMLElement;
   "view-journal": HTMLElement;
@@ -104,8 +100,6 @@ export interface Elements {
   csvFile: HTMLInputElement;
   sample: HTMLButtonElement;
   importError: HTMLElement;
-  helpDialog: HTMLDialogElement;
-  copyright: HTMLElement;
   sourceDialog: HTMLDialogElement;
   sourceName: HTMLElement;
   sourceRange: HTMLElement;
@@ -122,7 +116,6 @@ export interface Elements {
   historyImport: HTMLButtonElement;
   settingsDialog: HTMLDialogElement;
   tradeDetailDialog: HTMLDialogElement;
-  backupFile: HTMLInputElement;
   toast: HTMLElement;
 }
 export function element<K extends keyof Elements>(id: K): Elements[K];

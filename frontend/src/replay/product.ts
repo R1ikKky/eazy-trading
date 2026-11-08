@@ -1,6 +1,5 @@
 import { element as $ } from "./dom";
 import { dayKey } from "./engine";
-import { validateWorkspace } from "./workspace-validation";
 import {
   WorkspaceStore,
   uid,
@@ -168,11 +167,7 @@ export function createProduct({
     renderView();
     window.dispatchEvent(new Event("resize"));
   }
-  function updateHeader() {
-    const s = active();
-    if ($("sessionNotes") && document.activeElement !== $("sessionNotes"))
-      $("sessionNotes").value = s?.notes || "";
-  }
+  function updateHeader() {}
   function createSession({
     symbol,
     from,
@@ -690,13 +685,6 @@ export function createProduct({
       csvTrades(filterTrades(allTrades(), filter)),
       "text/csv;charset=utf-8",
     );
-  $("sessionNotes")?.addEventListener("input", () => {
-    if (active()) {
-      active().notes = $("sessionNotes").value.slice(0, 10000);
-      active().updatedAt = new Date().toISOString();
-      store.changed();
-    }
-  });
   function exportBackup() {
     download(
       "replay-lab-backup-" + new Date().toISOString().slice(0, 10) + ".json",
@@ -714,7 +702,6 @@ export function createProduct({
       "Сессии и журнал экспортированы. Рыночные архивы хранятся отдельно в вашем аккаунте.",
     );
   }
-  $("backupExport").onclick = exportBackup;
   $("saveStatus").tabIndex = 0;
   $("saveStatus").setAttribute("role", "button");
   async function resolveCloud() {
@@ -725,7 +712,7 @@ export function createProduct({
     exportBackup();
     if (
       !confirm(
-        "Локальная копия скачана. Загрузить облачную версию? Несохранённые изменения останутся в скачанном архиве, который можно импортировать.",
+        "Локальная копия скачана. Загрузить облачную версию? Несохранённые изменения останутся в скачанном архиве.",
       )
     )
       return;
@@ -746,48 +733,6 @@ export function createProduct({
       safe(resolveCloud)();
     }
   };
-  $("backupImport").onclick = () => $("backupFile").click();
-  $("backupFile").onchange = safe(async () => {
-    const file = $("backupFile").files[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) throw Error("Резервная копия больше 5 МБ");
-    const data = JSON.parse(await file.text());
-    if (data.replayLabBackup !== 1)
-      throw Error("Нужна резервная копия Replay Lab");
-    const w = validateWorkspace(data.workspace);
-    if (
-      ws().sessions.length +
-        w.sessions.filter(
-          (s: any) => !ws().sessions.some((x: any) => x.id === s.id),
-        ).length >
-        1000 ||
-      strategies().length +
-        w.playbooks.filter(
-          (p: any) => !strategies().some((x: any) => x.id === p.id),
-        ).length >
-        100
-    )
-      throw Error("Архив превысит допустимое количество сессий или стратегий");
-    if (
-      !confirm(
-        "Добавить сессии и стратегии из резервной копии? Существующие записи с тем же ID будут сохранены.",
-      )
-    )
-      return;
-    for (const s of w.sessions)
-      if (!ws().sessions.some((x: any) => x.id === s.id)) ws().sessions.push(s);
-    for (const p of w.playbooks)
-      if (!strategies().some((x: any) => x.id === p.id)) ws().playbooks.push(p);
-    ws().settings.datasets = {
-      ...w.settings?.datasets,
-      ...ws().settings.datasets,
-    };
-    changed();
-    fillStrategies();
-    renderView();
-    toast("Архив добавлен");
-    $("backupFile").value = "";
-  });
   window.addEventListener("online", () => store.flush());
   window.addEventListener("pagehide", () => {
     store.cache();
