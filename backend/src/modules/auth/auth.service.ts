@@ -328,7 +328,7 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
           "Use the original sign-in method. Accounts are not linked automatically.",
         );
       if (
-        process.env.AUTH_REGISTRATION_ENABLED !== "true" &&
+        process.env.AUTH_OAUTH_REGISTRATION_ENABLED === "false" &&
         email !== process.env.AUTH_OWNER_EMAIL?.trim().toLowerCase()
       )
         fail(403, "REGISTRATION_DISABLED", "Registration is disabled.");

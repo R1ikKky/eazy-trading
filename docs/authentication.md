@@ -13,6 +13,7 @@ AUTH_OWNER_EMAIL=YOUR_EMAIL
 AUTH_OWNER_USERNAME=owner
 AUTH_BOOTSTRAP_PASSWORD=YOUR_STRONG_PASSWORD
 AUTH_REGISTRATION_ENABLED=false
+AUTH_OAUTH_REGISTRATION_ENABLED=true
 AUTH_ALLOWED_EMAILS=
 AUTH_JWT_SECRET=
 GOOGLE_CLIENT_ID=
@@ -29,7 +30,8 @@ After the owner account has been created, remove AUTH_BOOTSTRAP_PASSWORD and red
 
 AUTH_JWT_SECRET may be left blank: a cryptographically random, stable signing secret is generated and persisted in PostgreSQL. Alternatively set a random secret of at least 32 bytes, e.g. generated with `openssl rand -hex 32`; keep it server-side and consistent across API replicas. Changing the secret invalidates access tokens; existing refresh sessions can obtain new access tokens.
 
-Set AUTH_REGISTRATION_ENABLED=true to allow password signup and new social accounts. With false, existing accounts can still sign in; a verified OAuth identity matching AUTH_OWNER_EMAIL can create the owner account. AUTH_ALLOWED_EMAILS optionally restricts all sign-in methods to a comma-separated email list. Password accounts do not verify email ownership: for a private installation keep registration disabled and bootstrap the owner.
+Set AUTH_REGISTRATION_ENABLED=true to allow password signup. Verified Google/GitHub signup is enabled independently by default; set AUTH_OAUTH_REGISTRATION_ENABLED=false to close social signup explicitly. Existing social accounts can still sign in when social signup is closed; a verified identity matching AUTH_OWNER_EMAIL may create the owner account. AUTH_ALLOWED_EMAILS optionally restricts all sign-in methods to a comma-separated email list, including social signup. Password accounts do not verify email ownership: for a private installation disable both signup options and bootstrap the owner, or configure AUTH_ALLOWED_EMAILS.
+
 
 ## Google
 
@@ -77,7 +79,7 @@ Integration tests create/drop their own temporary databases. Browser tests requi
 
 If a provider redirects back to `/login?error=oauth`, check the message on the page and the API container logs. Callback logs contain only the provider name and a fixed diagnostic code, never authorization codes, tokens, secrets or provider response bodies.
 
-- `REGISTRATION_DISABLED`: the identity has no existing social account and new accounts are disabled. Enable AUTH_REGISTRATION_ENABLED to allow signup, or use an existing sign-in method.
+- `REGISTRATION_DISABLED`: the identity has no existing social account and new accounts are disabled. For social signup, set AUTH_OAUTH_REGISTRATION_ENABLED=true; AUTH_REGISTRATION_ENABLED controls only password signup.
 - `ACCOUNT_EXISTS`: that email already belongs to another sign-in method. Use that method; enabling registration does not link accounts.
 - `ACCESS_DENIED`: the email is outside AUTH_ALLOWED_EMAILS.
 - `INVALID_OAUTH_STATE`: restart login in the same browser; the state expired, was consumed or its browser cookie is missing.

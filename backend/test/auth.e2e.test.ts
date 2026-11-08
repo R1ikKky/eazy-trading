@@ -27,6 +27,7 @@ test("authentication: isolation, JWT TTL, rotating refresh/reuse, logout, OAuth 
   process.env.PUBLIC_ORIGIN = "http://127.0.0.1:3100";
   process.env.AUTH_JWT_SECRET = "test-secret-".repeat(8);
   process.env.AUTH_REGISTRATION_ENABLED = "true";
+  delete process.env.AUTH_OAUTH_REGISTRATION_ENABLED;
   process.env.AUTH_OWNER_EMAIL = "owner@example.test";
   process.env.AUTH_BOOTSTRAP_PASSWORD = "short";
   process.env.AUTH_ALLOWED_EMAILS = "";
@@ -391,6 +392,7 @@ test("authentication: isolation, JWT TTL, rotating refresh/reuse, logout, OAuth 
     assert.equal(okGoogle.headers.get("location"), "/");
     // Deployment policy failures must be visible without leaking tokens or provider responses.
     process.env.AUTH_REGISTRATION_ENABLED = "false";
+    process.env.AUTH_OAUTH_REGISTRATION_ENABLED = "false";
     const closed = await flow("github");
     const deniedSignup = await call(
       `auth/github/callback?state=${closed.state}&code=fixture-code`,
@@ -402,7 +404,8 @@ test("authentication: isolation, JWT TTL, rotating refresh/reuse, logout, OAuth 
       deniedSignup.headers.get("location"),
       "/login?error=oauth&reason=REGISTRATION_DISABLED",
     );
-    process.env.AUTH_REGISTRATION_ENABLED = "true";
+    // Default OAuth signup must work even when password signup remains closed.
+    delete process.env.AUTH_OAUTH_REGISTRATION_ENABLED;
     githubEmail = "alice@example.test";
     const collision = await flow("github");
     assert.equal(
