@@ -453,15 +453,6 @@ function startSession(
   $("rangeLabel").textContent = dateText(from) + " — " + dateText(to);
   $("tickInfo").textContent =
     "1 тик = " + money(contracts[symbol].point * 0.25);
-  $("dataBadge").textContent = datasets[symbol].metadata?.adjusted
-    ? "ИСТОРИЯ · ЦЕНЫ СКОРРЕКТИРОВАНЫ"
-    : datasets[symbol].source === "user_csv"
-      ? "CSV · ВАШИ ДАННЫЕ"
-      : "РЕАЛЬНАЯ ИСТОРИЯ";
-  $("dataBadge").classList.add("real");
-  $("dataBadge").title =
-    (datasets[symbol].name || "Загруженная история") +
-    " — сведения об источнике";
   if (tools && tools.preferences.session !== session) {
     lastChartSession = session;
     tools.updatePreferences({ session });
@@ -889,7 +880,6 @@ function download(name: any, text: any) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 $("setupOpen").onclick = () => openSetup();
-$("dataBadge").onclick = openSource;
 function openHistory() {
   pause();
   $("historyDialog").showModal();

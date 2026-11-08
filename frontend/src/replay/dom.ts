@@ -7,7 +7,6 @@ export interface Elements {
   setupOpen: HTMLButtonElement;
   rangeOpen: HTMLButtonElement;
   rangeLabel: HTMLElement;
-  dataBadge: HTMLButtonElement;
   netStat: HTMLElement;
   winStat: HTMLElement;
   winNote: HTMLElement;

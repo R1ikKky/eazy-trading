@@ -115,13 +115,6 @@ export function ReplayWorkspace() {
                 <span>Результат сессии</span>
                 <strong id="netStat">$0.00</strong>
               </div>
-              <button
-                id="dataBadge"
-                className="demo-badge real"
-                aria-label="Источник исторических данных"
-              >
-                Исторические данные
-              </button>
             </div>
             <div
               className="orderflow-controls"
