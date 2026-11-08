@@ -1,6 +1,5 @@
 export interface Elements {
   saveStatus: HTMLElement;
-  themeToggle: HTMLButtonElement;
   "view-replay": HTMLElement;
   historyOpen: HTMLButtonElement;
   importOpen: HTMLButtonElement;

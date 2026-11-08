@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { authenticateTestPage } from "./auth-helper";
+import { authenticateTestPage, chooseTheme } from "./auth-helper";
 test.beforeEach(async ({ page }) => {
   await authenticateTestPage(page);
 });
@@ -57,8 +57,8 @@ test("required session names, paired replay, orders, themes, and session restora
   await page.locator("#step").click();
   await expect(page.locator("#positionBox")).toContainText("Вне позиции");
   await expect(page.locator(".replay-notes")).toHaveCount(0);
-  await page.locator("#themeToggle").click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await chooseTheme(page, "Yellow");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "yellow");
   await expect(page.locator("#saveStatus")).toHaveAttribute(
     "data-state",
     "saved",
@@ -74,6 +74,6 @@ test("required session names, paired replay, orders, themes, and session restora
   expect(session.comparisonDatasetId).toBeTruthy();
   await page.reload();
   await expect(page.locator("#rangeLabel")).toContainText("2024", { timeout: 45000 });
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "yellow");
   expect(errors).toEqual([]);
 });

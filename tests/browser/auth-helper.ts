@@ -11,3 +11,9 @@ export async function authenticateTestPage(page: Page) {
   });
   expect(response.ok(), await response.text()).toBeTruthy();
 }
+
+export async function chooseTheme(page: Page, theme: "Dark" | "Yellow" | "Blue") {
+  await page.getByRole("button", { name: "Настройки оформления", exact: true }).click();
+  await page.getByRole("radio", { name: theme, exact: true }).check();
+  await page.getByRole("button", { name: "Закрыть настройки оформления", exact: true }).click();
+}

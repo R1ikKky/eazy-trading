@@ -73,7 +73,6 @@ export function AccountMenu() {
         <span className="account-avatar" aria-hidden="true">
           {(user?.displayName || user?.username || "R").slice(0, 1).toUpperCase()}
         </span>
-        <span>{user?.displayName || user?.username}</span>
       </button>
       <dialog ref={dialog} className="profile-settings" aria-labelledby="profile-title">
         <div className="dialog-header">

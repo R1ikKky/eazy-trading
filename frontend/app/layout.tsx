@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ThemeInitializer } from "./appearance-settings";
 import "./styles.css";
 import "./theme.css";
 import "./chart-ui.css";
@@ -9,6 +10,7 @@ import "tom-select/dist/css/tom-select.css";
 import "./dropdowns.css";
 import "./scrollbars.css";
 import "./replay-island.css";
+import "./appearance.css";
 export const metadata: Metadata = {
   title: "Replay Lab · NQ / ES",
   description:
@@ -19,7 +21,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ru" data-theme="dark" suppressHydrationWarning>
-      <body className="product-app">{children}</body>
+      <body className="product-app"><ThemeInitializer />{children}</body>
     </html>
   );
 }

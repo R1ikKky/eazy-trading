@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { WORKSPACE_ROUTES, workspaceView } from "../src/replay/workspace-routes";
 import { AccountMenu } from "./auth-boundary";
+import { AppearanceSettings } from "./appearance-settings";
 import { ACCOUNT_DEPOSITS } from "../src/replay/account-deposits";
 
 // The replay terminal owns its chart DOM. Load it only after React mounts the page.
@@ -106,16 +107,7 @@ export function ReplayWorkspace() {
               <span className="status-dot" />
               Сохранено локально
             </span>
-            <button
-              type="button"
-              className="icon-button theme-toggle"
-              id="themeToggle"
-              aria-label="Переключить тему"
-              aria-pressed="true"
-              title="Включить светлую тему"
-            >
-              <span aria-hidden="true">☀</span>
-            </button>
+            <AppearanceSettings />
         </div>
       </aside>
       <div className="app-shell">

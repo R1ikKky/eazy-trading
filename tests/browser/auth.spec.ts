@@ -61,9 +61,9 @@ test("password signup, private workspace, automatic refresh, logout and login", 
     headers: { origin: base }, data: { displayName: "Other", email: "changed@example.test" },
   })).status()).toBe(400);
   await page.getByRole("button", { name: "Закрыть настройки профиля", exact: true }).click();
-  await expect(page.locator(".profile-trigger")).toContainText("Profile test name");
+  await expect(page.locator(".profile-trigger")).toHaveText("P");
   await page.reload();
-  await expect(page.locator(".profile-trigger")).toContainText("Profile test name");
+  await expect(page.locator(".profile-trigger")).toHaveText("P");
   await page.request.post("/api/auth/logout", { headers: { origin: base } });
   await page.goto("/");
   await expect(page).toHaveURL(/\/login/);

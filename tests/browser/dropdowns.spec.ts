@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { authenticateTestPage } from "./auth-helper";
+import { authenticateTestPage, chooseTheme } from "./auth-helper";
 
 test.beforeEach(async ({ page }) => authenticateTestPage(page));
 test("shared dropdowns support modal selection, keyboard, controller updates and themes", async ({ page }) => {
@@ -28,7 +28,7 @@ test("shared dropdowns support modal selection, keyboard, controller updates and
   await page.screenshot({ path: "/tmp/dropdown-deposit-dark.png" });
   await page.keyboard.press("Escape");
   await page.locator('[data-close="setupDialog"]').click();
-  await page.locator("#themeToggle").click();
+  await chooseTheme(page, "Yellow");
   await page.locator("#setupOpen").click();
   await deposit.click();
   await page.screenshot({ path: "/tmp/dropdown-deposit-light.png" });
