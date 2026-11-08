@@ -452,6 +452,33 @@ test("authentication: isolation, JWT TTL, rotating refresh/reuse, logout, OAuth 
       ).headers.get("location"),
       "/login?error=oauth",
     );
+    // A changed bootstrap email with an existing username must not crash or take over its account.
+    const originalOwner = await db
+      .getRepository(AuthUser)
+      .findOneByOrFail({ username: "owner" });
+    await app.close();
+    process.env.AUTH_OWNER_EMAIL = "changed-owner@example.test";
+    process.env.AUTH_BOOTSTRAP_PASSWORD = "different";
+    app = await createApp();
+    await app.listen(0, "127.0.0.1");
+    process.env.API_PORT = String(app.getHttpServer().address().port);
+    const restarted = await requestFetch(
+      `http://127.0.0.1:${process.env.API_PORT}/api/health`,
+    );
+    assert.equal(restarted.status, 200);
+    const restartedDb = app.get(Source);
+    const unchanged = await restartedDb
+      .getRepository(AuthUser)
+      .findOneByOrFail({ username: "owner" });
+    assert.equal(unchanged.id, originalOwner.id);
+    assert.equal(unchanged.email, originalOwner.email);
+    assert.equal(unchanged.passwordHash, originalOwner.passwordHash);
+    assert.equal(
+      await restartedDb
+        .getRepository(AuthUser)
+        .findOneBy({ email: "changed-owner@example.test" }),
+      null,
+    );
   } finally {
     globalThis.fetch = requestFetch;
     if (app) await app.close();

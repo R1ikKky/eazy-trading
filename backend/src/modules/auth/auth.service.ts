@@ -1,4 +1,9 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { DataSource, EntityManager } from "typeorm";
 import { randomUUID } from "node:crypto";
@@ -71,15 +76,30 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
         );
         let user = await m.getRepository(AuthUser).findOneBy({ email });
         if (!user) {
-          user = await m.save(AuthUser, {
-            id: randomUUID(),
-            username: usernameInput(process.env.AUTH_OWNER_USERNAME || "owner"),
-            email,
-            displayName: "Owner",
-            passwordHash,
-            emailVerified: false,
-          });
-          await this.claimLegacy(m, user.id);
+          const id = randomUUID();
+          const inserted = await m
+            .createQueryBuilder()
+            .insert()
+            .into(AuthUser)
+            .values({
+              id,
+              username: usernameInput(
+                process.env.AUTH_OWNER_USERNAME || "owner",
+              ),
+              email,
+              displayName: "Owner",
+              passwordHash,
+              emailVerified: false,
+            })
+            .orIgnore()
+            .returning("id")
+            .execute();
+          if (inserted.raw.length) await this.claimLegacy(m, id);
+          else
+            Logger.warn(
+              "Owner bootstrap skipped: username or email already exists. Existing accounts are unchanged. Remove AUTH_BOOTSTRAP_PASSWORD after initial setup.",
+              "AuthService",
+            );
         }
       });
     }
