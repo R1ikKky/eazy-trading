@@ -9,6 +9,8 @@ test("replay dock frees chart width and holds the floating trade ticket", async 
   await expect(page.locator("#saveStatus")).toHaveAttribute("data-state", "saved", { timeout: 30000 });
   await expect(page.locator("#rangeLabel")).toContainText("2024", { timeout: 30000 });
   await page.locator('[data-view="replay"]').click();
+  await expect(page).toHaveURL(/\/replay$/);
+  await expect(page.locator("#view-replay")).toBeVisible();
   const dock = page.locator(".app-sidebar");
   const trade = page.getByRole("button", { name: "Панель сделки", exact: true });
   const ticket = page.locator("#orderTicket");
@@ -29,11 +31,15 @@ test("replay dock frees chart width and holds the floating trade ticket", async 
   await expect(ticket).not.toBeVisible();
   await trade.click();
   await page.locator('[data-view="sessions"]').click();
+  await expect(page).toHaveURL(/\/sessions$/);
+  await expect(page.locator("#view-sessions")).toBeVisible();
   await expect(ticket).not.toBeVisible();
   const sidebar = (await dock.boundingBox())!;
   expect(sidebar.x).toBeLessThan(20);
   expect(sidebar.height).toBeGreaterThan(900);
   await page.locator('[data-view="replay"]').click();
+  await expect(page).toHaveURL(/\/replay$/);
+  await expect(page.locator("#view-replay")).toBeVisible();
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     const bounds = (await dock.boundingBox())!;

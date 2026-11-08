@@ -1,5 +1,6 @@
 import { element as $ } from "./dom";
 import { dayKey } from "./engine";
+import { WORKSPACE_ROUTES, workspaceView } from "./workspace-routes";
 import {
   WorkspaceStore,
   uid,
@@ -71,6 +72,7 @@ export function createProduct({
   let view = "sessions",
     selectedTrade = null,
     loaded = false,
+    navigationReady = false,
     filter: Record<string, any> = {};
   const store = new WorkspaceStore((state: any, label: any) => {
     const status = $("saveStatus");
@@ -140,7 +142,7 @@ export function createProduct({
     store.changed();
     if (view !== "replay") renderView();
   }
-  function navigate(next: any) {
+  function navigate(next: any, updateUrl = true) {
     if (
       ![
         "replay",
@@ -151,7 +153,7 @@ export function createProduct({
       ].includes(next)
     )
       return;
-    if (onNavigate?.(next) === false) return;
+    if (navigationReady) onNavigate?.(next);
     const ticket = document.getElementById("orderTicket");
     if (next !== "replay" && ticket?.matches(":popover-open")) ticket.hidePopover();
     view = next;
@@ -164,8 +166,8 @@ export function createProduct({
         b.dataset.view === next ? "page" : "false",
       );
     }
-    ws().settings.view = next;
-    if (loaded) store.changed();
+    if (updateUrl && location.pathname !== WORKSPACE_ROUTES[next])
+      window.dispatchEvent(new CustomEvent("workspace-navigate", { detail: WORKSPACE_ROUTES[next] }));
     renderView();
     window.dispatchEvent(new Event("resize"));
   }
@@ -629,7 +631,12 @@ export function createProduct({
   }
   document
     .querySelectorAll<HTMLElement>("[data-view]")
-    .forEach((b) => (b.onclick = () => navigate(b.dataset.view)));
+    .forEach((b) => {
+      if (!(b instanceof HTMLAnchorElement)) b.onclick = () => navigate(b.dataset.view);
+    });
+  window.addEventListener("workspace-route", () => {
+    if (loaded) navigate(workspaceView(location.pathname), false);
+  });
   document.addEventListener(
     "click",
     safe(async (e: any) => {
@@ -755,17 +762,17 @@ export function createProduct({
     saveReplay,
     updateHeader,
     navigate,
+    ready() {
+      navigationReady = true;
+      navigate(workspaceView(location.pathname), false);
+    },
     async load() {
       await store.load();
       loaded = true;
       fillStrategies();
       if (ws().settings.chartPreferences)
         setPreferences(ws().settings.chartPreferences);
-      navigate(
-        ["sessions", "journal", "analytics"].includes(ws().settings.view)
-          ? ws().settings.view
-          : "sessions",
-      );
+      navigate(workspaceView(location.pathname), false);
       return active();
     },
     resumed(id: any) {

@@ -1,9 +1,2 @@
-import { ReplayWorkspace } from "./workspace";
-import { AuthBoundary } from "./auth-boundary";
-export default function Home() {
-  return (
-    <AuthBoundary>
-      <ReplayWorkspace />
-    </AuthBoundary>
-  );
-}
+import { redirect } from "next/navigation";
+export default function Home() { redirect("/sessions"); }

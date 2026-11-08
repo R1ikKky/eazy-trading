@@ -1167,7 +1167,7 @@ document.querySelectorAll<HTMLElement>("[data-tf]").forEach(
 document.addEventListener("keydown", (e) => {
   if ($("view-replay").hidden) return;
   if (
-    ["INPUT", "SELECT", "TEXTAREA", "BUTTON"].includes(
+    ["INPUT", "SELECT", "TEXTAREA", "BUTTON", "A"].includes(
       (e.target as HTMLElement).tagName,
     ) ||
     (e.target as HTMLElement).isContentEditable ||
@@ -1284,7 +1284,6 @@ product = createProduct({
       comparison?.setExpanded(false);
     } else if (!replay) {
       openSetup();
-      return false;
     }
   },
   activate: activateRecord,
@@ -1374,9 +1373,8 @@ async function bootstrap() {
       toast("Не удалось восстановить сессию: " + e.message);
     }
   }
-  product.navigate("sessions");
 }
-bootstrap().catch((error) => {
+bootstrap().then(() => product.ready()).catch((error) => {
   toast(error.message);
   $("chartError").hidden = false;
 });

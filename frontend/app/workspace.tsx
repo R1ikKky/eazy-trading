@@ -1,10 +1,28 @@
 "use client";
 import { useEffect } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { WORKSPACE_ROUTES, workspaceView } from "../src/replay/workspace-routes";
 import { AccountMenu } from "./auth-boundary";
 import { ACCOUNT_DEPOSITS } from "../src/replay/account-deposits";
 
 // The replay terminal owns its chart DOM. Load it only after React mounts the page.
 export function ReplayWorkspace() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const currentView = workspaceView(pathname);
+  useEffect(() => {
+    const navigate = (event: Event) => {
+      const path = (event as CustomEvent<string>).detail;
+      if (Object.values(WORKSPACE_ROUTES).includes(path) && location.pathname !== path)
+        router.push(path, { scroll: false });
+    };
+    window.addEventListener("workspace-navigate", navigate);
+    return () => window.removeEventListener("workspace-navigate", navigate);
+  }, [router]);
+  useEffect(() => {
+    window.dispatchEvent(new Event("workspace-route"));
+  }, [pathname]);
   useEffect(() => {
     let mounted = true;
     void import("../src/replay/start").then(({ startReplay }) => {
@@ -17,7 +35,7 @@ export function ReplayWorkspace() {
   return (
     <>
       <aside className="app-sidebar">
-        <a className="brand" href="./" aria-label="Replay Lab">
+        <Link className="brand" href="/sessions" aria-label="Replay Lab">
           <span className="brand-mark">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m8 5 11 7-11 7V5Z" />
@@ -27,15 +45,14 @@ export function ReplayWorkspace() {
             replay<span className="brand-light">lab</span>
             <small>TRADING WORKSPACE</small>
           </span>
-        </a>
+        </Link>
         <div className="sidebar-caption">РАБОЧАЯ ОБЛАСТЬ</div>
         <nav className="app-nav" aria-label="Основная навигация">
-          <button
-            type="button"
-            className="nav-item"
+          <Link href="/replay" scroll={false}
+            className={currentView === "replay" ? "nav-item active" : "nav-item"}
             data-view="replay"
             aria-label="Replay"
-            aria-current="false"
+            aria-current={currentView === "replay" ? "page" : false}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m9 5 10 7-10 7V5Z" />
@@ -43,42 +60,41 @@ export function ReplayWorkspace() {
             </svg>
             <span>Replay</span>
             <span className="nav-live-dot" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            className="nav-item active"
+          </Link>
+          <Link href="/sessions" scroll={false}
+            className={currentView === "sessions" ? "nav-item active" : "nav-item"}
             data-view="sessions"
             aria-label="Сессии"
-            aria-current="page"
+            aria-current={currentView === "sessions" ? "page" : false}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x={4} y={5} width={16} height={15} rx={2} />
               <path d="M8 3v4M16 3v4M4 11h16M8 15h3M14 15h2" />
             </svg>
             <span>Сессии</span>
-          </button>
-          <button
-            type="button"
-            className="nav-item "
+          </Link>
+          <Link href="/journal" scroll={false}
+            className={currentView === "journal" ? "nav-item active" : "nav-item"}
             data-view="journal"
             aria-label="Журнал"
+            aria-current={currentView === "journal" ? "page" : false}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2ZM8 8h7M8 12h7M8 16h4" />
             </svg>
             <span>Журнал</span>
-          </button>
-          <button
-            type="button"
-            className="nav-item "
+          </Link>
+          <Link href="/analytics" scroll={false}
+            className={currentView === "analytics" ? "nav-item active" : "nav-item"}
             data-view="analytics"
             aria-label="Аналитика"
+            aria-current={currentView === "analytics" ? "page" : false}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M4 20V5M4 20h17M8 16v-4M13 16V8M18 16V3" />
             </svg>
             <span>Аналитика</span>
-          </button>
+          </Link>
         </nav>
         <button className="island-trade-toggle" type="button" popoverTarget="orderTicket" aria-haspopup="dialog" aria-label="Панель сделки">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 17h14M9 3v8M15 13v8" /></svg>
@@ -108,7 +124,7 @@ export function ReplayWorkspace() {
             id="view-replay"
             className="app-view"
             data-app-view="replay"
-            hidden
+            hidden={currentView !== "replay"}
           >
             <div className="replay-context">
               <div className="replay-period">
@@ -547,6 +563,7 @@ export function ReplayWorkspace() {
             id="view-sessions"
             className="app-view"
             data-app-view="sessions"
+            hidden={currentView !== "sessions"}
           >
             <div className="view-heading">
               <div>
@@ -560,13 +577,12 @@ export function ReplayWorkspace() {
                 >
                   История данных
                 </button>
-                <button
-                  type="button"
+                <Link href="/strategies" scroll={false}
                   className="button secondary"
                   data-view="playbooks"
                 >
                   Стратегии
-                </button>
+                </Link>
                 <button id="setupOpen" className="button primary" type="button">
                   ＋ Новая сессия
                 </button>
@@ -582,7 +598,7 @@ export function ReplayWorkspace() {
             id="view-journal"
             className="app-view"
             data-app-view="journal"
-            hidden
+            hidden={currentView !== "journal"}
           >
             <div className="view-heading">
               <div>
@@ -646,7 +662,7 @@ export function ReplayWorkspace() {
             id="view-analytics"
             className="app-view"
             data-app-view="analytics"
-            hidden
+            hidden={currentView !== "analytics"}
           >
             <div className="view-heading">
               <div>
@@ -663,7 +679,7 @@ export function ReplayWorkspace() {
             id="view-playbooks"
             className="app-view"
             data-app-view="playbooks"
-            hidden
+            hidden={currentView !== "playbooks"}
           >
             <div className="view-heading">
               <div>
