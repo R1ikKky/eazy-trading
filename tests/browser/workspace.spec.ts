@@ -3,7 +3,7 @@ import { authenticateTestPage } from "./auth-helper";
 test.beforeEach(async ({ page }) => {
   await authenticateTestPage(page);
 });
-test("paired replay, orders, notes, themes, and session restoration", async ({
+test("required session names, paired replay, orders, themes, and session restoration", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -19,6 +19,14 @@ test("paired replay, orders, notes, themes, and session restoration", async ({
   await page.locator('[data-view="sessions"]').click();
   await expect(page.locator("#view-sessions")).toBeVisible();
   await page.locator("#setupOpen").click();
+  await expect(page.locator("#sessionName")).toHaveValue("");
+  await page.locator("#setupForm button[type=submit]").click();
+  await expect(page.locator("#setupDialog")).toBeVisible();
+  expect(await page.locator("#sessionName").evaluate((input: HTMLInputElement) => input.validity.valueMissing)).toBe(true);
+  await page.locator("#sessionName").fill("   ");
+  await page.locator("#setupForm button[type=submit]").click();
+  await expect(page.locator("#setupDialog")).toBeVisible();
+  expect(await page.locator("#sessionName").evaluate((input: HTMLInputElement) => input.validity.customError)).toBe(true);
   await page.locator("#sessionName").fill("Migration browser test");
   await page.locator("#fromDate").fill("2024-01-08");
   await page.locator("#toDate").fill("2024-01-12");
@@ -44,8 +52,7 @@ test("paired replay, orders, notes, themes, and session restoration", async ({
   await page.locator('[data-action="close"]').click();
   await page.locator("#step").click();
   await expect(page.locator("#positionBox")).toContainText("Вне позиции");
-  await page.locator(".replay-notes summary").click();
-  await page.locator("#sessionNotes").fill("Persist this migration note");
+  await expect(page.locator(".replay-notes")).toHaveCount(0);
   await page.locator("#themeToggle").click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await expect(page.locator("#saveStatus")).toHaveAttribute(
@@ -57,13 +64,11 @@ test("paired replay, orders, notes, themes, and session restoration", async ({
   const session = before.sessions.find(
     (s: { id: string }) => s.id === before.settings.activeSessionId,
   );
+  expect(session.name).toBe("Migration browser test");
   expect(session.snapshot.trades).toHaveLength(1);
   expect(session.comparisonDatasetId).toBeTruthy();
   await page.reload();
-  await expect(page.locator("#sessionNotes")).toHaveValue(
-    "Persist this migration note",
-    { timeout: 45000 },
-  );
+  await expect(page.locator("#rangeLabel")).toContainText("2024", { timeout: 45000 });
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   expect(errors).toEqual([]);
 });

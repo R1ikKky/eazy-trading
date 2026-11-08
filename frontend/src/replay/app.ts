@@ -659,6 +659,7 @@ function openSetup(next = symbol, preferredId = "") {
   for (const instrument of ["NQ", "ES"])
     $("session" + instrument).checked = !preferredId || instrument === next;
   $("sessionName").value = "";
+  $("sessionName").setCustomValidity("");
   $("sessionCapital").value = product?.active()?.capital || 50000;
   $("sessionStrategy").innerHTML = product.options(
     product.active()?.strategyId || "",
@@ -941,6 +942,11 @@ $("historyData").onclick = () => {
 };
 $("fromDate").onchange = previewRange;
 $("toDate").onchange = previewRange;
+$("sessionName").oninput = () => {
+  $("sessionName").setCustomValidity(
+    $("sessionName").value.trim() ? "" : "Введите название сессии.",
+  );
+};
 $("setupForm").onsubmit = async (e) => {
   e.preventDefault();
   if (settingUp) return;
@@ -951,6 +957,8 @@ $("setupForm").onsubmit = async (e) => {
   (button as HTMLButtonElement).disabled = true;
   button.textContent = "Загружаю данные…";
   try {
+    const name = $("sessionName").value.trim();
+    if (!name) throw Error("Введите название сессии.");
     const selected = setupSymbols(),
       next = setupPrimary(),
       a = $("fromDate").value,
@@ -986,9 +994,7 @@ $("setupForm").onsubmit = async (e) => {
     try {
       canReset();
       startSession(next, a, b, activeSession, {
-        name:
-          $("sessionName").value.trim() ||
-          selected.join(" + ") + " · " + a + " — " + b,
+        name,
         capital,
         strategyId: $("sessionStrategy").value,
         comparisonDatasetId:

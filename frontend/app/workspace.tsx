@@ -709,7 +709,8 @@ export function ReplayWorkspace() {
             className="full"
             type="text"
             maxLength={100}
-            placeholder="Например: NQ + ES · NY reversal"
+            required
+            placeholder="Введите название сессии"
           />
           <div className="field-pair session-setup-fields">
             <div>

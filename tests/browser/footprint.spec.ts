@@ -21,6 +21,7 @@ test("footprint mode and a deduplicated demo reconnect", async ({
     await page.locator(`[data-resume="${base.id}"]`).click();
   } else {
     await page.locator("#setupOpen").click();
+    await page.locator("#sessionName").fill("Footprint replay");
     await page.locator("#fromDate").fill("2024-01-08");
     await page.locator("#toDate").fill("2024-01-08");
     await page.locator("#setupForm button[type=submit]").click();
