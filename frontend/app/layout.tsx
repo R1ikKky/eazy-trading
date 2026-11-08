@@ -5,6 +5,8 @@ import "./chart-ui.css";
 import "./analytics.css";
 import "./product.css";
 import "./workspace-design.css";
+import "tom-select/dist/css/tom-select.css";
+import "./dropdowns.css";
 export const metadata: Metadata = {
   title: "Replay Lab · NQ / ES",
   description:

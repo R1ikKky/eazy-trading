@@ -1,0 +1,162 @@
+/* Shared selects: a quiet rounded trigger and a floating list in both themes. */
+body.product-app .replay-select {
+  display: inline-block;
+  vertical-align: middle;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+}
+body.product-app .replay-select[hidden] { display: none !important; }
+body.product-app .replay-select .ts-control,
+body.product-app .replay-select.single.input-active .ts-control {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 34px 10px 13px;
+  border: 1px solid var(--border-strong);
+  border-radius: 13px;
+  background: var(--input-bg);
+  color: var(--text);
+  font: inherit;
+  box-shadow: none;
+  cursor: pointer;
+  transition: background .16s, border-color .16s, box-shadow .16s;
+}
+body.product-app .replay-select .ts-control::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -5px;
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  transform: rotate(45deg);
+  transition: transform .16s;
+}
+body.product-app .replay-select.dropdown-active .ts-control::after {
+  transform: translateY(3px) rotate(225deg);
+}
+body.product-app .replay-select .ts-control > .item {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: inherit;
+  background: none;
+  font: inherit;
+  min-width: 0;
+}
+body.product-app .replay-select:not(.disabled) .ts-control:hover {
+  border-color: var(--text-faint);
+  background: var(--surface);
+}
+body.product-app .replay-select.focus .ts-control {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  outline: none;
+}
+body.product-app .replay-select.disabled { opacity: .45; }
+body.product-app .replay-select.disabled .ts-control { cursor: not-allowed; }
+body.product-app .replay-select-menu {
+  box-sizing: border-box;
+  padding: 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 17px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 12px 36px #0003, 0 3px 8px #0001;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+  z-index: 10000;
+  overflow: hidden;
+}
+body.product-app .replay-select-menu .ts-dropdown-content {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+  padding: 0;
+}
+body.product-app .replay-select-menu .option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  margin: 2px 0;
+  padding: 9px 34px 9px 11px;
+  border-radius: 10px;
+  color: var(--text-muted);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+body.product-app .replay-select-menu .option.active {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+body.product-app .replay-select-menu .option.selected {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+body.product-app .replay-select-menu .option.selected::after {
+  content: '✓';
+  position: absolute;
+  right: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+body.product-app .replay-select-menu .option[aria-disabled='true'] {
+  opacity: .4;
+  cursor: not-allowed;
+}
+body.product-app .replay-select-menu .optgroup-header {
+  padding: 8px 11px;
+  color: var(--text-faint);
+  background: transparent;
+  font-size: 10px;
+}
+body.product-app .orderflow-controls label .replay-select { width: auto; min-width: 84px; }
+body.product-app .orderflow-controls .replay-select .ts-control,
+body.product-app .chart-toolbar .replay-select .ts-control,
+body.product-app .comparison-header .replay-select .ts-control,
+body.product-app .replay-panel .replay-select .ts-control {
+  min-height: 34px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  border-radius: 11px;
+  font-size: 11px;
+}
+body.product-app .symbol-group .replay-select { width: 78px; }
+body.product-app .comparison-header .replay-select { width: 140px; }
+body.product-app .replay-panel .replay-select { width: 85px; }
+body.product-app .tv-settings .replay-select { max-width: 240px; }
+body.product-app .tv-settings-footer > .replay-select { width: 190px; }
+/* Native elements remain as the controller's value/event source. */
+body.product-app select.tomselected.ts-hidden-accessible {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  body.product-app .replay-select .ts-control,
+  body.product-app .replay-select .ts-control::after { transition: none; }
+}

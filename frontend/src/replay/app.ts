@@ -1,4 +1,5 @@
 import { createFootprint } from "./footprint";
+import { ACCOUNT_DEPOSITS } from "./account-deposits";
 import type { Instrument } from "./types";
 import { element as $ } from "./dom";
 import { importArchive } from "./archive";
@@ -660,7 +661,10 @@ function openSetup(next = symbol, preferredId = "") {
     $("session" + instrument).checked = !preferredId || instrument === next;
   $("sessionName").value = "";
   $("sessionName").setCustomValidity("");
-  $("sessionCapital").value = product?.active()?.capital || 50000;
+  const previousCapital = product?.active()?.capital;
+  $("sessionCapital").value = String(
+    ACCOUNT_DEPOSITS.some((amount) => amount === previousCapital) ? previousCapital : 50000,
+  );
   $("sessionStrategy").innerHTML = product.options(
     product.active()?.strategyId || "",
   );
@@ -971,8 +975,8 @@ $("setupForm").onsubmit = async (e) => {
         b,
         setupPreferredId,
       );
-    if (!Number.isFinite(capital) || capital < 100 || capital > 1e9)
-      throw Error("Капитал должен быть от $100 до $1 млрд");
+    if (!ACCOUNT_DEPOSITS.some((amount) => amount === capital))
+      throw Error("Выберите начальный капитал из списка.");
     const loaded = await Promise.all(
       entries.map((entry) => loadHistoryById(entry.id, a, b)),
     );

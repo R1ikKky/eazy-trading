@@ -28,6 +28,8 @@ test("required session names, paired replay, orders, themes, and session restora
   await expect(page.locator("#setupDialog")).toBeVisible();
   expect(await page.locator("#sessionName").evaluate((input: HTMLInputElement) => input.validity.customError)).toBe(true);
   await page.locator("#sessionName").fill("Migration browser test");
+  expect(await page.locator("#sessionCapital option").evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value).sort((a, b) => Number(a) - Number(b)))).toEqual(["10000", "25000", "50000", "100000", "150000", "200000", "250000"]);
+  await page.locator("#sessionCapital").selectOption("25000");
   await page.locator("#fromDate").fill("2024-01-08");
   await page.locator("#toDate").fill("2024-01-12");
   await page.locator("#setupForm button[type=submit]").click();
@@ -65,6 +67,7 @@ test("required session names, paired replay, orders, themes, and session restora
     (s: { id: string }) => s.id === before.settings.activeSessionId,
   );
   expect(session.name).toBe("Migration browser test");
+  expect(session.capital).toBe(25000);
   expect(session.snapshot.trades).toHaveLength(1);
   expect(session.comparisonDatasetId).toBeTruthy();
   await page.reload();

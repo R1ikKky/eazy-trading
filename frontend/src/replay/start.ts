@@ -6,5 +6,7 @@ export function startReplay(): Promise<void> {
     Object.assign(window, { LightweightCharts: charts });
     await import("./theme");
     await import("./app");
+    const { installDropdowns } = await import("./dropdowns");
+    installDropdowns();
   })());
 }

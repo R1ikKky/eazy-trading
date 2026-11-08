@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { AccountMenu } from "./auth-boundary";
+import { ACCOUNT_DEPOSITS } from "../src/replay/account-deposits";
 
 // The replay terminal owns its chart DOM. Load it only after React mounts the page.
 export function ReplayWorkspace() {
@@ -715,15 +716,13 @@ export function ReplayWorkspace() {
           <div className="field-pair session-setup-fields">
             <div>
               <label htmlFor="sessionCapital">Начальный капитал, $</label>
-              <input
-                id="sessionCapital"
-                type="number"
-                min={100}
-                max={1000000000}
-                step="any"
-                defaultValue={50000}
-                required
-              />
+              <select id="sessionCapital" defaultValue="50000" required>
+                {ACCOUNT_DEPOSITS.map((amount) => (
+                  <option key={amount} value={amount}>
+                    ${amount.toLocaleString("en-US")}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label htmlFor="sessionStrategy">Стратегия</label>

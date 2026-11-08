@@ -84,7 +84,7 @@ export interface Elements {
   setupDialog: HTMLDialogElement;
   setupForm: HTMLFormElement;
   sessionName: HTMLInputElement;
-  sessionCapital: HTMLInputElement;
+  sessionCapital: HTMLSelectElement;
   sessionStrategy: HTMLSelectElement;
   sessionNQ: HTMLInputElement;
   sessionES: HTMLInputElement;

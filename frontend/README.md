@@ -19,3 +19,5 @@ Next loads frontend `.env` files normally; root `.env` values provide shared def
 The Dockerfile builds only this application. Its Docker build context is the repository root so npm can install from the shared workspace lockfile.
 
 The visual system lives in `app/workspace-design.css`, loaded last by the root layout. It owns the rounded workspace, dark/light palettes, dialogs and authentication styling. `product.css` retains the terminal layout and legacy controller styles; prefer updating the design system rather than appending another visual override there.
+
+Dropdowns use Tom Select, initialized by `src/replay/dropdowns.ts` after the terminal starts. Keep the original select IDs and dispatch ordinary `change` events when needed: the bridge synchronizes controller value assignments, option-list updates, hidden and disabled states. `app/dropdowns.css` owns the shared light/dark styling. Menus use the browser popover layer to escape the scrollable workspace and modal clipping.
