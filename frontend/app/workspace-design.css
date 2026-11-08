@@ -1,0 +1,1242 @@
+/* Rounded workspace system. Imported after the legacy chart and product styles. */
+:root,
+:root[data-theme="dark"] {
+  --app-bg: #101311;
+  --surface: #202521;
+  --surface-raised: #2a302b;
+  --surface-soft: #181d19;
+  --canvas: #181d19;
+  --input-bg: #151a16;
+  --text: #f0efe8;
+  --text-muted: #a4ada2;
+  --text-faint: #7d897c;
+  --border: #ffffff09;
+  --border-strong: #ffffff15;
+  --accent: #dfbd98;
+  --accent-fill: #dfbd98;
+  --accent-soft: #dfbd9812;
+  --green: #a8c6a4;
+  --red: #e6a49b;
+  --lime: #dfbd98;
+  --sidebar-width: 224px;
+  --radius: 22px;
+  --shadow: none;
+}
+:root[data-theme="dark"] {
+  --border: #ffffff09;
+  --muted: #a4ada2;
+  --green: #a8c6a4;
+  --red: #e6a49b;
+}
+:root[data-theme="light"] {
+  --app-bg: #eae7df;
+  --surface: #ffffff;
+  --surface-raised: #efeee7;
+  --surface-soft: #f7f6f0;
+  --canvas: #f7f6f0;
+  --input-bg: #eeeee7;
+  --text: #252e26;
+  --text-muted: #737d70;
+  --text-faint: #8a9385;
+  --border: #27392508;
+  --border-strong: #27392516;
+  --accent: #8e5f38;
+  --accent-fill: #e8c6a3;
+  --accent-soft: #c88f5412;
+  --green: #507d54;
+  --red: #b0655b;
+  --lime: #8e5f38;
+  --shadow: none;
+}
+body.product-app {
+  background: var(--app-bg);
+  letter-spacing: -0.15px;
+}
+body.product-app .app-sidebar {
+  position: fixed;
+  inset: 14px auto 14px 14px;
+  width: var(--sidebar-width);
+  padding: 29px 14px;
+  border: 0;
+  border-radius: 26px;
+  background: var(--canvas);
+  display: flex;
+  flex-direction: column;
+  z-index: 8;
+}
+body.product-app .brand {
+  padding: 0 12px;
+  gap: 11px;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -1.2px;
+  color: var(--text);
+}
+body.product-app .brand-mark {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 13px;
+  background: var(--accent-fill);
+  color: #34382c;
+  box-shadow: none;
+}
+body.product-app .brand-mark svg {
+  fill: currentColor;
+  width: 20px;
+  height: 20px;
+}
+body.product-app .brand-light {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+body.product-app .brand small {
+  display: none;
+}
+body.product-app .sidebar-caption {
+  margin: 42px 14px 14px;
+  font-size: 9px;
+  letter-spacing: 1.7px;
+  font-weight: 500;
+  color: var(--text-faint);
+}
+body.product-app .app-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 0;
+  margin: 0;
+}
+body.product-app .nav-item {
+  width: 100%;
+  min-height: 49px;
+  height: auto;
+  padding: 13px 15px;
+  gap: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  border-radius: 17px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  transition:
+    background 0.18s,
+    color 0.18s;
+}
+body.product-app .nav-item svg {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  stroke-width: 1.6;
+}
+body.product-app .nav-item.active {
+  background: var(--surface-raised);
+  color: var(--text);
+  border-color: var(--border);
+}
+body.product-app .nav-item:not(.active):hover {
+  background: var(--surface);
+  color: var(--text);
+}
+body.product-app .nav-item.active::before,
+body.product-app .nav-live-dot,
+body.product-app .nav-item::after {
+  display: none;
+}
+body.product-app .app-shell {
+  margin: 14px 14px 14px calc(var(--sidebar-width) + 28px);
+  min-height: calc(100dvh - 28px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 28px;
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  overflow: clip;
+}
+body.product-app .app-shell header.product-topbar {
+  height: 76px;
+  min-height: 76px;
+  padding: 0 34px;
+  background: transparent;
+  border: 0;
+  justify-content: flex-end;
+  gap: 18px;
+}
+body.product-app .top-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+body.product-app .account-menu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+body.product-app .account-menu .account-avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+body.product-app .account-menu > span:not(.account-avatar) {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.product-app .account-menu button {
+  border: 0;
+  border-left: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: none;
+  color: var(--text-faint);
+  font-size: 11px;
+  padding: 3px 0 3px 12px;
+  margin-left: 4px;
+}
+body.product-app .account-menu button:hover {
+  color: var(--text);
+}
+body.product-app .top-actions .theme-toggle {
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 8px;
+}
+body.product-app .theme-toggle span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+body.product-app .theme-toggle svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.4;
+}
+body.product-app .save-status {
+  font-size: 10px;
+  color: var(--text-faint);
+  border: 0;
+  background: none;
+}
+body.product-app .product-main {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  flex: 1;
+  padding: 24px 34px 28px;
+  margin: 0;
+}
+body.product-app .view-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 0 0 32px;
+}
+body.product-app .view-heading h1 {
+  font-size: 34px;
+  line-height: 1.15;
+  letter-spacing: -1.3px;
+  font-weight: 550;
+  margin: 0;
+  color: var(--text);
+}
+body.product-app .view-heading .eyebrow {
+  display: none;
+}
+body.product-app .heading-description {
+  color: var(--text-faint);
+  font-size: 12px;
+  max-width: 520px;
+  line-height: 1.6;
+}
+body.product-app .heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+body.product-app .button {
+  min-height: 42px;
+  padding: 11px 17px;
+  border-radius: 15px;
+  box-shadow: none;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 550;
+  letter-spacing: 0;
+  transition:
+    background 0.18s,
+    border-color 0.18s,
+    color 0.18s;
+}
+body.product-app .button.primary {
+  background: var(--accent-fill);
+  color: #30382c;
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+body.product-app .button.primary:hover {
+  background: #e9c9a7;
+  transform: none;
+  box-shadow: 0 3px 14px #dfbd9810;
+}
+body.product-app .button.secondary {
+  background: var(--surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+body.product-app .button.secondary:hover {
+  background: var(--surface-raised);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+body.product-app .button.compact {
+  min-height: 34px;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 11px;
+}
+body.product-app .icon-button {
+  border-radius: 12px;
+  border-color: var(--border-strong);
+  color: var(--text-muted);
+  background: transparent;
+}
+body.product-app
+  :is(
+    .filter-control input,
+    .filter-control select,
+    .session-notepad textarea
+  ) {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  color: var(--text);
+}
+body.product-app
+  .product-main
+  :is(input:not([type="range"]):not([type="checkbox"]), select, textarea) {
+  border-radius: 12px;
+  border-color: var(--border-strong);
+  color: var(--text);
+  background: var(--input-bg);
+}
+body.product-app :is(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+body.product-app :is(.positive, .an-positive) {
+  color: var(--green);
+}
+body.product-app :is(.negative, .an-negative) {
+  color: var(--red);
+}
+/* The library uses actual session results; no decorative performance metrics. */
+body.product-app .sessions-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  margin: 0 0 24px;
+  padding: 0 0 17px;
+  border-bottom: 1px solid var(--border-strong);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+body.product-app .session-count {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  color: var(--text-faint);
+  padding: 2px 7px;
+}
+body.product-app #sessionsContent .cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+  gap: 18px;
+}
+body.product-app #sessionsContent .session-card {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: none;
+  transition:
+    border-color 0.18s,
+    background 0.18s;
+}
+body.product-app #sessionsContent .session-card:hover {
+  border-color: var(--border-strong);
+  background: var(--surface);
+}
+body.product-app #sessionsContent .session-card .card-top {
+  align-items: center;
+  font-size: 10px;
+  color: var(--text-faint);
+}
+body.product-app #sessionsContent .symbol-pill {
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--surface-raised);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+body.product-app #sessionsContent .session-card h3 {
+  font-size: 19px;
+  line-height: 1.4;
+  letter-spacing: -0.4px;
+  font-weight: 550;
+  margin: 24px 0 8px;
+}
+body.product-app #sessionsContent .session-period {
+  font-size: 11px;
+  color: var(--text-faint);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+body.product-app #sessionsContent .session-result {
+  margin: 0;
+  padding: 18px 0 0;
+  border-top: 1px solid var(--border-strong);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+body.product-app #sessionsContent .session-result strong {
+  font-size: 28px;
+  font-weight: 450;
+  letter-spacing: -1.2px;
+  line-height: 1.2;
+}
+body.product-app #sessionsContent .session-result span {
+  font-size: 10px;
+  color: var(--text-faint);
+  max-width: 115px;
+  text-align: right;
+  line-height: 1.5;
+}
+body.product-app #sessionsContent .session-strategy {
+  font-size: 11px;
+  margin: 10px 0 22px;
+  color: var(--text-faint);
+}
+body.product-app #sessionsContent .card-actions {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  gap: 8px;
+  align-items: center;
+}
+body.product-app #sessionsContent .card-actions .button {
+  flex: 1;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 13px;
+  min-height: 38px;
+  font-size: 11px;
+}
+body.product-app #sessionsContent .card-actions .button:hover {
+  border-color: var(--border-strong);
+}
+body.product-app #sessionsContent .card-actions .icon-button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  font-size: 17px;
+}
+body.product-app #sessionsContent .card-actions .icon-button:hover {
+  background: var(--surface-raised);
+}
+body.product-app .sessions-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 380px;
+  padding: 48px 16px;
+  gap: 30px;
+}
+body.product-app .sessions-empty h2 {
+  font-size: 15px;
+  font-weight: 450;
+  letter-spacing: -0.1px;
+  margin: 0;
+  color: var(--text-muted);
+}
+body.product-app .empty-market {
+  position: relative;
+  width: 270px;
+  max-width: 100%;
+  height: 152px;
+  mask-image: none;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+}
+body.product-app .empty-market::before,
+body.product-app .empty-market::after {
+  content: "";
+  position: absolute;
+  inset: 8px 21px;
+  border: 1px solid var(--border-strong);
+  border-radius: 23px;
+  background: var(--surface);
+  z-index: -1;
+  transform: rotate(-8deg);
+}
+body.product-app .empty-market::after {
+  transform: rotate(6deg);
+  inset: 5px 17px;
+  background: var(--canvas);
+}
+body.product-app .empty-market svg {
+  display: block;
+  width: 220px;
+  height: 138px;
+  padding: 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 21px;
+  background: var(--surface);
+}
+body.product-app .empty-grid {
+  stroke: var(--border-strong);
+  stroke-width: 0.6;
+}
+body.product-app .empty-candles {
+  stroke: var(--accent);
+  stroke-width: 1.4;
+}
+body.product-app .empty-candles rect {
+  fill: var(--surface-raised);
+}
+/* Replay, journal and analytics share the same rounded surfaces. */
+body.product-app
+  .app-shell
+  :is(
+    .chart-card,
+    .order-card,
+    .journal-card,
+    .content-card,
+    .section-card,
+    .metric-card,
+    .strategy-card
+  ) {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+  border-radius: 22px;
+  box-shadow: none;
+}
+body.product-app .app-shell .chart-card {
+  overflow: clip;
+}
+body.product-app .app-shell .chart-toolbar {
+  background: var(--surface);
+  border-bottom-color: var(--border-strong);
+  border-radius: 22px 22px 0 0;
+}
+body.product-app .chart-tools {
+  background: var(--surface-soft);
+  border-color: var(--border);
+}
+body.product-app .chart-tools button,
+body.product-app .timeframes button {
+  border-radius: 10px;
+}
+body.product-app .app-shell .order-card {
+  padding: 22px;
+}
+body.product-app .order-card .panel-title h2 {
+  font-size: 18px;
+  font-weight: 550;
+  letter-spacing: -0.4px;
+}
+body.product-app .order-card .entry-note {
+  font-size: 11px;
+  color: var(--text-faint);
+  line-height: 1.6;
+}
+body.product-app .stepper {
+  border-radius: 12px;
+  overflow: clip;
+  border-color: var(--border-strong);
+  background: var(--input-bg);
+}
+body.product-app .risk-summary,
+body.product-app .position-box {
+  background: var(--surface-soft);
+  border-radius: 14px;
+  border-color: var(--border-strong);
+}
+body.product-app .trade-buttons .trade {
+  border-radius: 14px;
+  font-size: 12px;
+  min-height: 44px;
+  box-shadow: none;
+}
+body.product-app .trade-buttons .long {
+  background: #a8c6a4;
+  color: #253b2b;
+  border: 0;
+}
+body.product-app .trade-buttons .short {
+  background: #d5aba1;
+  color: #492e29;
+  border: 0;
+}
+body.product-app .replay-panel {
+  background: var(--surface-soft);
+  border-color: var(--border);
+}
+body.product-app .replay-notes {
+  border-radius: 18px;
+  border-color: var(--border-strong);
+  background: var(--surface);
+}
+body.product-app .replay-context {
+  margin-bottom: 18px;
+  background: transparent;
+  border-color: var(--border-strong);
+  font-size: 11px;
+}
+body.product-app .orderflow-controls {
+  background: transparent;
+  border-color: var(--border);
+  gap: 10px;
+}
+body.product-app .orderflow-controls label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+body.product-app .orderflow-controls select,
+body.product-app .orderflow-controls button {
+  padding: 7px 10px;
+  border-radius: 11px;
+  font-size: 11px;
+}
+body.product-app .journal-filters {
+  gap: 12px;
+}
+body.product-app .journal-summary {
+  gap: 14px;
+}
+body.product-app .metric-card {
+  padding: 21px;
+}
+body.product-app .metric-value {
+  font-weight: 450;
+  font-size: 28px;
+  letter-spacing: -1px;
+}
+body.product-app .journal-header {
+  padding: 22px 24px;
+  border-color: var(--border-strong);
+}
+body.product-app .journal-header h2 {
+  font-size: 18px;
+  font-weight: 550;
+}
+body.product-app .journal-header p {
+  color: var(--text-faint);
+  font-size: 11px;
+}
+body.product-app .journal-card th {
+  background: var(--surface-soft);
+  color: var(--text-faint);
+  font-size: 10px;
+  font-weight: 500;
+  border-color: var(--border-strong);
+}
+body.product-app .journal-card td {
+  font-size: 11px;
+  border-color: var(--border-strong);
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+body.product-app .empty-journal {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 55px 24px;
+  border: 0;
+}
+body.product-app .empty-journal .empty-icon {
+  border-radius: 17px;
+  background: var(--surface-raised);
+  color: var(--accent);
+}
+body.product-app .empty-journal .empty-hint {
+  display: none;
+}
+body.product-app .an-root {
+  --an-bg: var(--surface);
+  --an-ink: var(--text);
+  --an-muted: var(--text-muted);
+  --an-line: var(--border-strong);
+  --an-soft: var(--surface-soft);
+  --an-accent: var(--accent);
+  --an-positive: var(--green);
+  --an-negative: var(--red);
+  gap: 20px;
+}
+body.product-app .an-root :is(.an-card, .an-stat) {
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: none;
+}
+body.product-app .an-stat {
+  padding: 24px;
+}
+body.product-app .an-stat-value {
+  font-weight: 450;
+  letter-spacing: -1.3px;
+}
+body.product-app .an-card-header {
+  padding: 21px 24px;
+  border-color: var(--border-strong);
+}
+body.product-app .an-card-header h3 {
+  font-size: 14px;
+  font-weight: 550;
+}
+body.product-app .an-scope,
+body.product-app .an-select {
+  border-radius: 12px;
+  border-color: var(--border-strong);
+}
+body.product-app .an-eyebrow {
+  color: var(--text-faint);
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+body.product-app .an-overview h2 {
+  font-size: 26px;
+  font-weight: 500;
+}
+body.product-app .an-table th,
+body.product-app .an-table td {
+  border-color: var(--border-strong);
+}
+body.product-app .trade-import,
+body.product-app .source-card {
+  border-radius: 20px;
+  border-color: var(--border-strong);
+  background: var(--surface);
+}
+body.product-app .year-coverage .content-card {
+  padding: 24px;
+}
+/* Setup and supporting dialogs are part of the product, not a second theme. */
+body.product-app dialog:not(.tv-settings):not(.tv-utility-dialog) {
+  border: 1px solid var(--border-strong);
+  border-radius: 26px;
+  background: var(--canvas);
+  color: var(--text);
+  padding: 28px;
+  box-shadow: 0 24px 100px #0005;
+  max-width: min(600px, calc(100% - 32px));
+}
+body.product-app dialog::backdrop {
+  background: #0b110d85;
+  backdrop-filter: blur(8px);
+}
+body.product-app dialog .dialog-header {
+  margin-bottom: 24px;
+  gap: 16px;
+}
+body.product-app dialog .dialog-header h2 {
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.8px;
+}
+body.product-app dialog .eyebrow {
+  display: none;
+}
+body.product-app
+  dialog
+  :is(input:not([type="checkbox"]):not([type="range"]), select, textarea) {
+  border-radius: 13px;
+  border: 1px solid var(--border-strong);
+  background: var(--input-bg);
+  color: var(--text);
+  min-height: 42px;
+  font-size: 13px;
+}
+body.product-app dialog label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+body.product-app .session-instrument {
+  border-radius: 17px;
+  background: var(--surface);
+  border-color: var(--border-strong);
+}
+body.product-app .session-instrument:has(input:checked) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+body.product-app .range-preview {
+  border-radius: 15px;
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+body.product-app .dialog-intro,
+body.product-app .dialog-note {
+  color: var(--text-faint);
+  font-size: 11px;
+  line-height: 1.7;
+}
+body.product-app .chart-credit {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+body.product-app .workspace-utilities {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 12px 34px 24px;
+  margin-top: auto;
+}
+body.product-app .workspace-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  border-radius: 18px;
+  padding: 8px 12px;
+  color: var(--text-muted);
+  font-size: 11px;
+  min-height: 34px;
+}
+body.product-app .workspace-help > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--text-faint);
+  border-radius: 50%;
+  font-size: 10px;
+}
+body.product-app .workspace-help:hover {
+  background: var(--surface);
+}
+body.product-app .workspace-utilities .backup-menu {
+  position: relative;
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 11px;
+}
+body.product-app .workspace-utilities .backup-menu summary {
+  font-size: 11px;
+  cursor: pointer;
+  padding: 10px 0;
+  list-style: none;
+  color: var(--text-faint);
+}
+body.product-app .workspace-utilities .backup-menu summary::after {
+  content: "⌄";
+  margin-left: 7px;
+}
+body.product-app .workspace-utilities .backup-menu[open] {
+  padding: 8px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 17px;
+  background: var(--surface);
+}
+body.product-app .workspace-utilities .sidebar-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  min-height: 36px;
+  width: 100%;
+  padding: 8px;
+  border-radius: 10px;
+  color: var(--text-muted);
+}
+body.product-app .workspace-utilities .sidebar-action:hover {
+  background: var(--surface-raised);
+}
+/* Sign-in uses the same materials and accent as the workspace. */
+body.product-app .auth-page {
+  background: var(--app-bg);
+  color: var(--text);
+  padding: 24px 16px;
+}
+body.product-app .auth-card {
+  background: var(--canvas);
+  border: 1px solid var(--border-strong);
+  border-radius: 30px;
+  box-shadow: 0 20px 80px #0002;
+  padding: 34px;
+  width: min(100%, 412px);
+}
+body.product-app .auth-brand {
+  color: var(--text);
+  font-weight: 650;
+}
+body.product-app .auth-brand-light {
+  color: var(--text-muted);
+}
+body.product-app .auth-brand-icon {
+  background: var(--accent-fill);
+  color: #34382c;
+  box-shadow: none;
+  border-radius: 13px;
+}
+body.product-app .auth-card h1 {
+  color: var(--text);
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -1px;
+}
+body.product-app .auth-card .oauth-label {
+  color: var(--text-faint);
+}
+body.product-app .auth-card .oauth-buttons button {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  color: var(--text);
+  box-shadow: none;
+  height: 48px;
+}
+body.product-app .auth-card .oauth-buttons button:not(:disabled):hover {
+  transform: none;
+  border-color: var(--accent);
+  background: var(--surface-raised);
+}
+body.product-app .auth-card input {
+  height: 46px;
+  border-radius: 14px;
+  background: var(--input-bg);
+  border-color: var(--border-strong);
+  color: var(--text);
+  box-shadow: none;
+  font-size: 16px;
+}
+body.product-app .auth-card label {
+  color: var(--text-muted);
+}
+body.product-app .auth-card input::placeholder {
+  color: var(--text-faint);
+  font-size: 13px;
+}
+body.product-app .auth-card input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+body.product-app .auth-card .auth-submit {
+  background: var(--accent-fill);
+  color: #30382c;
+  border: 0;
+  border-radius: 15px;
+  box-shadow: none;
+}
+body.product-app .auth-card .auth-submit:not(:disabled):hover {
+  background: #e9c9a7;
+  box-shadow: none;
+}
+body.product-app .auth-card .auth-switch {
+  color: var(--accent);
+  border-radius: 12px;
+}
+body.product-app .auth-card .auth-switch:not(:disabled):hover {
+  color: var(--text);
+  background: var(--surface);
+}
+body.product-app .auth-divider {
+  color: var(--text-faint);
+}
+body.product-app .auth-divider::before,
+body.product-app .auth-divider::after {
+  background: var(--border-strong);
+}
+body.product-app .auth-card .auth-error {
+  color: var(--red);
+}
+@media (max-width: 1100px) and (min-width: 901px) {
+  :root,
+  :root[data-theme="dark"] {
+    --sidebar-width: 200px;
+  }
+  body.product-app .app-sidebar {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  body.product-app .brand {
+    font-size: 23px;
+    padding: 0 8px;
+  }
+  body.product-app .product-main {
+    padding: 20px 25px 24px;
+  }
+  body.product-app .app-shell header.product-topbar {
+    padding: 0 25px;
+  }
+  body.product-app .view-heading h1 {
+    font-size: 30px;
+  }
+  body.product-app .workspace-grid {
+    grid-template-columns: minmax(0, 1fr) 265px;
+    gap: 16px;
+  }
+}
+@media (max-width: 900px) {
+  body.product-app .app-sidebar {
+    position: sticky;
+    inset: auto;
+    top: 10px;
+    width: auto;
+    height: auto;
+    margin: 12px 14px;
+    padding: 7px;
+    border-radius: 21px;
+    border: 1px solid var(--border);
+    display: block;
+  }
+  body.product-app .app-sidebar > .brand,
+  body.product-app .sidebar-caption {
+    display: none;
+  }
+  body.product-app .app-nav {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0;
+    scrollbar-width: none;
+    white-space: nowrap;
+  }
+  body.product-app .nav-item {
+    width: auto;
+    min-width: max-content;
+    min-height: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    padding: 10px 13px;
+    font-size: 12px;
+    gap: 8px;
+    border-radius: 15px;
+  }
+  body.product-app .nav-item svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+  }
+  body.product-app .nav-item > span {
+    display: inline;
+  }
+  body.product-app .app-shell {
+    margin: 12px 14px 14px;
+    min-height: calc(100dvh - 100px);
+    border-radius: 26px;
+  }
+  body.product-app .app-shell header.product-topbar {
+    height: 64px;
+    min-height: 64px;
+    padding: 0 24px;
+  }
+  body.product-app .top-actions {
+    gap: 14px;
+  }
+  body.product-app .product-main {
+    padding: 20px 24px 24px;
+  }
+  body.product-app .view-heading h1 {
+    font-size: 30px;
+  }
+  body.product-app .workspace-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  body.product-app .workspace-utilities {
+    padding: 12px 24px 22px;
+  }
+  body.product-app .save-status {
+    display: none;
+  }
+  body.product-app .workspace-grid .order-card {
+    min-height: 0;
+  }
+}
+@media (max-width: 520px) {
+  body.product-app .app-sidebar {
+    margin: 10px;
+    top: 8px;
+    border-radius: 19px;
+    padding: 6px;
+  }
+  body.product-app .nav-item {
+    font-size: 11px;
+    padding: 9px 11px;
+    gap: 7px;
+    min-height: 38px;
+    height: 38px;
+    border-radius: 13px;
+  }
+  body.product-app .app-shell {
+    margin: 10px;
+    border-radius: 24px;
+  }
+  body.product-app .app-shell header.product-topbar {
+    height: 60px;
+    min-height: 60px;
+    padding: 0 20px;
+  }
+  body.product-app .product-main {
+    padding: 14px 20px 22px;
+  }
+  body.product-app .account-menu .account-avatar {
+    display: grid;
+  }
+  body.product-app .account-menu > span:not(.account-avatar) {
+    display: inline;
+    max-width: 105px;
+    font-size: 11px;
+  }
+  body.product-app .account-menu button {
+    font-size: 10px;
+    padding-left: 10px;
+  }
+  body.product-app .top-actions {
+    gap: 10px;
+  }
+  body.product-app .top-actions .theme-toggle {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 7px;
+  }
+  body.product-app .view-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 22px;
+    margin-bottom: 26px;
+  }
+  body.product-app .view-heading h1 {
+    font-size: 29px;
+  }
+  body.product-app .heading-actions {
+    width: 100%;
+    gap: 8px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+  body.product-app .heading-actions .button {
+    min-width: 0;
+    flex: 1 1 auto;
+    min-height: 42px;
+    font-size: 11px;
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+  body.product-app .sessions-toolbar {
+    margin-bottom: 16px;
+    font-size: 11px;
+  }
+  body.product-app #sessionsContent .session-card {
+    padding: 21px;
+    border-radius: 21px;
+  }
+  body.product-app .sessions-empty {
+    min-height: 300px;
+    padding: 32px 8px;
+    gap: 26px;
+  }
+  body.product-app .empty-market {
+    width: 235px;
+  }
+  body.product-app .empty-market svg {
+    width: 195px;
+    height: 128px;
+  }
+  body.product-app .workspace-utilities {
+    padding: 12px 20px 20px;
+    gap: 15px;
+  }
+  body.product-app .workspace-help {
+    font-size: 10px;
+  }
+  body.product-app .workspace-utilities .backup-menu summary {
+    font-size: 10px;
+  }
+  body.product-app dialog:not(.tv-settings):not(.tv-utility-dialog) {
+    padding: 22px;
+    border-radius: 24px;
+    max-width: calc(100% - 20px);
+  }
+  body.product-app .auth-card {
+    padding: 28px 24px;
+    border-radius: 27px;
+  }
+  body.product-app .auth-card h1 {
+    font-size: 26px;
+  }
+  body.product-app .metric-card {
+    padding: 18px;
+  }
+  body.product-app .an-root :is(.an-card, .an-stat) {
+    border-radius: 19px;
+  }
+}
+@media (max-height: 650px) {
+  body.product-app .auth-page {
+    padding: 12px;
+  }
+  body.product-app .auth-card {
+    padding: 22px 26px;
+    border-radius: 24px;
+  }
+  body.product-app .auth-card h1 {
+    font-size: 24px;
+    margin-bottom: 18px;
+  }
+  body.product-app .auth-brand {
+    margin-bottom: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.product-app .nav-item,
+  body.product-app .button,
+  body.product-app #sessionsContent .session-card {
+    transition: none;
+  }
+}

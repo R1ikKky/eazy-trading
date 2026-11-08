@@ -91,27 +91,6 @@ export function ReplayWorkspace() {
             <span>Данные</span>
           </button>
         </nav>
-        <div className="sidebar-footer">
-          <details className="backup-menu">
-            <summary>Резервные копии</summary>
-            <button id="backupExport" className="sidebar-action" type="button">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 3v12m-5-5 5 5 5-5M5 16v5h14v-5" />
-              </svg>
-              Резервная копия
-            </button>
-            <button id="backupImport" className="sidebar-action" type="button">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 16V4m-5 5 5-5 5 5M5 16v5h14v-5" />
-              </svg>
-              Восстановить копию
-            </button>
-          </details>
-          <div className="sidebar-version">
-            <span className="status-dot" />
-            REPLAY LAB <span>01</span>
-          </div>
-        </div>
       </aside>
       <div className="app-shell">
         <header className="topbar product-topbar">
@@ -788,6 +767,21 @@ export function ReplayWorkspace() {
             <span aria-hidden="true">?</span>
             <span>Справка</span>
           </button>
+          <details className="backup-menu">
+            <summary>Резервные копии</summary>
+            <button id="backupExport" className="sidebar-action" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v12m-5-5 5 5 5-5M5 16v5h14v-5" />
+              </svg>
+              Резервная копия
+            </button>
+            <button id="backupImport" className="sidebar-action" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 16V4m-5 5 5-5 5 5M5 16v5h14v-5" />
+              </svg>
+              Восстановить копию
+            </button>
+          </details>
         </div>
       </div>
       <dialog id="setupDialog">

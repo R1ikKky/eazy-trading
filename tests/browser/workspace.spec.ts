@@ -14,6 +14,8 @@ test("paired replay, orders, notes, themes, and session restoration", async ({
     "saved",
     { timeout: 30000 },
   );
+  await page.locator('[data-view="journal"]').click();
+  await expect(page.locator("#journalSearch")).toBeVisible();
   await page.locator('[data-view="sessions"]').click();
   await expect(page.locator("#view-sessions")).toBeVisible();
   await page.locator("#setupOpen").click();

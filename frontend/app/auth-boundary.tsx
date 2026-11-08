@@ -58,6 +58,9 @@ export function AccountMenu() {
   const [busy, setBusy] = useState(false);
   return (
     <div className="account-menu">
+      <span className="account-avatar" aria-hidden="true">
+        {(user?.username || user?.displayName || "R").slice(0, 1).toUpperCase()}
+      </span>
       <span title={user?.email || ""}>
         {user?.username || user?.displayName}
       </span>

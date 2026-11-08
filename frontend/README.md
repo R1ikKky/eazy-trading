@@ -17,3 +17,5 @@ npm run typecheck
 Next loads frontend `.env` files normally; root `.env` values provide shared defaults. `API_INTERNAL_URL` is a server-only backend address (default `http://127.0.0.1:3001`) and must be set when building. `PUBLIC_ORIGIN` must match the browser URL and backend configuration. No backend code is imported into the frontend.
 
 The Dockerfile builds only this application. Its Docker build context is the repository root so npm can install from the shared workspace lockfile.
+
+The visual system lives in `app/workspace-design.css`, loaded last by the root layout. It owns the rounded workspace, dark/light palettes, dialogs and authentication styling. `product.css` retains the terminal layout and legacy controller styles; prefer updating the design system rather than appending another visual override there.

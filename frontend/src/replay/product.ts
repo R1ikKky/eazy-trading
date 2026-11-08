@@ -253,7 +253,7 @@ export function createProduct({
                 date(s.updatedAt) +
                 "</span></div><h3>" +
                 esc(s.name) +
-                '</h3><p class="muted">' +
+                '</h3><p class="muted session-period">' +
                 esc(s.from) +
                 " → " +
                 esc(s.to) +
@@ -267,7 +267,7 @@ export function createProduct({
                 a.count +
                 " сделок · " +
                 (s.snapshot?.position ? "Есть позиция" : "Свеча " + (i + 1)) +
-                '</span></div><p class="muted">' +
+                '</span></div><p class="muted session-strategy">' +
                 esc(
                   strategies().find((p: any) => p.id === s.strategyId)?.name ||
                     "Без стратегии",
@@ -716,7 +716,7 @@ export function createProduct({
     updateHeader();
     if (view === "sessions") renderSessions();
     if (view === "journal") {
-      if (!$("journalSearch")) initFilters();
+      if (!document.getElementById("journalSearch")) initFilters();
       renderJournal();
     }
     if (view === "analytics") {
