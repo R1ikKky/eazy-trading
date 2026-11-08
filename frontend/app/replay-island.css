@@ -34,7 +34,7 @@ body.product-app #orderTicket .ticket-close {
 /* Replay trades the permanent sidebar and ticket column for a floating dock. */
 body.product-app:has(#view-replay:not([hidden])) .app-sidebar {
   position: fixed;
-  inset: 14px auto auto 50%;
+  inset: 26px auto auto 50%;
   transform: translateX(-50%);
   width: max-content;
   max-width: calc(100% - 28px);
@@ -48,8 +48,9 @@ body.product-app:has(#view-replay:not([hidden])) .app-sidebar {
   border: 1px solid var(--border-strong);
   border-radius: 23px;
   background: var(--surface);
-  box-shadow: 0 8px 30px #0002;
-  z-index: 30;
+  box-shadow: 0 14px 36px #0005, 0 2px 8px #0002;
+  backdrop-filter: blur(16px);
+  z-index: 100;
 }
 body.product-app:has(#view-replay:not([hidden])) .app-sidebar > .brand {
   display: flex;
@@ -150,9 +151,16 @@ body.product-app:has(#view-replay:not([hidden])) .save-status::before {
 body.product-app:has(#view-replay:not([hidden])) .save-status[data-state='pending']::before { background: var(--accent); }
 body.product-app:has(#view-replay:not([hidden])) .save-status:is([data-state='error'], [data-state='conflict'], [data-state='offline'])::before { background: var(--red); }
 body.product-app:has(#view-replay:not([hidden])) .app-shell {
-  margin: 94px 14px 14px;
-  height: calc(100dvh - 108px);
+  margin: 14px;
+  height: calc(100dvh - 28px);
   min-height: 0;
+  position: relative;
+  isolation: isolate;
+  z-index: 0;
+}
+body.product-app:has(#view-replay:not([hidden])) .product-main {
+  padding-top: 100px;
+  scroll-padding-top: 100px;
 }
 body.product-app:has(#view-replay:not([hidden])) .workspace-grid { grid-template-columns: minmax(0, 1fr); }
 @media (max-width: 1100px) {
@@ -166,7 +174,7 @@ body.product-app:has(#view-replay:not([hidden])) .workspace-grid { grid-template
 }
 @media (max-width: 640px) {
   body.product-app:has(#view-replay:not([hidden])) .app-sidebar {
-    top: 10px;
+    top: 20px;
     max-width: calc(100% - 20px);
     height: 54px;
     padding: 6px;
@@ -190,5 +198,6 @@ body.product-app:has(#view-replay:not([hidden])) .workspace-grid { grid-template
   body.product-app:has(#view-replay:not([hidden])) .sidebar-account .save-status { display: none; }
   body.product-app:has(#view-replay:not([hidden])) .island-trade-toggle { width: 36px; min-width: 36px; height: 38px; padding: 8px; }
   body.product-app:has(#view-replay:not([hidden])) .island-trade-toggle > span { display: none; }
-  body.product-app:has(#view-replay:not([hidden])) .app-shell { margin: 76px 10px 10px; height: calc(100dvh - 86px); }
+  body.product-app:has(#view-replay:not([hidden])) .app-shell { margin: 10px; height: calc(100dvh - 20px); }
+  body.product-app:has(#view-replay:not([hidden])) .product-main { padding-top: 82px; scroll-padding-top: 82px; }
 }

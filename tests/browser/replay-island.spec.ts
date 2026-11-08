@@ -15,7 +15,14 @@ test("replay dock frees chart width and holds the floating trade ticket", async 
   const trade = page.getByRole("button", { name: "Панель сделки", exact: true });
   const ticket = page.locator("#orderTicket");
   const dockBounds = (await dock.boundingBox())!;
-  expect(dockBounds.y).toBeLessThan(20);
+  expect(dockBounds.y).toBeLessThan(40);
+  const mainBounds = (await page.locator(".app-shell").boundingBox())!;
+  expect(mainBounds.y).toBeLessThan(dockBounds.y);
+  expect(mainBounds.height).toBeGreaterThan(950);
+  expect(await dock.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return !!document.elementFromPoint(rect.x + 20, rect.y + 20)?.closest(".app-sidebar");
+  })).toBe(true);
   expect(dockBounds.height).toBeLessThan(80);
   expect((await page.locator("#chartCard").boundingBox())!.width).toBeGreaterThan(1300);
   await page.screenshot({ path: "/tmp/replay-island-desktop.png" });
