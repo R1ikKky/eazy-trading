@@ -1,3 +1,4 @@
+import { sanitizeDrawing } from "./drawing-schema";
 // Validate before replacing live state. This module deliberately does not
 // authenticate executions: Replay.restore validates them against market bars.
 const own = (o: any, key: any) => Object.prototype.hasOwnProperty.call(o, key);
@@ -160,44 +161,19 @@ function drawings(value: any = []) {
   if (!Array.isArray(value) || value.length > 500)
     fail("разметка: максимум 500 объектов");
   const seen = new Set();
-  const point = (p: any) => {
-    if (!object(p) || !number(p.time, 1, 4102444800) || !price(p.price))
-      fail("координаты разметки");
-    return { time: p.time, price: p.price };
-  };
-  return value.map((d: any) => {
-    if (!object(d) || !["level", "ray", "trend", "zone"].includes(d.type))
-      fail("тип разметки");
-    const drawingId = id(d.id, "идентификатор разметки");
+  return value.map((drawing: any) => {
     if (
-      seen.has(drawingId) ||
-      !timestamp(d.createdAt) ||
-      typeof d.color !== "string" ||
-      !/^#[a-f0-9]{6}$/i.test(d.color) ||
-      !number(d.width, 1, 4) ||
-      !number(d.opacity, 0, 100)
+      !object(drawing) ||
+      ["dashed", "hidden", "locked"].some(
+        (key) =>
+          drawing[key] !== undefined && typeof drawing[key] !== "boolean",
+      )
     )
       fail("параметры разметки");
-    if (
-      (d.dashed !== undefined && typeof d.dashed !== "boolean") ||
-      (d.hidden !== undefined && typeof d.hidden !== "boolean")
-    )
-      fail("видимость разметки");
-    seen.add(drawingId);
-    const b = d.b == null ? null : point(d.b);
-    if (["trend", "zone"].includes(d.type) && !b) fail("вторая точка разметки");
-    return {
-      id: drawingId,
-      type: d.type,
-      a: point(d.a),
-      b,
-      createdAt: d.createdAt,
-      color: d.color,
-      width: d.width,
-      opacity: d.opacity,
-      dashed: d.dashed ?? false,
-      hidden: d.hidden ?? false,
-    };
+    const clean = sanitizeDrawing(drawing);
+    if (!clean || seen.has(clean.id)) fail("некорректная разметка");
+    seen.add(clean.id);
+    return clean;
   });
 }
 function snapshot(value: any, symbol: any) {

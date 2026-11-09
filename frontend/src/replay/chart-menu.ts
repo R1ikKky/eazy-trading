@@ -1,3 +1,4 @@
+import { drawingTool } from "./drawing-catalog";
 import { chartDate } from "./settings-model";
 
 export function createChartMenu({
@@ -320,7 +321,10 @@ export function createChartMenu({
       row.className = "tv-tree-row";
       const title = document.createElement("button");
       title.className = "tv-tree-title";
-      title.textContent = names[d.type] + " · " + d.a.price.toFixed(2);
+      title.textContent =
+        (drawingTool(d.type)?.name || names[d.type] || d.type) +
+        " · " +
+        d.a.price.toFixed(2);
       title.onclick = () => {
         selectDrawing(d.id);
         tree.close();

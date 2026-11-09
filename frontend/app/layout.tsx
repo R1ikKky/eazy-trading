@@ -11,6 +11,7 @@ import "./dropdowns.css";
 import "./scrollbars.css";
 import "./replay-island.css";
 import "./appearance.css";
+import "./drawing-tools.css";
 export const metadata: Metadata = {
   title: "Replay Lab · NQ / ES",
   description:

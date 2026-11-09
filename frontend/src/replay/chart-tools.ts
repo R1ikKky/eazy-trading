@@ -1,4 +1,8 @@
 import { element as $ } from "./dom";
+import { drawingTool, NAVIGATION_TOOLS } from "./drawing-catalog";
+import { sanitizeDrawing } from "./drawing-schema";
+import { renderDrawing } from "./drawing-renderer";
+import { createDrawingToolbar } from "./drawing-toolbar";
 import {
   defaults,
   presets,
@@ -89,6 +93,46 @@ export function createChartTools({
     decorationLines = [],
     menu,
     settings;
+  let pending: any[] = [],
+    strokePoints: any[] = [],
+    dragHandle = -1;
+  let undoStack: any[][] = [],
+    lastSaved: any[] = [];
+  const drawingUI = createDrawingToolbar({
+    selectTool: (id) => {
+      pause();
+      selectMode(id);
+    },
+    toast,
+    style: (style) => {
+      Object.assign(prefs, {
+        drawingColor: style.color,
+        drawingWidth: style.width,
+        zoneOpacity: style.opacity,
+        drawingDashed: style.dashed,
+      });
+      persist();
+      onChange?.(prefs);
+      if (
+        selected &&
+        !drawingUI.state.locked &&
+        !drawings.find((d) => d.id === selected)?.locked
+      ) {
+        drawings = drawings.map((d) =>
+          d.id === selected ? { ...d, ...style, createdAt: getNow() } : d,
+        );
+        saveDrawings();
+      }
+      schedule();
+    },
+  });
+  drawingUI.setStyle({
+    color: prefs.drawingColor,
+    width: prefs.drawingWidth,
+    opacity: prefs.zoneOpacity,
+    dashed: prefs.drawingDashed,
+  });
+  window.addEventListener("drawing-ui-change", schedule);
   function node(tag: any, attrs: any) {
     const n = document.createElementNS(ns, tag);
     for (const [k, v] of Object.entries<any>(attrs))
@@ -113,42 +157,16 @@ export function createChartTools({
   }
   function cleanDrawings(value: any) {
     return (Array.isArray(value) ? value : [])
-      .filter(
-        (d) =>
-          d &&
-          ["level", "ray", "trend", "zone"].includes(d.type) &&
-          typeof d.id === "string" &&
-          Number.isFinite(d.createdAt) &&
-          [d.a, d.b || d.a].every(
-            (p) =>
-              p &&
-              Number.isFinite(p.time) &&
-              Number.isFinite(p.price) &&
-              p.price > 0,
-          ) &&
-          /^#[\da-f]{6}$/i.test(d.color) &&
-          Number.isFinite(d.width) &&
-          d.width >= 1 &&
-          d.width <= 4 &&
-          Number.isFinite(d.opacity) &&
-          d.opacity >= 0 &&
-          d.opacity <= 100,
-      )
-      .slice(-500)
-      .map((d) => ({
-        id: d.id,
-        type: d.type,
-        createdAt: d.createdAt,
-        a: { time: d.a.time, price: d.a.price },
-        b: d.b ? { time: d.b.time, price: d.b.price } : null,
-        color: d.color,
-        width: d.width,
-        opacity: d.opacity,
-        dashed: !!d.dashed,
-        hidden: !!d.hidden,
-      }));
+      .map(sanitizeDrawing)
+      .filter(Boolean)
+      .slice(-500);
   }
-  function saveDrawings() {
+  function saveDrawings(record = true) {
+    if (record && JSON.stringify(lastSaved) !== JSON.stringify(drawings)) {
+      undoStack.push(structuredClone(lastSaved));
+      if (undoStack.length > 40) undoStack.shift();
+    }
+    lastSaved = structuredClone(drawings);
     try {
       localStorage.setItem(
         "replay-lab-drawings:" + scope,
@@ -174,6 +192,10 @@ export function createChartTools({
       drawings = [];
     }
     drawings = cleanDrawings(drawings);
+    lastSaved = structuredClone(drawings);
+    undoStack = [];
+    pending = [];
+    strokePoints = [];
   }
   const overlay = document.createElement("div");
   overlay.className = "chart-overlays";
@@ -329,15 +351,14 @@ export function createChartTools({
       },
     });
     chart.applyOptions({
-      handleScale:
-        mode === "cursor"
-          ? {
-              axisPressedMouseMove: { time: true, price: !prefs.lockRatio },
-              axisDoubleClickReset: { time: true, price: !prefs.lockRatio },
-              mouseWheel: true,
-              pinch: true,
-            }
-          : false,
+      handleScale: NAVIGATION_TOOLS.includes(mode)
+        ? {
+            axisPressedMouseMove: { time: true, price: !prefs.lockRatio },
+            axisDoubleClickReset: { time: true, price: !prefs.lockRatio },
+            mouseWheel: true,
+            pinch: true,
+          }
+        : false,
     });
     volume.applyOptions({ visible: prefs.volume });
     sma.applyOptions({
@@ -580,72 +601,37 @@ export function createChartTools({
     };
   }
   function plot(d: any, group: any, isSelected = false) {
-    const a = coordinates(d.a),
-      b = coordinates(d.b || d.a);
-    if (a.x === null || a.y === null || b.x === null || b.y === null) return;
-    const width = Math.max(
-      0,
-      container.clientWidth - (chart.priceScale("right").width?.() || 60),
-    );
-    const style = {
-      stroke: d.color,
-      "stroke-width": d.width,
-      "stroke-dasharray": d.dashed ? "6 4" : "none",
-      fill: "none",
-    };
-    if (d.type === "level")
-      group.append(
-        node("line", {
-          ...style,
-          x1: chart.priceScale("left").width?.() || 0,
-          y1: a.y,
-          x2: width,
-          y2: a.y,
-        }),
-      );
-    if (d.type === "ray")
-      group.append(
-        node("line", { ...style, x1: a.x, y1: a.y, x2: width, y2: a.y }),
-      );
-    if (d.type === "trend")
-      group.append(
-        node("line", { ...style, x1: a.x, y1: a.y, x2: b.x, y2: b.y }),
-      );
-    if (d.type === "zone") {
-      group.append(
-        node("rect", {
-          ...style,
-          x: Math.min(a.x, b.x),
-          y: Math.min(a.y, b.y),
-          width: Math.max(1, Math.abs(b.x - a.x)),
-          height: Math.max(1, Math.abs(b.y - a.y)),
-          fill: d.color,
-          "fill-opacity": d.opacity / 100,
-        }),
-      );
-      group.append(
-        node("line", {
-          ...style,
-          "stroke-dasharray": "5 4",
-          x1: Math.min(a.x, b.x),
-          y1: (a.y + b.y) / 2,
-          x2: Math.max(a.x, b.x),
-          y2: (a.y + b.y) / 2,
-        }),
-      );
+    const layer = node("g", d.id ? { "data-drawing-id": d.id } : {});
+    group.append(layer);
+    renderDrawing(d, layer, {
+      node,
+      coordinates,
+      bars: getBars(),
+      now: getNow(),
+      background: prefs.background,
+      left: chart.priceScale("left").width?.() || 0,
+      width: Math.max(
+        0,
+        container.clientWidth - (chart.priceScale("right").width?.() || 0),
+      ),
+      height: Math.max(0, container.clientHeight - chart.timeScale().height()),
+    });
+    if (isSelected && !drawingUI.state.locked && !d.locked) {
+      for (const p of d.points || [d.a, ...(d.b ? [d.b] : [])]) {
+        const c = coordinates(p);
+        if (c.x != null && c.y != null)
+          layer.append(
+            node("circle", {
+              cx: c.x,
+              cy: c.y,
+              r: 4,
+              fill: prefs.background,
+              stroke: d.color,
+              "stroke-width": 2,
+            }),
+          );
+      }
     }
-    if (isSelected)
-      for (const p of d.type === "level" || d.type === "ray" ? [a] : [a, b])
-        group.append(
-          node("circle", {
-            cx: p.x,
-            cy: p.y,
-            r: 4,
-            fill: prefs.background,
-            stroke: d.color,
-            "stroke-width": 2,
-          }),
-        );
   }
   function paint() {
     svg.replaceChildren();
@@ -726,26 +712,48 @@ export function createChartTools({
       $("chartReplayCountdown").style.transform = "translateY(22px)";
     else $("chartReplayCountdown").style.transform = "";
     for (const d of drawings)
-      if (d.createdAt <= getNow() && !d.hidden)
+      if (d.createdAt <= getNow() && !d.hidden && !drawingUI.state.hidden)
         plot(preview?.id === d.id ? preview : d, group, d.id === selected);
-    if (anchor && hover)
+    const points = strokePoints.length
+      ? strokePoints
+      : pending.length && hover
+        ? [...pending, hover]
+        : [];
+    if (points.length)
       plot(
         {
           type: mode,
-          a: anchor,
-          b: hover,
+          a: points[0],
+          b: points[1] || points[0],
+          points,
           color: prefs.drawingColor,
           width: prefs.drawingWidth,
-          dashed: true,
+          dashed: !strokePoints.length,
           opacity: prefs.zoneOpacity,
+          text: "Текст",
         },
         group,
       );
+    if (mode === "dot" && hover) {
+      const p = coordinates(hover);
+      if (p.x != null && p.y != null)
+        group.append(
+          node("circle", {
+            cx: p.x,
+            cy: p.y,
+            r: 3,
+            fill: prefs.crosshairColor,
+          }),
+        );
+    }
     $("drawingCount").textContent = drawings.filter(
       (d) => d.createdAt <= getNow(),
     ).length;
-    $("drawDelete").disabled = !selected;
-    $("drawUndo").disabled = !drawings.some((d) => d.createdAt <= getNow());
+    $("drawDelete").disabled =
+      !selected ||
+      drawingUI.state.locked ||
+      !!drawings.find((d) => d.id === selected)?.locked;
+    $("drawUndo").disabled = !undoStack.length;
     $("drawClear").disabled = !drawings.length;
   }
   function point(x: any, y: any) {
@@ -767,112 +775,138 @@ export function createChartTools({
         : i >= bars.length
           ? bars.at(-1).time + (i - bars.length + 1) * minutes * 60
           : bars[i].time;
-    return { time, price: Math.round(price * 4) / 4 };
+    const bar = bars[i];
+    const snapped =
+      drawingUI.state.magnet && bar
+        ? [bar.open, bar.high, bar.low, bar.close].reduce(
+            (best, value) =>
+              Math.abs(value - price) < Math.abs(best - price) ? value : best,
+            bar.close,
+          )
+        : price;
+    if (time <= 0 || snapped <= 0) return null;
+    return { time, price: Math.max(0.25, Math.round(snapped * 4) / 4) };
+  }
+  function pointInstruction(type: string, index: number) {
+    const tool = drawingTool(type);
+    const steps: Record<string, string[]> = {
+      "long-position": ["Вход", "Стоп ниже входа", "Цель выше входа"],
+      "short-position": ["Вход", "Стоп выше входа", "Цель ниже входа"],
+      "bars-pattern": [
+        "Начало копируемого участка",
+        "Конец участка",
+        "Куда перенести",
+      ],
+      curve: ["Начало", "Контрольная точка", "Конец"],
+      "double-curve": [
+        "Начало",
+        "Первая контрольная точка",
+        "Вторая контрольная точка",
+        "Конец",
+      ],
+    };
+    const name = steps[type]?.[index] || tool?.labels?.[index];
+    return `${name ? name + " · " : ""}точка ${index + 1}${tool?.points > 0 ? " из " + tool.points : " · Enter — завершить"}`;
   }
   function selectMode(value: any) {
     mode = value;
+    pending = [];
+    strokePoints = [];
+    drawingUI.setActive(value);
     anchor = null;
     hover = null;
     selected = null;
     preview = null;
     dragging = false;
     chart.applyOptions({
-      handleScroll: value === "cursor",
-      handleScale:
-        value === "cursor"
-          ? {
-              axisPressedMouseMove: { time: true, price: !prefs.lockRatio },
-              axisDoubleClickReset: { time: true, price: !prefs.lockRatio },
-              mouseWheel: true,
-              pinch: true,
-            }
-          : false,
+      handleScroll: NAVIGATION_TOOLS.includes(value),
+      handleScale: NAVIGATION_TOOLS.includes(value)
+        ? {
+            axisPressedMouseMove: { time: true, price: !prefs.lockRatio },
+            axisDoubleClickReset: { time: true, price: !prefs.lockRatio },
+            mouseWheel: true,
+            pinch: true,
+          }
+        : false,
     });
-    container.classList.toggle("drawing-mode", value !== "cursor");
+    container.classList.toggle(
+      "drawing-mode",
+      !NAVIGATION_TOOLS.includes(value),
+    );
+    container.style.cursor =
+      value === "arrow-cursor"
+        ? "default"
+        : value === "eraser"
+          ? "cell"
+          : "crosshair";
+    chart.applyOptions({
+      crosshair: {
+        vertLine: {
+          visible: prefs.crosshair && value === "cursor",
+          labelVisible: prefs.crosshair && value === "cursor",
+        },
+        horzLine: {
+          visible: prefs.crosshair && value === "cursor",
+          labelVisible: prefs.crosshair && value === "cursor",
+        },
+      },
+    });
     document.querySelectorAll<HTMLElement>("[data-draw]").forEach((b) => {
       b.classList.toggle("selected", b.dataset.draw === value);
       b.setAttribute("aria-pressed", String(b.dataset.draw === value));
     });
-    const hints = {
-      cursor: "Перемещение и масштаб · разметка сохраняется",
-      select: "Выберите объект, затем перетащите или удалите",
-      level: "Нажмите на нужную цену",
-      ray: "Нажмите на начало горизонтального луча",
-      trend: "Выберите две точки линии",
-      zone: "Выберите два угла зоны",
-    };
-    $("drawingHint").textContent = hints[value];
+    const tool = drawingTool(value);
+    $("drawingHint").textContent =
+      value === "select"
+        ? "Выберите объект · тяните точку или весь объект · Delete — удалить"
+        : value === "eraser"
+          ? "Нажмите или проведите по объекту, чтобы удалить"
+          : tool?.points === -1
+            ? "Удерживайте кнопку и рисуйте"
+            : NAVIGATION_TOOLS.includes(value)
+              ? "Перемещение и масштаб"
+              : tool?.points === 0
+                ? "Расставьте точки · Enter или двойной клик — завершить · Esc — отмена"
+                : `${tool?.name || value} · ${pointInstruction(value, 0)} · Esc — отмена`;
     schedule();
   }
   function near(d: any, x: any, y: any) {
-    const a = coordinates(d.a),
-      b = coordinates(d.b || d.a);
-    if (a.x === null || a.y === null || b.x === null || b.y === null)
-      return Infinity;
-    if (d.type === "level") return Math.abs(y - a.y);
-    if (d.type === "ray") return x >= a.x - 6 ? Math.abs(y - a.y) : Infinity;
-    if (d.type === "zone") {
-      const xmin = Math.min(a.x, b.x),
-        xmax = Math.max(a.x, b.x),
-        ymin = Math.min(a.y, b.y),
-        ymax = Math.max(a.y, b.y);
-      if (x >= xmin - 6 && x <= xmax + 6 && y >= ymin - 6 && y <= ymax + 6)
+    const layer = svg.querySelector(`[data-drawing-id="${CSS.escape(d.id)}"]`);
+    if (!layer) return Infinity;
+    let distance = Infinity;
+    for (const element of layer.querySelectorAll<SVGGeometryElement>(
+      "path,line,rect,circle,ellipse,polyline,polygon",
+    )) {
+      try {
+        if (
+          element.getAttribute("fill") !== "none" &&
+          element.isPointInFill(new DOMPoint(x, y))
+        )
+          return 0;
+        const length = element.getTotalLength(),
+          n = Math.min(250, Math.max(2, Math.ceil(length / 5)));
+        for (let i = 0; i <= n; i++) {
+          const p = element.getPointAtLength((length * i) / n);
+          distance = Math.min(distance, Math.hypot(x - p.x, y - p.y));
+        }
+      } catch {}
+    }
+    for (const text of layer.querySelectorAll<SVGTextElement>("text")) {
+      const box = text.getBBox();
+      if (
+        x >= box.x &&
+        x <= box.x + box.width &&
+        y >= box.y &&
+        y <= box.y + box.height
+      )
         return 0;
-      return Infinity;
     }
-    const dx = b.x - a.x,
-      dy = b.y - a.y,
-      length = dx * dx + dy * dy,
-      t = length
-        ? Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / length))
-        : 0;
-    return Math.hypot(x - a.x - t * dx, y - a.y - t * dy);
+    return distance;
   }
-  chart.subscribeClick((param) => {
-    if (!param.point || mode === "cursor" || mode === "select") return;
-    pause();
-    const p = point(
-      param.point.x + (chart.priceScale("left").width?.() || 0),
-      param.point.y,
-    );
-    if (!p) return;
-    if (["trend", "zone"].includes(mode) && !anchor) {
-      anchor = p;
-      hover = p;
-      $("drawingHint").textContent =
-        mode === "zone"
-          ? "Теперь выберите противоположный угол · Esc — отмена"
-          : "Теперь выберите вторую точку · Esc — отмена";
-      schedule();
-      return;
-    }
-    if (drawings.length >= 500) {
-      toast("Достигнут предел: 500 объектов. Удалите ненужную разметку.");
-      return;
-    }
-    drawings.push({
-      id: Date.now() + "-" + Math.random().toString(36).slice(2),
-      type: mode,
-      a: anchor || p,
-      b: anchor ? p : null,
-      createdAt: getNow(),
-      color: prefs.drawingColor,
-      width: prefs.drawingWidth,
-      dashed: prefs.drawingDashed,
-      opacity: prefs.zoneOpacity,
-    });
-    saveDrawings();
-    selectMode("cursor");
-  });
-  container.addEventListener("pointerdown", (e) => {
-    if (mode !== "select") return;
-    pause();
-    const rect = container.getBoundingClientRect(),
-      x = e.clientX - rect.left,
-      y = e.clientY - rect.top,
-      p = point(x, y);
-    let best = null,
+  function hit(x: number, y: number) {
+    let best: any = null,
       distance = 9;
+    if (drawingUI.state.hidden) return null;
     for (const d of drawings
       .filter((d) => d.createdAt <= getNow() && !d.hidden)
       .slice()
@@ -883,46 +917,248 @@ export function createChartTools({
         distance = n;
       }
     }
-    selected = best?.id || null;
-    if (best && p) {
-      dragging = true;
-      dragStart = p;
-      preview = structuredClone(best);
+    return best;
+  }
+  function setPoints(d: any, points: any[]) {
+    d.points = points;
+    d.a = points[0];
+    d.b = points[1] || null;
+    return d;
+  }
+  async function finishDrawing(points: any[], type = mode) {
+    const tool = drawingTool(type);
+    if (
+      !tool ||
+      (points.length < Math.max(2, tool.points) && tool.points !== 1)
+    )
+      return;
+    const originalScope = scope;
+    let text: string | undefined;
+    if (tool.kind === "text") {
+      pending = [];
+      hover = null;
+      schedule();
+      text =
+        (await drawingUI.text(
+          type === "sign" ? "★" : type === "flag" ? "Флаг" : "",
+        )) || undefined;
+      if (scope !== originalScope) return;
+      if (!text) {
+        selectMode("cursor");
+        return;
+      }
+    }
+    if (drawings.length >= 500) {
+      toast("Достигнут предел: 500 объектов.");
+      return;
+    }
+    const d = sanitizeDrawing({
+      id: Date.now() + "-" + Math.random().toString(36).slice(2),
+      type,
+      points,
+      a: points[0],
+      b: points[1] || null,
+      createdAt: getNow(),
+      color: prefs.drawingColor,
+      width: prefs.drawingWidth,
+      dashed: prefs.drawingDashed,
+      opacity: prefs.zoneOpacity,
+      ...(text !== undefined ? { text } : {}),
+    });
+    if (!d) {
+      toast("Проверьте точки разметки.");
+      return;
+    }
+    drawings.push(d);
+    saveDrawings();
+    pending = [];
+    strokePoints = [];
+    anchor = null;
+    hover = null;
+    if (!drawingUI.state.repeat) selectMode("cursor");
+    else selectMode(type);
+    schedule();
+  }
+  function recordPoint(p: any) {
+    pause();
+    if (pending.at(-1)?.time === p.time && pending.at(-1)?.price === p.price)
+      return;
+    if (pending.length >= 256) {
+      toast("Максимум 256 точек. Нажмите Enter, чтобы завершить.");
+      return;
+    }
+    pending.push(p);
+    anchor = pending[0];
+    hover = p;
+    const tool = drawingTool(mode)!;
+    if (tool.points > 0 && pending.length >= tool.points)
+      void finishDrawing([...pending]);
+    else
+      $("drawingHint").textContent =
+        `${tool.name} · ${pointInstruction(mode, pending.length)} · Esc — отмена`;
+    schedule();
+  }
+  container.addEventListener("pointerdown", (e) => {
+    if (
+      (e.target as Element).closest(".drawing-ui, button, input, select, a") ||
+      e.button !== 0
+    )
+      return;
+    const rect = container.getBoundingClientRect(),
+      x = e.clientX - rect.left,
+      y = e.clientY - rect.top,
+      p = point(x, y);
+    if (
+      !p ||
+      x > container.clientWidth - (chart.priceScale("right").width?.() || 0) ||
+      y > container.clientHeight - chart.timeScale().height()
+    )
+      return;
+    if (["brush", "marker", "demo"].includes(mode)) {
+      pause();
+      strokePoints = [p];
       container.setPointerCapture(e.pointerId);
+      e.preventDefault();
+      schedule();
+      return;
+    }
+    if (mode === "eraser") {
+      pause();
+      const d = hit(x, y);
+      if (d && !drawingUI.state.locked && !d.locked) {
+        drawings = drawings.filter((v) => v.id !== d.id);
+        saveDrawings();
+        schedule();
+      }
+      return;
+    }
+    if (mode !== "select") {
+      if (!NAVIGATION_TOOLS.includes(mode)) recordPoint(p);
+      return;
+    }
+    pause();
+    const best = hit(x, y);
+    selected = best?.id || null;
+    dragHandle = -1;
+    if (best) {
+      drawingUI.setStyle(best);
+      if (!drawingUI.state.locked && !best.locked) {
+        const points = best.points || [best.a, ...(best.b ? [best.b] : [])];
+        dragHandle = points.findIndex((v) => {
+          const c = coordinates(v);
+          return (
+            c.x != null && c.y != null && Math.hypot(c.x - x, c.y - y) < 10
+          );
+        });
+        dragging = true;
+        dragStart = p;
+        preview = structuredClone(best);
+        container.setPointerCapture(e.pointerId);
+      }
     }
     schedule();
   });
   container.addEventListener("pointermove", (e) => {
+    if ((e.target as Element).closest(".drawing-ui")) return;
     const rect = container.getBoundingClientRect(),
-      p: any = point(e.clientX - rect.left, e.clientY - rect.top);
-    if (anchor) hover = p;
-    if (dragging && preview && p) {
-      const original: any = drawings.find((d) => d.id === selected),
-        dt: any = p.time - dragStart.time,
-        dp = p.price - dragStart.price;
-      preview.a = { time: original.a.time + dt, price: original.a.price + dp };
-      if (original.b)
-        preview.b = {
-          time: original.b.time + dt,
-          price: original.b.price + dp,
-        };
+      x = e.clientX - rect.left,
+      y = e.clientY - rect.top,
+      p: any = point(x, y);
+    if (!p) return;
+    hover = p;
+    if (strokePoints.length && e.buttons & 1) {
+      const last = coordinates(strokePoints.at(-1));
+      if (
+        Math.hypot(last.x - x, last.y - y) > 2 &&
+        (strokePoints.at(-1).time !== p.time ||
+          strokePoints.at(-1).price !== p.price)
+      ) {
+        if (strokePoints.length >= 256)
+          strokePoints = strokePoints.filter((_, i) => i % 2 === 0);
+        strokePoints.push(p);
+      }
+    }
+    if (mode === "eraser" && e.buttons & 1 && !drawingUI.state.locked) {
+      const d = hit(x, y);
+      if (d && !d.locked) {
+        drawings = drawings.filter((v) => v.id !== d.id);
+        saveDrawings();
+      }
+    }
+    if (dragging && preview) {
+      const original = drawings.find((d) => d.id === selected);
+      if (original) {
+        const dt = p.time - dragStart.time,
+          dp = p.price - dragStart.price,
+          points = original.points || [
+            original.a,
+            ...(original.b ? [original.b] : []),
+          ];
+        setPoints(
+          preview,
+          points.map((v, i) =>
+            dragHandle >= 0
+              ? i === dragHandle
+                ? p
+                : v
+              : { time: v.time + dt, price: v.price + dp },
+          ),
+        );
+      }
     }
     schedule();
   });
   container.addEventListener("pointerup", () => {
+    if (strokePoints.length) {
+      const points = [...strokePoints],
+        type = mode;
+      if (type === "demo") {
+        const stroke = strokePoints;
+        setTimeout(() => {
+          if (strokePoints === stroke) strokePoints = [];
+          schedule();
+        }, 600);
+      } else {
+        strokePoints = [];
+        void finishDrawing(points, type);
+      }
+    }
     if (dragging && preview) {
       preview.createdAt = getNow();
-      drawings = drawings.map((d) => (d.id === selected ? preview : d));
-      saveDrawings();
+      const clean = sanitizeDrawing(preview);
+      if (clean) {
+        drawings = drawings.map((d) => (d.id === selected ? clean : d));
+        saveDrawings();
+      }
     }
     dragging = false;
     preview = null;
+    dragHandle = -1;
     schedule();
   });
   container.addEventListener("pointercancel", () => {
     dragging = false;
     preview = null;
+    strokePoints = [];
     schedule();
+  });
+  container.addEventListener("dblclick", (event) => {
+    if ((event.target as Element).closest(".drawing-ui")) return;
+    if (["path", "polyline"].includes(mode) && pending.length >= 2) {
+      event.preventDefault();
+      void finishDrawing([...pending]);
+    } else if (mode === "select" && selected && !drawingUI.state.locked) {
+      const d = drawings.find((value) => value.id === selected);
+      if (!d?.locked && drawingTool(d?.type)?.kind === "text")
+        void drawingUI.text(d.text).then((text) => {
+          if (text) {
+            d.text = text;
+            d.createdAt = getNow();
+            saveDrawings();
+            schedule();
+          }
+        });
+    }
   });
   container.addEventListener("wheel", schedule, { passive: true });
   chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
@@ -938,7 +1174,12 @@ export function createChartTools({
       }),
   );
   function removeSelected() {
-    if (!selected) return;
+    if (
+      !selected ||
+      drawingUI.state.locked ||
+      drawings.find((d) => d.id === selected)?.locked
+    )
+      return;
     drawings = drawings.filter((d) => d.id !== selected);
     selected = null;
     saveDrawings();
@@ -946,13 +1187,12 @@ export function createChartTools({
   }
   $("drawDelete").onclick = removeSelected;
   $("drawUndo").onclick = () => {
-    const last = drawings.findLastIndex((d) => d.createdAt <= getNow());
-    if (last >= 0) {
-      drawings.splice(last, 1);
-      selected = null;
-      saveDrawings();
-      schedule();
-    }
+    const previous = undoStack.pop();
+    if (!previous) return;
+    drawings = previous;
+    selected = null;
+    saveDrawings(false);
+    schedule();
   };
   $("drawClear").onclick = () => {
     if (
@@ -968,6 +1208,7 @@ export function createChartTools({
   };
   document.addEventListener("keydown", (e) => {
     if (
+      location.pathname !== "/replay" ||
       document.querySelector<HTMLDialogElement>("dialog[open]") ||
       ["INPUT", "TEXTAREA", "SELECT"].includes(
         (e.target as HTMLElement).tagName,
@@ -975,6 +1216,14 @@ export function createChartTools({
     )
       return;
     if (e.code === "Escape") selectMode("cursor");
+    if (
+      e.code === "Enter" &&
+      ["path", "polyline"].includes(mode) &&
+      pending.length >= 2
+    ) {
+      e.preventDefault();
+      void finishDrawing([...pending]);
+    }
     if (
       ["Delete", "Backspace"].includes(e.code) &&
       mode === "select" &&
@@ -1015,12 +1264,10 @@ export function createChartTools({
     prefs.autoScale = true;
     apply();
     const n = getBars().length;
-    chart
-      .timeScale()
-      .setVisibleLogicalRange({
-        from: Math.max(-3, n - 90),
-        to: n + prefs.marginRight,
-      });
+    chart.timeScale().setVisibleLogicalRange({
+      from: Math.max(-3, n - 90),
+      to: n + prefs.marginRight,
+    });
   }
   settings = createChartSettings({
     prefs,
@@ -1063,25 +1310,9 @@ export function createChartTools({
     pasteDrawing: (d, symbol) => {
       if (symbol !== $("symbol").value)
         throw Error("Объект относится к другому инструменту.");
-      if (
-        !d ||
-        !["level", "ray", "trend", "zone"].includes(d.type) ||
-        ![d.a, d.b || d.a].every(
-          (p) =>
-            p &&
-            Number.isFinite(p.time) &&
-            Number.isFinite(p.price) &&
-            p.price > 0,
-        ) ||
-        !/^#[a-f0-9]{6}$/i.test(d.color) ||
-        !Number.isFinite(d.width) ||
-        d.width < 1 ||
-        d.width > 4 ||
-        !Number.isFinite(d.opacity) ||
-        d.opacity < 0 ||
-        d.opacity > 100
-      )
-        throw Error("Некорректный объект разметки.");
+      const clean = sanitizeDrawing(d);
+      if (!clean) throw Error("Некорректный объект разметки.");
+      d = clean;
       addDrawing({
         ...d,
         id: Date.now() + "-" + Math.random().toString(36).slice(2),
@@ -1125,20 +1356,16 @@ export function createChartTools({
           center = (range.to + range.from) / 2;
         if (["in", "out"].includes(b.dataset.nav)) {
           const width = span * (b.dataset.nav === "in" ? 0.8 : 1.25);
-          chart
-            .timeScale()
-            .setVisibleLogicalRange({
-              from: center - width / 2,
-              to: center + width / 2,
-            });
+          chart.timeScale().setVisibleLogicalRange({
+            from: center - width / 2,
+            to: center + width / 2,
+          });
         } else {
           const delta = span * 0.3 * (b.dataset.nav === "left" ? -1 : 1);
-          chart
-            .timeScale()
-            .setVisibleLogicalRange({
-              from: range.from + delta,
-              to: range.to + delta,
-            });
+          chart.timeScale().setVisibleLogicalRange({
+            from: range.from + delta,
+            to: range.to + delta,
+          });
         }
       }),
   );
@@ -1194,6 +1421,10 @@ export function createChartTools({
     restoreDrawings: (value) => {
       scope = getScope();
       drawings = cleanDrawings(value);
+      lastSaved = structuredClone(drawings);
+      undoStack = [];
+      pending = [];
+      strokePoints = [];
       anchor = null;
       selected = null;
       preview = null;

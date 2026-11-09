@@ -248,82 +248,15 @@ export function ReplayWorkspace() {
                     </button>
                   </div>
                 </div>
-                <div
-                  className="drawing-toolbar"
-                  role="group"
-                  aria-label="Разметка графика"
-                >
-                  <button
-                    data-draw="cursor"
-                    className="selected"
-                    aria-pressed="true"
-                    title="Перемещение и масштаб"
+                <div className="drawing-status" aria-live="polite">
+                  <span id="drawingHint">Перемещение и масштаб</span>
+                  <span
+                    className="drawing-count"
+                    id="drawingCount"
+                    aria-label="Количество объектов"
                   >
-                    ↖ <span>Курсор</span>
-                  </button>
-                  <button
-                    data-draw="select"
-                    aria-pressed="false"
-                    title="Выбрать и переместить объект"
-                  >
-                    ⌖ <span>Изменить</span>
-                  </button>
-                  <button
-                    data-draw="level"
-                    aria-pressed="false"
-                    title="Горизонтальный уровень"
-                  >
-                    ─ <span>Уровень</span>
-                  </button>
-                  <button
-                    data-draw="ray"
-                    aria-pressed="false"
-                    title="Горизонтальный луч"
-                  >
-                    ⇢ <span>Луч</span>
-                  </button>
-                  <button
-                    data-draw="trend"
-                    aria-pressed="false"
-                    title="Трендовая линия"
-                  >
-                    ╱ <span>Линия</span>
-                  </button>
-                  <button
-                    data-draw="zone"
-                    aria-pressed="false"
-                    title="Прямоугольная зона"
-                  >
-                    ▭ <span>Зона</span>
-                  </button>
-                  <span className="drawing-divider" />
-                  <button
-                    id="drawUndo"
-                    title="Удалить последний видимый объект"
-                    aria-label="Отменить последнее рисование"
-                  >
-                    ↶
-                  </button>
-                  <button
-                    id="drawDelete"
-                    title="Удалить выбранный объект"
-                    aria-label="Удалить выбранный объект"
-                  >
-                    ⌫
-                  </button>
-                  <button
-                    id="drawClear"
-                    title="Удалить всю разметку"
-                    aria-label="Удалить всю разметку"
-                  >
-                    ×
-                  </button>
-                  <span className="drawing-count" id="drawingCount">
                     0
                   </span>
-                </div>
-                <div className="drawing-hint" id="drawingHint">
-                  Перемещение и масштаб · разметка сохраняется
                 </div>
                 <div className="chart-panes" id="chartPanes">
                   <section className="chart-pane primary-pane">

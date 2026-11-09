@@ -24,7 +24,7 @@ test("replay dock frees chart width and holds the floating trade ticket", async 
     return !!document.elementFromPoint(rect.x + 20, rect.y + 20)?.closest(".app-sidebar");
   })).toBe(true);
   expect(dockBounds.height).toBeLessThan(80);
-  expect((await page.locator("#chartCard").boundingBox())!.width).toBeGreaterThan(1300);
+  expect((await page.locator("#chartCard").boundingBox())!.width).toBeGreaterThan(mainBounds.width - 150);
   await page.screenshot({ path: "/tmp/replay-island-desktop.png" });
   await trade.click();
   await expect(ticket).toBeVisible();
