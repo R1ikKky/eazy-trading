@@ -13,7 +13,7 @@ import "./replay-island.css";
 import "./appearance.css";
 import "./drawing-tools.css";
 export const metadata: Metadata = {
-  title: "Replay Lab · NQ / ES",
+  title: "eazy trading · NQ / ES",
   description:
     "Backtest NQ and ES. Choose a period, replay candles, and practice your entries.",
 };

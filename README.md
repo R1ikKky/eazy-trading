@@ -1,4 +1,4 @@
-# Replay Lab
+# eazy trading
 
 Manual NQ/ES replay, trading journal, strategies, chart drawings, screenshots, CSV imports, and analytics.
 
@@ -15,12 +15,14 @@ Open **http://127.0.0.1:3000**. PostgreSQL starts first; Nest applies the versio
 To run beside the old application on port 3000:
 
 ```sh
-PORT=3100 POSTGRES_PORT=55432 docker compose -p replay-lab-next up -d --build
+PORT=3100 POSTGRES_PORT=55432 docker compose -p eazy-trading-next up -d --build
 ```
 
 Use a different PostgreSQL port if one is already occupied. Do not use `docker compose down -v` unless you intend to delete the database. The former `replay-data` volume is not modified or imported automatically.
 
 Authentication is required. Before starting, configure `AUTH_OWNER_EMAIL`, `AUTH_OWNER_USERNAME` and `AUTH_BOOTSTRAP_PASSWORD` in `.env` or Dokploy Environment to create your account and claim existing data. Registration is disabled by default. See [authentication setup](docs/authentication.md) for Google/GitHub OAuth and token behavior.
+
+Existing installations should keep their current Docker Compose project name and database volume when updating. The project rename does not require a new database.
 
 ## Development
 

@@ -149,7 +149,7 @@ export function createChartTools({
   }
   function persist() {
     try {
-      localStorage.setItem("replay-lab-chart-v3", JSON.stringify(prefs));
+      localStorage.setItem("eazy-trading-chart-v3", JSON.stringify(prefs));
     } catch {
       toast(
         translate("Браузер не разрешил сохранить настройки. Они действуют до перезагрузки."),
@@ -170,7 +170,7 @@ export function createChartTools({
     lastSaved = structuredClone(drawings);
     try {
       localStorage.setItem(
-        "replay-lab-drawings:" + scope,
+        "eazy-trading-drawings:" + scope,
         JSON.stringify(drawings),
       );
     } catch {
@@ -187,7 +187,7 @@ export function createChartTools({
     preview = null;
     try {
       drawings = JSON.parse(
-        localStorage.getItem("replay-lab-drawings:" + scope) || "[]",
+        localStorage.getItem("eazy-trading-drawings:" + scope) || "[]",
       );
     } catch {
       drawings = [];
@@ -1431,7 +1431,7 @@ export function createChartTools({
       preview = null;
       try {
         localStorage.setItem(
-          "replay-lab-drawings:" + scope,
+          "eazy-trading-drawings:" + scope,
           JSON.stringify(drawings),
         );
       } catch {}

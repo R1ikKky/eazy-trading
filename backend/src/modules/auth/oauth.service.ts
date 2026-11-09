@@ -117,7 +117,7 @@ export class OAuthService {
     const headers = {
       Authorization: `Bearer ${token.access_token}`,
       Accept: "application/json",
-      "User-Agent": "ReplayLab",
+      "User-Agent": "eazy-trading",
     };
     let subject: string, email: string, name: string;
     if (provider === "google") {

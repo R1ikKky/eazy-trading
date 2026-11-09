@@ -1,3 +1,4 @@
+import { isCompatibleExport } from "./legacy-brand";
 import { t as translate } from "../i18n/language";
 import { element as $ } from "./dom";
 import {
@@ -347,7 +348,7 @@ export function createChartSettings({
           "</section>",
       )
       .join("") +
-    '</div></div><div class="tv-settings-footer"><label class="sr-only" for="chartTemplate">Chart template</label><select id="chartTemplate"><option value="">Template</option><option value="reference">Screenshot preset</option><option value="light">Light</option><option value="dark">Dark</option><option value="save">Save my template</option><option value="load">Load my template</option><option value="export">Export Replay Lab JSON</option><option value="import">Import Replay Lab JSON</option><option value="reset">Reset settings</option></select><div><button id="settingsApply" type="button">Apply to all</button><button id="settingsCancel" type="button">Cancel</button><button id="settingsOk" type="button">Ok</button></div></div><input id="chartTemplateFile" type="file" accept=".json,application/json" hidden><div id="chartPalette" class="tv-palette" hidden></div>';
+    '</div></div><div class="tv-settings-footer"><label class="sr-only" for="chartTemplate">Chart template</label><select id="chartTemplate"><option value="">Template</option><option value="reference">Screenshot preset</option><option value="light">Light</option><option value="dark">Dark</option><option value="save">Save my template</option><option value="load">Load my template</option><option value="export">Export eazy trading JSON</option><option value="import">Import eazy trading JSON</option><option value="reset">Reset settings</option></select><div><button id="settingsApply" type="button">Apply to all</button><button id="settingsCancel" type="button">Cancel</button><button id="settingsOk" type="button">Ok</button></div></div><input id="chartTemplateFile" type="file" accept=".json,application/json" hidden><div id="chartPalette" class="tv-palette" hidden></div>';
   dialog.setAttribute("aria-labelledby", "settingsTitle");
   const palette = $("chartPalette");
   function fill() {
@@ -397,7 +398,7 @@ export function createChartSettings({
   function save() {
     if (commit?.(baseline, prefs) === false) return false;
     try {
-      localStorage.setItem("replay-lab-chart-v3", JSON.stringify(prefs));
+      localStorage.setItem("eazy-trading-chart-v3", JSON.stringify(prefs));
     } catch {
       toast(translate("Не удалось сохранить настройки. Они действуют до перезагрузки."));
     }
@@ -766,7 +767,7 @@ export function createChartSettings({
     if (action === "reset") replace(defaults);
     if (action === "save")
       try {
-        localStorage.setItem("replay-lab-template", JSON.stringify(prefs));
+        localStorage.setItem("eazy-trading-template", JSON.stringify(prefs));
         toast(translate("Шаблон сохранён в этом браузере."));
       } catch {
         toast(translate("Не удалось сохранить шаблон."));
@@ -774,7 +775,7 @@ export function createChartSettings({
     if (action === "load")
       try {
         const saved = JSON.parse(
-          localStorage.getItem("replay-lab-template") || "null",
+          localStorage.getItem("eazy-trading-template") || "null",
         );
         if (saved) replace(saved);
         else toast(translate("Сначала сохраните шаблон."));
@@ -786,7 +787,7 @@ export function createChartSettings({
           new Blob(
             [
               JSON.stringify(
-                { replayLabChartSettings: 1, preferences: prefs },
+                { eazyTradingChartSettings: 1, preferences: prefs },
                 null,
                 2,
               ),
@@ -796,7 +797,7 @@ export function createChartSettings({
         ),
         a = document.createElement("a");
       a.href = url;
-      a.download = "replay-lab-chart-settings.json";
+      a.download = "eazy-trading-chart-settings.json";
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
@@ -812,12 +813,12 @@ export function createChartSettings({
       if (file.size > 100000) throw Error(translate("Шаблон больше 100 КБ."));
       const saved = JSON.parse(await file.text());
       if (
-        saved.replayLabChartSettings !== 1 ||
+        !isCompatibleExport(saved, "chartSettings") ||
         !saved.preferences ||
         typeof saved.preferences !== "object"
       )
         throw Error(
-          translate("Нужен шаблон Replay Lab JSON. Экспорт аккаунта TradingView не поддерживается."),
+          translate("Нужен шаблон eazy trading JSON. Экспорт аккаунта TradingView не поддерживается."),
         );
       replace(saved.preferences);
       toast(translate("Шаблон загружен. Нажмите Ok для сохранения."));

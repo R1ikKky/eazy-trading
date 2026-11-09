@@ -1,7 +1,7 @@
 import english from "./en.json";
 export const LANGUAGES = ["en", "ru"] as const;
 export type Language = (typeof LANGUAGES)[number];
-const storageKey = "replay-lab-language";
+const storageKey = "eazy-trading-language";
 let selected: Language = "en";
 const listeners = new Set<() => void>();
 let flushWorkspace: (() => Promise<unknown>) | undefined;

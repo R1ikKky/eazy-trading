@@ -45,7 +45,7 @@ export default function Login() {
             </svg>
           </span>
           <span>
-            replay<span className="auth-brand-light">lab</span>
+            eazy<span className="auth-brand-light"> trading</span>
           </span>
         </a>
         <h1>{register ? translate("Создать аккаунт") : translate("С возвращением")}</h1>

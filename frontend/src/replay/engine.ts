@@ -8,7 +8,7 @@ import type {
   Trade,
   ReplaySnapshot,
 } from "./types";
-import {contracts} from "@replay-lab/orderflow";
+import {contracts} from "@eazy-trading/orderflow";
 export {contracts};
 export const tickRound = (v: any) => Math.round(v * 4) / 4;
 const dateFormat = new Intl.DateTimeFormat("en-CA", {

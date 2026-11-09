@@ -1,5 +1,5 @@
 {
-  "name": "replay-lab",
+  "name": "eazy-trading",
   "version": "2.0.0",
   "private": true,
   "workspaces": [
@@ -29,7 +29,7 @@
     "build:web": "npm run build:frontend",
     "start:api": "npm run start:backend",
     "start:web": "npm run start:frontend",
-    "build:orderflow": "npm run build --workspace @replay-lab/orderflow"
+    "build:orderflow": "npm run build --workspace @eazy-trading/orderflow"
   },
   "engines": {
     "node": ">=24"

@@ -1,4 +1,4 @@
-// Owner-private Replay Lab API. Bind D1 as DB and R2 as BUCKET.
+// Owner-private eazy trading API. Bind D1 as DB and R2 as BUCKET.
 // Schema is migration-owned: requests never create or alter tables.
 const MAX_WORKSPACE_BYTES = 5 * 1024 * 1024;
 const MAX_DATASET_BYTES = 20 * 1024 * 1024;
@@ -136,7 +136,7 @@ async function workspacePut(request, userId, env) {
     throw error;
   }
   if (Number(result?.meta?.changes) !== 1) {
-    try { await env.BUCKET.delete(key); } catch { console.error('Replay Lab API orphan cleanup deferred.'); }
+    try { await env.BUCKET.delete(key); } catch { console.error('eazy trading API orphan cleanup deferred.'); }
     const fresh = await env.DB.prepare('SELECT revision, object_key, updated_at FROM replay_workspaces WHERE user_id = ?').bind(userId).first();
     if (await sameSavedWorkspace(fresh, payload, env)) return savedWorkspaceReply(fresh);
     fail(409, 'REVISION_CONFLICT', 'Рабочее пространство изменилось во время сохранения. Загрузите свежую версию.', { revision: fresh?.revision ?? 0 });
@@ -303,7 +303,7 @@ export async function api(request, env,curatedParts={}) {
   } catch (error) {
     if (error instanceof ApiError) return json({ error: error.code, message: error.message, ...error.extra }, error.status);
     // Do not return binding errors, SQL, object keys, identity, or private payloads.
-    console.error('Replay Lab API storage operation failed:', error?.name || 'Error');
+    console.error('eazy trading API storage operation failed:', error?.name || 'Error');
     return json({ error: 'STORAGE_ERROR', message: 'Облачное сохранение временно недоступно. Ваши локальные данные сохранены; повторите попытку позже.' }, 503);
   }
 }

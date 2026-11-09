@@ -1,4 +1,4 @@
-import { validateTrade } from "@replay-lab/orderflow";
+import { validateTrade } from "@eazy-trading/orderflow";
 import { fail } from "../../../common/exceptions/api-error";
 import { object, validId } from "../../../common/validation/json";
 import type { DatasetInput } from "../dto/create-dataset.dto";

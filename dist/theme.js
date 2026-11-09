@@ -1,5 +1,14 @@
 (() => {
-  const key = 'replay-lab-theme';
+  // Preserve settings written by the previous project name.
+  try {
+    const prefix='replay-lab-',next='eazy-trading-',marker=next+'storage-migrated-v1';
+    if(localStorage.getItem(marker)!=='1') {
+      for(const key of Object.keys(localStorage))if(key.startsWith(prefix)&&localStorage.getItem(next+key.slice(prefix.length))===null)localStorage.setItem(next+key.slice(prefix.length),localStorage.getItem(key));
+      localStorage.setItem(marker,'1');
+    }
+  } catch {}
+
+  const key = 'eazy-trading-theme';
   const root = document.documentElement;
   let saved;
   try { saved = localStorage.getItem(key); } catch {}

@@ -67,7 +67,7 @@ body.product-app .app-sidebar {
 body.product-app .brand {
   padding: 0 12px;
   gap: 11px;
-  font-size: 25px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: -1.2px;
   color: var(--text);

@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 export async function authenticateTestPage(page: Page, language: "ru" | "en" | null = "ru") {
   if (language) await page.addInitScript((value) => {
-    if (!localStorage.getItem("replay-lab-language")) localStorage.setItem("replay-lab-language", value);
+    if (!localStorage.getItem("eazy-trading-language")) localStorage.setItem("eazy-trading-language", value);
   }, language);
   if (!process.env.TEST_AUTH_LOGIN || !process.env.TEST_AUTH_PASSWORD) return;
   const base = process.env.BROWSER_BASE_URL || "http://127.0.0.1:3100";

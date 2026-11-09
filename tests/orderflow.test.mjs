@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {footprint,parseTradeCSV,TradeTape} from '@replay-lab/orderflow';
+import {footprint,parseTradeCSV,TradeTape} from '@eazy-trading/orderflow';
 import {createRequire} from 'node:module';
 const fixture=await readFile(new URL('./fixtures/trades-nq-synthetic.csv',import.meta.url),'utf8');
 const events=parseTradeCSV(fixture);

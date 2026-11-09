@@ -2,7 +2,7 @@ import { spawn, ChildProcess } from "node:child_process";
 import { createInterface } from "node:readline";
 import { resolve } from "node:path";
 import { PROJECT_ROOT } from "../../../config/environment";
-import type { TradeEvent } from "@replay-lab/orderflow";
+import type { TradeEvent } from "@eazy-trading/orderflow";
 export type FeedMessage =
   | { type: "trade"; event: TradeEvent }
   | { type: "status"; state: "connecting" | "live" | "interrupted" }

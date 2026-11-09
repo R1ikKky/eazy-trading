@@ -14,7 +14,7 @@ export function createDrawingToolbar(callbacks: {
   try {
     owner = sessionStorage.getItem("replay-user-id") || "local";
   } catch {}
-  const key = "replay-lab-drawing-ui:" + owner;
+  const key = "eazy-trading-drawing-ui:" + owner;
   let saved: any = {};
   try {
     saved = JSON.parse(localStorage.getItem(key) || "{}");

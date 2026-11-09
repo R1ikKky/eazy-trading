@@ -39,14 +39,14 @@ export function ReplayWorkspace() {
   return (
     <>
       <aside className="app-sidebar">
-        <Link className="brand" href="/sessions" aria-label="Replay Lab">
+        <Link className="brand" href="/sessions" aria-label="eazy trading">
           <span className="brand-mark">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m8 5 11 7-11 7V5Z" />
             </svg>
           </span>
           <span>
-            replay<span className="brand-light">lab</span>
+            eazy<span className="brand-light"> trading</span>
             <small>TRADING WORKSPACE</small>
           </span>
         </Link>

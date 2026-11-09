@@ -23,7 +23,7 @@ export function sanitizeSettings(input={}){
  p.colorOpacity={...defaults.colorOpacity};for(const k of colorKeys)if(Number.isFinite(Number(input.colorOpacity?.[k])))p.colorOpacity[k]=Math.max(0,Math.min(100,Number(input.colorOpacity[k])));
  return p;
 }
-export function loadSettings(){let saved;try{saved=JSON.parse(localStorage.getItem('replay-lab-chart-v3')||'null');if(!saved){const old=JSON.parse(localStorage.getItem('replay-lab-chart-v2')||'null');if(old)saved={...old,gridMode:old.grid?'both':'none',borderUp:old.wickUp,borderDown:old.wickDown};}}catch{}
+export function loadSettings(){let saved;try{saved=JSON.parse(localStorage.getItem('eazy-trading-chart-v3')||'null');if(!saved){const old=JSON.parse(localStorage.getItem('eazy-trading-chart-v2')||'null');if(old)saved={...old,gridMode:old.grid?'both':'none',borderUp:old.wickUp,borderDown:old.wickDown};}}catch{}
  return sanitizeSettings(saved||{});
 }
 export function rgba(hex,opacity=100){return 'rgba('+[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)).join(',')+','+Math.max(0,Math.min(100,opacity))/100+')';}

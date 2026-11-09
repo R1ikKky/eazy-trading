@@ -1,3 +1,4 @@
+import {openLegacyHistoryDB} from './legacy-brand.mjs';
 import {dayKey} from './engine.mjs';
 
 const endpoint='https://www.hfmarketdata.io';
@@ -56,7 +57,7 @@ export async function loadHistory(request,onProgress=()=>{},signal) {
 async function cacheDB() {
   if(!globalThis.indexedDB)return null;
   return new Promise((resolve,reject)=>{
-    const request=indexedDB.open('replay-lab-history',1);
+    const request=indexedDB.open('eazy-trading-history',1);
     request.onupgradeneeded=()=>request.result.createObjectStore('history');
     request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
   });
@@ -66,6 +67,49 @@ export async function saveHistory(root,dataset) {
   return new Promise((resolve,reject)=>{const tx=db.transaction('history','readwrite');tx.objectStore('history').put(dataset,root);tx.oncomplete=()=>{db.close();resolve(true);};tx.onerror=()=>{db.close();reject(tx.error);};});
 }
 export async function cachedHistory(root) {
-  const db=await cacheDB();if(!db)return null;
-  return new Promise((resolve,reject)=>{const request=db.transaction('history').objectStore('history').get(root);request.onsuccess=()=>{const value=request.result;db.close();resolve(value?.bars?.length>1&&value.source==='hf_market_data'?value:null);};request.onerror=()=>{db.close();reject(request.error);};});
+    const db = await cacheDB();
+    if (!db)
+        return null;
+    const current = await new Promise((resolve, reject) => {
+        const request = db.transaction("history").objectStore("history").get(root);
+        request.onsuccess = () => {
+            const value = request.result;
+            db.close();
+            resolve(value?.bars?.length > 1 && value.source === "hf_market_data"
+                ? value
+                : null);
+        };
+        request.onerror = () => {
+            db.close();
+            reject(request.error);
+        };
+    });
+    if (current)
+        return current;
+    const legacy = await openLegacyHistoryDB();
+    if (!legacy)
+        return null;
+    if (!legacy.objectStoreNames.contains("history")) {
+        legacy.close();
+        return null;
+    }
+    const previous = await new Promise((resolve) => {
+        const request = legacy
+            .transaction("history")
+            .objectStore("history")
+            .get(root);
+        request.onsuccess = () => {
+            legacy.close();
+            resolve(request.result);
+        };
+        request.onerror = () => {
+            legacy.close();
+            resolve(null);
+        };
+    });
+    if (previous?.bars?.length > 1 && previous.source === "hf_market_data") {
+        await saveHistory(root, previous);
+        return previous;
+    }
+    return null;
 }

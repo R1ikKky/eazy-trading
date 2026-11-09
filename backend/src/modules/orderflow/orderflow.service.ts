@@ -5,7 +5,7 @@ import {
   TradeEvent,
   instrumentOf,
   contracts,
-} from "@replay-lab/orderflow";
+} from "@eazy-trading/orderflow";
 import { DatabentoAdapter, FeedMessage } from "./adapters/databento.adapter";
 export class FeedBuffer {
   readonly epoch = randomUUID();

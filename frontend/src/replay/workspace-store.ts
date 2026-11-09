@@ -1,7 +1,7 @@
 import { validateWorkspace } from "./workspace-validation";
 import { readArchive } from "./archive";
 import { isCuratedDataset, readCuratedDataset } from "./curated-data";
-const LEGACY_CACHE = "replay-lab-workspace-v1";
+const LEGACY_CACHE = "eazy-trading-workspace-v1";
 function cacheKey() {
   if (typeof sessionStorage === "undefined") return LEGACY_CACHE;
   return (

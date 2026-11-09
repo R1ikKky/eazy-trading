@@ -106,6 +106,6 @@ export async function startLocalServer({ port = 3000, host = '127.0.0.1', dataDi
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const server = await startLocalServer({ port: Number(process.env.PORT || 3000), host: process.env.HOST || '127.0.0.1' });
-  console.log(`Replay Lab: ${server.url}\nДанные: ${resolve(root, '.local-data')}\nИзменения интерфейса доступны после обновления страницы.`);
+  console.log(`eazy trading: ${server.url}\nДанные: ${resolve(root, '.local-data')}\nИзменения интерфейса доступны после обновления страницы.`);
   for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, async () => { await server.close(); process.exit(0); });
 }

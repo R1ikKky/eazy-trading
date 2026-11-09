@@ -1,7 +1,7 @@
 import {validateWorkspace} from './workspace-validation.mjs';
 import {readArchive} from './archive.mjs';
 import {isCuratedDataset,readCuratedDataset} from './curated-data.mjs';
-const CACHE='replay-lab-workspace-v1';
+const CACHE='eazy-trading-workspace-v1';
 export const blankWorkspace=()=>({version:1,sessions:[],playbooks:[],settings:{},revision:0});
 export const uid=()=>globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
 export function escapeHTML(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}

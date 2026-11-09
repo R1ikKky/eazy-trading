@@ -1292,7 +1292,7 @@ product = createProduct({
   getPreferences: () => tools?.preferences || loadSettings(),
   setPreferences: (p) => {
     try {
-      localStorage.setItem("replay-lab-chart-v3", JSON.stringify(p));
+      localStorage.setItem("eazy-trading-chart-v3", JSON.stringify(p));
     } catch {}
     if (tools) tools.updatePreferences(p);
   },

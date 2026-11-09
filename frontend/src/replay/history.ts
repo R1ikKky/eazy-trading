@@ -1,3 +1,4 @@
+import { openLegacyHistoryDB } from "./legacy-brand";
 import { t as translate, locale } from "../i18n/language";
 import { dayKey } from "./engine";
 
@@ -17,12 +18,16 @@ export function historyRequest(root: any, from: any, to: any, key = "") {
     from < "2024-01-02" ||
     to > dayKey(Date.now() / 1000)
   )
-    throw Error(translate("Выберите даты с 2 января 2024 года до сегодняшнего дня."));
+    throw Error(
+      translate("Выберите даты с 2 января 2024 года до сегодняшнего дня."),
+    );
   if (days > (key ? 366 : 31))
     throw Error(
       key
         ? translate("С ключом можно загрузить до 366 дней за один раз.")
-        : translate("Без ключа можно загрузить до 31 дня за один раз. Для длинного периода доступен бесплатный ключ HF Market Data."),
+        : translate(
+            "Без ключа можно загрузить до 31 дня за один раз. Для длинного периода доступен бесплатный ключ HF Market Data.",
+          ),
     );
   return { root, from, to, days, key };
 }
@@ -52,7 +57,9 @@ export function validateProviderBars(rows: any, root: any) {
       !new RegExp("^" + root + "[A-Z][0-9]{2,4}$").test(b.symbol)
     )
       throw Error(
-        translate("Источник вернул некорректную свечу. Текущая история сохранена."),
+        translate(
+          "Источник вернул некорректную свечу. Текущая история сохранена.",
+        ),
       );
     return {
       time,
@@ -80,13 +87,19 @@ export async function loadHistory(
         when = reset ? new Date(reset * 1000).toLocaleTimeString(locale()) : "";
       throw Error(
         translate("Лимит источника исчерпан.") +
-          (when ? translate(" Повторите после ") + when + "." : translate(" Повторите позже.")) +
-          translate(" Можно подключить бесплатный ключ HF Market Data. Текущие данные сохранены."),
+          (when
+            ? translate(" Повторите после ") + when + "."
+            : translate(" Повторите позже.")) +
+          translate(
+            " Можно подключить бесплатный ключ HF Market Data. Текущие данные сохранены.",
+          ),
       );
     }
     if (response.status === 401 || response.status === 403)
       throw Error(
-        translate("Источник не принял API-ключ. Проверьте ключ HF Market Data."),
+        translate(
+          "Источник не принял API-ключ. Проверьте ключ HF Market Data.",
+        ),
       );
     if (!response.ok)
       throw Error(
@@ -108,7 +121,9 @@ export async function loadHistory(
       principal.rows.remaining < estimate)
   )
     throw Error(
-      translate("Для этого периода недостаточно текущего лимита. Уменьшите диапазон, дождитесь обновления лимита или используйте бесплатный ключ. Текущая история сохранена."),
+      translate(
+        "Для этого периода недостаточно текущего лимита. Уменьшите диапазон, дождитесь обновления лимита или используйте бесплатный ключ. Текущая история сохранена.",
+      ),
     );
   const base = new URL(endpoint + "/v1/futures/" + root + "/continuous");
   Object.entries<any>({
@@ -132,26 +147,36 @@ export async function loadHistory(
     meta = response.meta || {};
     bars.push(...validateProviderBars(response.data, root));
     onProgress(
-      translate("Загружено ") + bars.length.toLocaleString(locale()) + translate(" минутных свечей…"),
+      translate("Загружено ") +
+        bars.length.toLocaleString(locale()) +
+        translate(" минутных свечей…"),
     );
     cursor = meta.next_cursor || null;
     if (cursor) {
       if (seen.has(cursor))
         throw Error(
-          translate("Источник повторил страницу. Загрузка остановлена; прежняя история сохранена."),
+          translate(
+            "Источник повторил страницу. Загрузка остановлена; прежняя история сохранена.",
+          ),
         );
       seen.add(cursor);
     }
     if (bars.length > 600000)
-      throw Error(translate("Слишком большой ответ источника. Выберите меньший период."));
+      throw Error(
+        translate("Слишком большой ответ источника. Выберите меньший период."),
+      );
   } while (cursor);
   if (bars.length < 2)
     throw Error(
-      translate("В эти даты нет достаточного количества свечей. Выберите торговые дни."),
+      translate(
+        "В эти даты нет достаточного количества свечей. Выберите торговые дни.",
+      ),
     );
   for (let i = 1; i < bars.length; i++)
     if (bars[i].time <= bars[i - 1].time)
-      throw Error(translate("Источник вернул повторяющиеся или неупорядоченные свечи."));
+      throw Error(
+        translate("Источник вернул повторяющиеся или неупорядоченные свечи."),
+      );
   const dateKeys = bars.map((b) => dayKey(b.time));
   if (dateKeys[0] < from || dateKeys.at(-1) > to)
     throw Error(translate("Источник вернул свечи за пределами выбранных дат."));
@@ -179,7 +204,7 @@ export async function loadHistory(
 async function cacheDB() {
   if (!globalThis.indexedDB) return null;
   return new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open("replay-lab-history", 1);
+    const request = indexedDB.open("eazy-trading-history", 1);
     request.onupgradeneeded = () => request.result.createObjectStore("history");
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
@@ -204,7 +229,7 @@ export async function saveHistory(root: any, dataset: any) {
 export async function cachedHistory(root: any) {
   const db = await cacheDB();
   if (!db) return null;
-  return new Promise((resolve: any, reject: any) => {
+  const current = await new Promise<any>((resolve: any, reject: any) => {
     const request = db.transaction("history").objectStore("history").get(root);
     request.onsuccess = () => {
       const value = request.result;
@@ -220,4 +245,30 @@ export async function cachedHistory(root: any) {
       reject(request.error);
     };
   });
+  if (current) return current;
+  const legacy = await openLegacyHistoryDB();
+  if (!legacy) return null;
+  if (!legacy.objectStoreNames.contains("history")) {
+    legacy.close();
+    return null;
+  }
+  const previous = await new Promise<any>((resolve) => {
+    const request = legacy
+      .transaction("history")
+      .objectStore("history")
+      .get(root);
+    request.onsuccess = () => {
+      legacy.close();
+      resolve(request.result);
+    };
+    request.onerror = () => {
+      legacy.close();
+      resolve(null);
+    };
+  });
+  if (previous?.bars?.length > 1 && previous.source === "hf_market_data") {
+    await saveHistory(root, previous);
+    return previous;
+  }
+  return null;
 }

@@ -1,2 +1,2 @@
-export const metadata = { title: "Replay · Replay Lab" };
+export const metadata = { title: "Replay · eazy trading" };
 export default function Page() { return null; }

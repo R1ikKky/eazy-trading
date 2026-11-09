@@ -5,6 +5,7 @@ Sites service token is read with echo disabled and is never saved or printed.
 Uploads are sequential and idempotent; all cloud objects are then read back.
 """
 import base64
+import os
 import argparse
 import getpass
 import hashlib
@@ -21,8 +22,9 @@ parser.add_argument('origin')
 parser.add_argument('--part-id', help='Upload and verify one exact catalogued part.')
 args = parser.parse_args()
 origin = args.origin.rstrip('/')
-if origin != 'https://nq-es-replay-lab.rick-sunches.chatgpt.site':
-    raise SystemExit('Unexpected Site origin; obtain the literal URL from Sites.')
+expected_origin = os.environ.get('MARKET_DATA_SITE_ORIGIN', '').rstrip('/')
+if not expected_origin or origin != expected_origin:
+    raise SystemExit('Set MARKET_DATA_SITE_ORIGIN to the verified literal Site URL and use the same origin argument.')
 prefix = 'export const marketArchives='
 catalog = json.loads((root/'dist/market-archives.mjs').read_text()[len(prefix):].rstrip(';\n'))
 parts = list({p['id']: p for a in catalog for p in a['parts']}.values())

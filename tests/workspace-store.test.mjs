@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { WorkspaceStore, blankWorkspace, escapeHTML } from '../frontend/src/replay/workspace-store.ts';
 
-const CACHE = 'replay-lab-workspace-v1:test-owner';
+const CACHE = 'eazy-trading-workspace-v1:test-owner';
 const savedSessionStorage = Object.getOwnPropertyDescriptor(globalThis, 'sessionStorage');
 let currentUser = 'test-owner';
 Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: { getItem: () => currentUser } });

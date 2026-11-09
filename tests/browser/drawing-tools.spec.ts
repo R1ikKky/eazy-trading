@@ -146,7 +146,7 @@ test("grouped drawings, editing, favorites and account persistence", async ({
   ).toBe(true);
   await page.evaluate(() => {
     for (const key of Object.keys(localStorage))
-      if (!key.startsWith("replay-lab-drawing-ui:"))
+      if (!key.startsWith("eazy-trading-drawing-ui:"))
         localStorage.removeItem(key);
   });
   await page.reload();

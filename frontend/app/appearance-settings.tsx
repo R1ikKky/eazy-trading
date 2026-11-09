@@ -13,9 +13,11 @@ import {
   changeLanguage,
   type Language,
 } from "../src/i18n/language";
+import { migrateLegacyStorage } from "../src/replay/legacy-brand";
 import { useLanguage } from "../src/i18n/use-language";
 export function ThemeInitializer() {
   useEffect(() => {
+    migrateLegacyStorage();
     initializeLanguage();
     initializeTheme();
   }, []);

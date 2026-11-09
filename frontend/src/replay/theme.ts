@@ -7,7 +7,7 @@ export const THEMES = [
   "rose",
 ] as const;
 export type Theme = (typeof THEMES)[number];
-const key = "replay-lab-theme";
+const key = "eazy-trading-theme";
 export function currentTheme(): Theme {
   const value = document.documentElement.dataset.theme;
   return THEMES.includes(value as Theme) ? (value as Theme) : "dark";

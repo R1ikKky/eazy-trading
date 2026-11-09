@@ -16,7 +16,7 @@ Set server configuration to `ORDERFLOW_FEED=demo` and restart the API. With Dock
 
 ```sh
 ORDERFLOW_FEED=demo PORT=3100 POSTGRES_PORT=55432 \
-  docker compose -p replay-lab-migration up -d --build
+  docker compose -p eazy-trading-migration up -d --build
 ```
 
 Open a replay session, select **Source → Demo**, then **Chart → Footprint**. Demo is visibly labeled, sends separate NQ and ES exact-contract tapes through the same server buffer, HTTP delivery, normalization validation, and frontend aggregator as real data. It does not fabricate provider-sourced history. Source selection preserves the historical replay for returning to it; streaming mode is a chart monitor and disables simulated order entry.
@@ -45,7 +45,7 @@ The example contracts are December 2026 raw exchange symbols. Confirm the approp
 Put these values in the root `.env` for Compose, then:
 
 ```sh
-PORT=3100 POSTGRES_PORT=55432 docker compose -p replay-lab-migration up -d
+PORT=3100 POSTGRES_PORT=55432 docker compose -p eazy-trading-migration up -d
 ```
 
 Open **Source → Live**. Status progresses disabled/connecting/live/interrupted; live means actual trade events have arrived. Both access and data-rights switches are required before a real subscription is started. Missing credentials/contracts keep the real feed disabled. The application requires authentication and isolates user workspaces; these switches are deployment-wide controls, not a per-user entitlement/billing system. Only expose customer access after your deployment's authentication and contracted CME/Databento redistribution requirements are satisfied.

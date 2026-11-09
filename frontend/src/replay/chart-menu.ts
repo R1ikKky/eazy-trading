@@ -1,3 +1,4 @@
+import { isCompatibleExport } from "./legacy-brand";
 import { t as translate, locale } from "../i18n/language";
 import { drawingTool } from "./drawing-catalog";
 import { chartDate } from "./settings-model";
@@ -150,8 +151,8 @@ export function createChartMenu({
       const text = (await navigator.clipboard.readText()).trim();
       if (text.startsWith("{")) {
         const data = JSON.parse(text);
-        if (data.replayLabDrawing !== 1)
-          throw Error(translate("В буфере нет разметки Replay Lab."));
+        if (!isCompatibleExport(data, "drawing"))
+          throw Error(translate("В буфере нет разметки eazy trading."));
         pasteDrawing(data.drawing, data.symbol);
       } else {
         const value = Number(text.replace(/,/g, ""));
@@ -342,7 +343,7 @@ export function createChartMenu({
             try {
               await navigator.clipboard.writeText(
                 JSON.stringify({
-                  replayLabDrawing: 1,
+                  eazyTradingDrawing: 1,
                   symbol: (
                     document.getElementById("symbol") as HTMLInputElement
                   ).value,

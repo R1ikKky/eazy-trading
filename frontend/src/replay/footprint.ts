@@ -6,7 +6,7 @@ import {
   type TradeEvent,
   type Instrument,
   type FootprintCandle,
-} from "@replay-lab/orderflow";
+} from "@eazy-trading/orderflow";
 import { barTime, isRegularSession } from "./settings-model";
 interface Context {
   symbol: Instrument;

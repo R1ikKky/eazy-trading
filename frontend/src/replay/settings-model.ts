@@ -208,10 +208,10 @@ export function sanitizeSettings(input: any = {}) {
 export function loadSettings() {
   let saved;
   try {
-    saved = JSON.parse(localStorage.getItem("replay-lab-chart-v3") || "null");
+    saved = JSON.parse(localStorage.getItem("eazy-trading-chart-v3") || "null");
     if (!saved) {
       const old = JSON.parse(
-        localStorage.getItem("replay-lab-chart-v2") || "null",
+        localStorage.getItem("eazy-trading-chart-v2") || "null",
       );
       if (old)
         saved = {

@@ -1,7 +1,7 @@
 ## Запуск через Docker Compose
 
 ```bash
-cd /home/rick/Codding/replay-lab
+cd /path/to/eazy-trading
 docker compose up -d --build
 ```
 
@@ -16,11 +16,11 @@ docker compose up -d --build
 
 ## Локальная разработка (Linux)
 
-Проект подготовлен в `/home/rick/Codding/replay-lab`. Требуется Node.js 24+;
+Проект подготовлен в `/path/to/eazy-trading`. Требуется Node.js 24+;
 внешних npm-зависимостей нет, `npm install` не нужен.
 
 ```bash
-cd /home/rick/Codding/replay-lab
+cd /path/to/eazy-trading
 npm run dev
 ```
 
@@ -50,11 +50,11 @@ ZIP содержит исходники, но не личные данные о�
 
 ---
 
-# Replay Lab
+# eazy trading
 
 October 2025 NQ gaps were restored on 7 October 2026 from the public Hindsight Finance `nq_1m.parquet` archive: 8,767 original OHLCV candles were added only at absent timestamps. No prices or volumes were transformed and every established candle was retained. The completed New York October partition has 31,380 candles. The revised main archive is `curated-NQ-history-2024-2026-v2`; the previous immutable archive remains available for restoring saved sessions and is omitted from new-session choices. Minute prices and timestamps were cross-checked against a separate Databento-schema export; daily Open/High/Low matched Yahoo NQ=F for the affected CME trading dates. Upstream Hindsight feed/roll methodology and license are not stated. Source hashes, pinned download URL and the precise inserted dates are in `market-archives/evidence/NQ-october-2025-restoration.json`. The 2026 gaps remain unchanged.
 
-To reproduce the October partition, use `scripts/fill-nq-october-2025.py` with the verified normalized JSONL and its source metadata. To upload just that immutable cloud object, run `python scripts/upload-market-data.py https://nq-es-replay-lab.rick-sunches.chatgpt.site --part-id curated-NQ-history-2024-2026-v2-2025-10`; the Site token is requested with input echo disabled. The uploader validates the exact published catalog SHA and reads the object back after storage.
+For the legacy Sites uploader, first set `MARKET_DATA_SITE_ORIGIN` to the verified literal URL of that deployment. To reproduce the October partition, use `scripts/fill-nq-october-2025.py` with the verified normalized JSONL and its source metadata. To upload just that immutable cloud object, run `python scripts/upload-market-data.py "$MARKET_DATA_SITE_ORIGIN" --part-id curated-NQ-history-2024-2026-v2-2025-10`; the Site token is requested with input echo disabled. The uploader validates the exact published catalog SHA and reads the object back after storage.
 
 Private NQ/ES manual replay workspace with real minute OHLCV. Imported archives cover all calendar months of 2024/2025, available older 2026, and recent September/October 2026. Exact counts, dates, source conventions and gaps live in `dist/market-archives.mjs`. Missing bars are never synthesized. Original January2024 FirstRate/HF data remains available after that provider shut down.
 

@@ -697,16 +697,16 @@ export function createProduct({
   };
   $("export").onclick = () =>
     download(
-      "replay-lab-journal.csv",
+      "eazy-trading-journal.csv",
       csvTrades(filterTrades(allTrades(), filter)),
       "text/csv;charset=utf-8",
     );
   function exportBackup() {
     download(
-      "replay-lab-backup-" + new Date().toISOString().slice(0, 10) + ".json",
+      "eazy-trading-backup-" + new Date().toISOString().slice(0, 10) + ".json",
       JSON.stringify(
         {
-          replayLabBackup: 1,
+          eazyTradingBackup: 1,
           exportedAt: new Date().toISOString(),
           workspace: ws(),
         },
