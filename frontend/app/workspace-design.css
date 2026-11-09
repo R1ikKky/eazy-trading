@@ -241,6 +241,10 @@ body.product-app .save-status {
   border: 0;
   background: none;
 }
+/* Only sync problems need a visible status control. */
+body.product-app .sidebar-account #saveStatus:not([data-state="error"]):not([data-state="conflict"]):not([data-state="offline"]) {
+  display: none;
+}
 body.product-app .sidebar-account {
   margin-top: auto;
   padding: 20px 8px 0;
