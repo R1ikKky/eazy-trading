@@ -15,13 +15,13 @@ import "./drawing-tools.css";
 export const metadata: Metadata = {
   title: "Replay Lab · NQ / ES",
   description:
-    "Ручной бэктест NQ и ES. Выберите период, прокручивайте свечи и проверяйте свои входы.",
+    "Backtest NQ and ES. Choose a period, replay candles, and practice your entries.",
 };
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ru" data-theme="dark" suppressHydrationWarning>
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
       <body className="product-app"><ThemeInitializer />{children}</body>
     </html>
   );

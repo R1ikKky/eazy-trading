@@ -1,3 +1,4 @@
+import { t as translate } from "../i18n/language";
 import { marketArchives } from "./market-archives";
 import { readArchive } from "./archive";
 
@@ -24,7 +25,7 @@ export function currentCuratedArchive(id: any) {
 export async function decodeCuratedPart(encoded: any, part: any, symbol: any) {
   if (encoded.length > 8 * 1024 * 1024 || !globalThis.DecompressionStream)
     throw Error(
-      "Не удалось распаковать рыночный архив. Используйте актуальный браузер.",
+      translate("Не удалось распаковать рыночный архив. Используйте актуальный браузер."),
     );
   const binary = atob(encoded.trim()),
     bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
@@ -32,13 +33,13 @@ export async function decodeCuratedPart(encoded: any, part: any, symbol: any) {
     .map((v) => v.toString(16).padStart(2, "0"))
     .join("");
   if (sha !== part.sha256)
-    throw Error("Контрольная сумма архива не совпадает. Повторите загрузку.");
+    throw Error(translate("Контрольная сумма архива не совпадает. Повторите загрузку."));
   const stream = new Blob([bytes])
     .stream()
     .pipeThrough(new DecompressionStream("gzip"));
   const text = await new Response(stream).text();
   if (new TextEncoder().encode(text).byteLength !== part.uncompressedBytes)
-    throw Error("Размер рыночного архива не совпадает с индексом.");
+    throw Error(translate("Размер рыночного архива не совпадает с индексом."));
   const rows = JSON.parse(text);
   if (
     !Array.isArray(rows) ||
@@ -46,11 +47,11 @@ export async function decodeCuratedPart(encoded: any, part: any, symbol: any) {
     rows[0]?.[0] !== part.firstTime ||
     rows.at(-1)?.[0] !== part.lastTime
   )
-    throw Error("Рыночный архив не соответствует индексу.");
+    throw Error(translate("Рыночный архив не соответствует индексу."));
   let previous = 0;
   const bars = rows.map((row) => {
     if (!Array.isArray(row) || row.length < 6 || row.length > 7)
-      throw Error("Некорректная свеча архива.");
+      throw Error(translate("Некорректная свеча архива."));
     const [time, open, high, low, close, volume, contract] = row;
     if (
       !Number.isSafeInteger(time) ||
@@ -68,7 +69,7 @@ export async function decodeCuratedPart(encoded: any, part: any, symbol: any) {
       !Number.isFinite(volume) ||
       volume < 0
     )
-      throw Error("Некорректная минутная свеча архива.");
+      throw Error(translate("Некорректная минутная свеча архива."));
     previous = time;
     return {
       time,
@@ -91,13 +92,13 @@ export async function readCuratedDataset(id: any, range?: any) {
         )
       : structuredClone(archive);
   const entry = parts.get(id);
-  if (!entry) throw Error("Рыночный архив не найден.");
+  if (!entry) throw Error(translate("Рыночный архив не найден."));
   const response = await fetch(
     "/api/market-data/" + entry.part.id + "?v=" + entry.part.sha256,
     { signal: AbortSignal.timeout(60000) },
   );
   if (!response.ok)
-    throw Error("Не удалось загрузить рыночные свечи. Повторите попытку.");
+    throw Error(translate("Не удалось загрузить рыночные свечи. Повторите попытку."));
   return decodeCuratedPart(
     await response.text(),
     entry.part,

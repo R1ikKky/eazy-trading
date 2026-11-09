@@ -1,3 +1,4 @@
+import { t as translate } from "../i18n/language";
 import { contracts, aggregate } from "./engine";
 import {
   settingsColor,
@@ -27,13 +28,13 @@ export function renderPosition(box: any, replay: any, symbol: any) {
       p.qty +
       " / " +
       p.initialQty +
-      ' контр.</span></div><strong class="pos-pnl ' +
+      translate(' контр.</span></div><strong class="pos-pnl ') +
       (pnl >= 0 ? "positive" : "negative") +
       '">' +
       money(pnl) +
-      "</strong><p>Открытый результат с комиссией · частично реализовано " +
+      translate("</strong><p>Открытый результат с комиссией · частично реализовано ") +
       money(p.realizedNet) +
-      '</p><div class="pos-row"><span>Вход</span><span class="mono">' +
+      translate('</p><div class="pos-row"><span>Вход</span><span class="mono">') +
       p.entry.toFixed(2) +
       '</span></div><div class="protection-fields"><label>SL<input type="number" data-position-sl step="0.25" value="' +
       p.sl +
@@ -41,23 +42,23 @@ export function renderPosition(box: any, replay: any, symbol: any) {
       p.tp +
       '"></label><button class="button secondary compact" data-action="protect" ' +
       (replay.ended ? "disabled" : "") +
-      '>Применить уровни</button></div><div class="pos-actions"><button data-action="be" ' +
+      translate('>Применить уровни</button></div><div class="pos-actions"><button data-action="be" ') +
       (replay.ended ? "disabled" : "") +
       '>BE</button><button data-action="be-costs" ' +
       (replay.ended ? "disabled" : "") +
-      '>BE + издержки</button></div><div class="partial-controls"><label>Закрыть контрактов<input type="number" data-close-qty min="1" max="' +
+      translate('>BE + издержки</button></div><div class="partial-controls"><label>Закрыть контрактов<input type="number" data-close-qty min="1" max="') +
       p.qty +
       '" step="1" value="' +
       Math.max(1, Math.floor(p.qty / 2)) +
       '"></label><button class="button secondary compact" data-action="partial" ' +
       (replay.ended || replay.closePending ? "disabled" : "") +
-      '>Часть</button></div><div class="pos-actions"><button data-action="close" ' +
+      translate('>Часть</button></div><div class="pos-actions"><button data-action="close" ') +
       (replay.ended || replay.closePending ? "disabled" : "") +
       ">" +
-      (replay.closePending ? "Выход ожидается" : "Закрыть всё") +
+      (replay.closePending ? translate("Выход ожидается") : translate("Закрыть всё")) +
       "</button></div>" +
       (replay.ended
-        ? "<p>Период завершён · выход возможен только в новой свече.</p>"
+        ? translate("<p>Период завершён · выход возможен только в новой свече.</p>")
         : "");
   } else if (replay.pending) {
     const q = replay.pending;
@@ -69,18 +70,18 @@ export function renderPosition(box: any, replay: any, symbol: any) {
       esc(q.kind.toUpperCase()) +
       "</strong><span>" +
       q.qty +
-      " контр.</span></div><p>" +
+      translate(" контр.</span></div><p>") +
       (q.kind === "market"
-        ? "На следующем открытии"
-        : "Уровень активации " + q.entryPrice.toFixed(2)) +
-      '</p><div class="pos-row"><span>Стоп / тейк</span><span>' +
+        ? translate("На следующем открытии")
+        : translate("Уровень активации ") + q.entryPrice.toFixed(2)) +
+      translate('</p><div class="pos-row"><span>Стоп / тейк</span><span>') +
       q.stop +
       " / " +
       q.target +
-      ' пт</span></div><div class="pos-actions"><button data-action="cancel">Отменить заявку</button></div>';
+      translate(' пт</span></div><div class="pos-actions"><button data-action="cancel">Отменить заявку</button></div>');
   } else {
     box.classList.remove("active");
-    box.innerHTML = "<strong>Вне позиции</strong>";
+    box.innerHTML = translate("<strong>Вне позиции</strong>");
   }
 }
 export function createComparison({
@@ -110,9 +111,9 @@ export function createComparison({
     host = document.createElement("section");
   host.className = "comparison-card chart-pane";
   host.hidden = true;
-  host.setAttribute("aria-label", "Второй инструмент");
+  host.setAttribute("aria-label", translate("Второй инструмент"));
   host.innerHTML =
-    '<div class="comparison-header"><div><h3 id="comparisonTitle">ES</h3></div><label class="sr-only" for="compareInterval">Таймфрейм второго графика</label><select id="compareInterval"><option value="sync" selected>Как основной</option><option value="1">1m</option><option value="3">3m</option><option value="5">5m</option><option value="15">15m</option><option value="30">30m</option><option value="60">1h</option></select></div><div id="compareChart" class="comparison-chart"></div><p id="compareNotice" class="pane-notice muted"></p>';
+    translate('<div class="comparison-header"><div><h3 id="comparisonTitle">ES</h3></div><label class="sr-only" for="compareInterval">Таймфрейм второго графика</label><select id="compareInterval"><option value="sync" selected>Как основной</option><option value="1">1m</option><option value="3">3m</option><option value="5">5m</option><option value="15">15m</option><option value="30">30m</option><option value="60">1h</option></select></div><div id="compareChart" class="comparison-chart"></div><p id="compareNotice" class="pane-notice muted"></p>');
   panes.append(host);
   const title = document.getElementById("comparisonTitle"),
     notice = document.getElementById("compareNotice"),
@@ -161,7 +162,7 @@ export function createComparison({
       now = getTime(),
       tf = interval();
     title.textContent = symbol + " · " + tf + "m";
-    host.setAttribute("aria-label", "График " + symbol);
+    host.setAttribute("aria-label", translate("График ") + symbol);
     if (!chart) {
       chart = L.createChart(container, {
         autoSize: true,
@@ -241,14 +242,14 @@ export function createComparison({
         }
         chart.timeScale().setVisibleLogicalRange(range);
         notice.textContent =
-          "Последняя свеча: " +
+          translate("Последняя свеча: ") +
           chartDate(revealed.at(-1).time, p) +
-          (now - revealed.at(-1).time > 300 ? " · есть разрыв в данных" : "");
+          (now - revealed.at(-1).time > 300 ? translate(" · есть разрыв в данных") : "");
       } else
         notice.textContent =
-          "Для " +
+          translate("Для ") +
           symbol +
-          " нет данных до текущего момента. Выберите другой период.";
+          translate(" нет данных до текущего момента. Выберите другой период.");
     }
     viewScope = scope;
     renderedTime = now;
@@ -256,7 +257,7 @@ export function createComparison({
   async function reload() {
     if (!visible) return;
     const request = ++loadVersion;
-    notice.textContent = "Загружаю второй инструмент…";
+    notice.textContent = translate("Загружаю второй инструмент…");
     try {
       await onShow?.();
       if (request === loadVersion) render();
@@ -274,7 +275,7 @@ export function createComparison({
     host.hidden = !visible;
     panes.classList.toggle("is-dual", visible);
     button.setAttribute("aria-pressed", String(visible));
-    button.title = visible ? "Оставить один график" : "Показать NQ и ES рядом";
+    button.title = visible ? translate("Оставить один график") : translate("Показать NQ и ES рядом");
     reload();
     window.dispatchEvent(new Event("resize"));
   }
@@ -285,9 +286,9 @@ export function createComparison({
     expand.setAttribute("aria-pressed", String(Boolean(next)));
     expand.setAttribute(
       "aria-label",
-      next ? "Свернуть графики" : "Развернуть графики",
+      next ? translate("Свернуть графики") : translate("Развернуть графики"),
     );
-    expand.title = next ? "Свернуть графики · Esc" : "Развернуть графики";
+    expand.title = next ? translate("Свернуть графики · Esc") : translate("Развернуть графики");
     window.dispatchEvent(new Event("resize"));
   }
   button.onclick = () => setVisible(!visible);

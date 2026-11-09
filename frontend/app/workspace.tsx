@@ -1,4 +1,6 @@
 "use client";
+import { t as translate } from "../src/i18n/language";
+import { useLanguage } from "../src/i18n/use-language";
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -9,6 +11,7 @@ import { ACCOUNT_DEPOSITS } from "../src/replay/account-deposits";
 
 // The replay terminal owns its chart DOM. Load it only after React mounts the page.
 export function ReplayWorkspace() {
+  useLanguage();
   const router = useRouter();
   const pathname = usePathname();
   const currentView = workspaceView(pathname);
@@ -47,8 +50,8 @@ export function ReplayWorkspace() {
             <small>TRADING WORKSPACE</small>
           </span>
         </Link>
-        <div className="sidebar-caption">РАБОЧАЯ ОБЛАСТЬ</div>
-        <nav className="app-nav" aria-label="Основная навигация">
+        <div className="sidebar-caption">{translate("РАБОЧАЯ ОБЛАСТЬ")}</div>
+        <nav className="app-nav" aria-label={translate("Основная навигация")}>
           <Link href="/replay" scroll={false}
             className={currentView === "replay" ? "nav-item active" : "nav-item"}
             data-view="replay"
@@ -65,48 +68,47 @@ export function ReplayWorkspace() {
           <Link href="/sessions" scroll={false}
             className={currentView === "sessions" ? "nav-item active" : "nav-item"}
             data-view="sessions"
-            aria-label="Сессии"
+            aria-label={translate("Сессии")}
             aria-current={currentView === "sessions" ? "page" : false}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x={4} y={5} width={16} height={15} rx={2} />
               <path d="M8 3v4M16 3v4M4 11h16M8 15h3M14 15h2" />
             </svg>
-            <span>Сессии</span>
+            <span>{translate("Сессии")}</span>
           </Link>
           <Link href="/journal" scroll={false}
             className={currentView === "journal" ? "nav-item active" : "nav-item"}
             data-view="journal"
-            aria-label="Журнал"
+            aria-label={translate("Журнал")}
             aria-current={currentView === "journal" ? "page" : false}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2ZM8 8h7M8 12h7M8 16h4" />
             </svg>
-            <span>Журнал</span>
+            <span>{translate("Журнал")}</span>
           </Link>
           <Link href="/analytics" scroll={false}
             className={currentView === "analytics" ? "nav-item active" : "nav-item"}
             data-view="analytics"
-            aria-label="Аналитика"
+            aria-label={translate("Аналитика")}
             aria-current={currentView === "analytics" ? "page" : false}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M4 20V5M4 20h17M8 16v-4M13 16V8M18 16V3" />
             </svg>
-            <span>Аналитика</span>
+            <span>{translate("Аналитика")}</span>
           </Link>
         </nav>
-        <button className="island-trade-toggle" type="button" popoverTarget="orderTicket" aria-haspopup="dialog" aria-label="Панель сделки">
+        <button className="island-trade-toggle" type="button" popoverTarget="orderTicket" aria-haspopup="dialog" aria-label={translate("Панель сделки")}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 17h14M9 3v8M15 13v8" /></svg>
-          <span>Сделка</span>
+          <span>{translate("Сделка")}</span>
         </button>
         <div className="sidebar-account">
             <AccountMenu />
             <span id="saveStatus" className="save-status" role="status">
               <span className="status-dot" />
-              Сохранено локально
-            </span>
+              {translate("Сохранено локально")}</span>
             <AppearanceSettings />
         </div>
       </aside>
@@ -126,7 +128,7 @@ export function ReplayWorkspace() {
                   <span className="muted">New York · ET</span>
                 </div>
                 <div className="replay-result">
-                  <span>Результат сессии</span>
+                  <span>{translate("Результат сессии")}</span>
                   <strong id="netStat">$0.00</strong>
                 </div>
               </div>
@@ -185,8 +187,7 @@ export function ReplayWorkspace() {
                 <div className="chart-toolbar">
                   <div className="symbol-group">
                     <label className="sr-only" htmlFor="symbol">
-                      Инструмент
-                    </label>
+                      {translate("Инструмент")}</label>
                     <select id="symbol">
                       <option value="NQ">NQ</option>
                       <option value="ES">ES</option>
@@ -198,7 +199,7 @@ export function ReplayWorkspace() {
                     <div
                       className="timeframes"
                       role="group"
-                      aria-label="Таймфрейм"
+                      aria-label={translate("Таймфрейм")}
                     >
                       <button
                         data-tf={1}
@@ -227,36 +228,36 @@ export function ReplayWorkspace() {
                       id="compareToggle"
                       className="settings-button compare-button"
                       aria-pressed="false"
-                      aria-label="Показать NQ и ES рядом"
-                      title="Показать NQ и ES рядом"
+                      aria-label={translate("Показать NQ и ES рядом")}
+                      title={translate("Показать NQ и ES рядом")}
                     >
-                      ▥ <span>Два графика</span>
+                      ▥ <span>{translate("Два графика")}</span>
                     </button>
                     <button
                       id="chartExpand"
                       className="icon-button"
                       type="button"
                       aria-pressed="false"
-                      aria-label="Развернуть графики"
-                      title="Развернуть графики"
+                      aria-label={translate("Развернуть графики")}
+                      title={translate("Развернуть графики")}
                     >
                       ⤢
                     </button>
                     <button
                       id="settingsOpen"
                       className="settings-button"
-                      aria-label="Настройки графика"
+                      aria-label={translate("Настройки графика")}
                     >
-                      ⚙ <span>Настройки</span>
+                      ⚙ <span>{translate("Настройки")}</span>
                     </button>
                   </div>
                 </div>
                 <div className="drawing-status" aria-live="polite">
-                  <span id="drawingHint">Перемещение и масштаб</span>
+                  <span id="drawingHint">{translate("Перемещение и масштаб")}</span>
                   <span
                     className="drawing-count"
                     id="drawingCount"
-                    aria-label="Количество объектов"
+                    aria-label={translate("Количество объектов")}
                   >
                     0
                   </span>
@@ -283,17 +284,14 @@ export function ReplayWorkspace() {
                       <span id="barChange" className="mono" />
                       <span id="statusVolume" className="mono" hidden />
                       <span className="chart-status" id="chartStatus">
-                        ПАУЗА
-                      </span>
+                        {translate("ПАУЗА")}</span>
                     </div>
                     <div className="chart-container" id="chart">
                       <div id="chartError" hidden>
-                        Не удалось загрузить график. Обновите страницу.
-                      </div>
+                        {translate("Не удалось загрузить график. Обновите страницу.")}</div>
                     </div>
                     <p className="pane-notice muted" id="mainChartNotice">
-                      Заявки по NQ
-                    </p>
+                      {translate("Заявки по NQ")}</p>
                   </section>
                 </div>
                 <div className="replay-panel">
@@ -301,15 +299,15 @@ export function ReplayWorkspace() {
                     <button
                       id="reset"
                       className="icon-button"
-                      aria-label="Начать сессию заново"
-                      title="Начать заново"
+                      aria-label={translate("Начать сессию заново")}
+                      title={translate("Начать заново")}
                     >
                       ↺
                     </button>
                     <button
                       id="play"
                       className="play-button"
-                      aria-label="Воспроизвести"
+                      aria-label={translate("Воспроизвести")}
                     >
                       <span id="playIcon">▶</span>
                       <span id="playLabel">Replay</span>
@@ -317,12 +315,12 @@ export function ReplayWorkspace() {
                     <button
                       id="step"
                       className="icon-button step-button"
-                      aria-label="Следующая свеча"
-                      title="Следующая свеча — клавиша вправо"
+                      aria-label={translate("Следующая свеча")}
+                      title={translate("Следующая свеча — клавиша вправо")}
                     >
                       ▸│
                     </button>
-                    <select id="speed" aria-label="Скорость воспроизведения">
+                    <select id="speed" aria-label={translate("Скорость воспроизведения")}>
                       <option value={1000}>1×</option>
                       <option value={500}>2×</option>
                       <option value={250}>4×</option>
@@ -332,7 +330,7 @@ export function ReplayWorkspace() {
                     <strong id="replayTime" className="mono">
                       —
                     </strong>
-                    <span id="progressLabel">Свеча 1 из —</span>
+                    <span id="progressLabel">{translate("Свеча 1 из —")}</span>
                   </div>
                 </div>
                 <div className="progress-track">
@@ -340,46 +338,45 @@ export function ReplayWorkspace() {
                 </div>
                 <div className="chart-footer">
                   <span>
-                    Пробел — пауза{" "}
-                    <span className="kbd-gap">→ — следующая свеча</span>
+                    {translate("Пробел — пауза")}{" "}
+                    <span className="kbd-gap">{translate("→ — следующая свеча")}</span>
                   </span>
-                  <span id="baseInterval">Шаг: 1 мин · ET</span>
+                  <span id="baseInterval">{translate("Шаг: 1 мин · ET")}</span>
                 </div>
               </section>
               <aside className="order-card" id="orderTicket" popover="auto" role="dialog" aria-labelledby="orderTicketTitle">
                 <div className="panel-title">
-                  <h2 id="orderTicketTitle">Новая сделка</h2>
+                  <h2 id="orderTicketTitle">{translate("Новая сделка")}</h2>
                   <span className="market-label" id="orderTypeBadge">
                     MARKET
                   </span>
-                  <button className="ticket-close icon-button" type="button" popoverTarget="orderTicket" popoverTargetAction="hide" aria-label="Закрыть панель сделки">×</button>
+                  <button className="ticket-close icon-button" type="button" popoverTarget="orderTicket" popoverTargetAction="hide" aria-label={translate("Закрыть панель сделки")}>×</button>
                 </div>
                 <p className="entry-note" id="orderHint">
-                  Вход на открытии следующей свечи
-                </p>
-                <label htmlFor="orderKind">Тип заявки</label>
+                  {translate("Вход на открытии следующей свечи")}</p>
+                <label htmlFor="orderKind">{translate("Тип заявки")}</label>
                 <select id="orderKind" className="full">
-                  <option value="market">Market · по рынку</option>
-                  <option value="limit">Limit · лимитная</option>
-                  <option value="stop">Stop · пробой уровня</option>
+                  <option value="market">{translate("Market · по рынку")}</option>
+                  <option value="limit">{translate("Limit · лимитная")}</option>
+                  <option value="stop">{translate("Stop · пробой уровня")}</option>
                 </select>
                 <div id="entryPriceWrap" className="entry-price-field" hidden>
-                  <label htmlFor="entryPrice">Цена входа</label>
+                  <label htmlFor="entryPrice">{translate("Цена входа")}</label>
                   <input
                     id="entryPrice"
                     type="number"
                     min="0.25"
                     step="0.25"
                     inputMode="decimal"
-                    placeholder="Цена заявки"
+                    placeholder={translate("Цена заявки")}
                   />
                 </div>
                 <div className="order-fields">
                   <label htmlFor="qty">
-                    Контракты <span id="tickInfo">1 тик = $5.00</span>
+                    {translate("Контракты")}<span id="tickInfo">{translate("1 тик = $5.00")}</span>
                   </label>
                   <div className="stepper">
-                    <button id="qtyDown" aria-label="Меньше контрактов">
+                    <button id="qtyDown" aria-label={translate("Меньше контрактов")}>
                       −
                     </button>
                     <input
@@ -390,13 +387,13 @@ export function ReplayWorkspace() {
                       step={1}
                       defaultValue={1}
                     />
-                    <button id="qtyUp" aria-label="Больше контрактов">
+                    <button id="qtyUp" aria-label={translate("Больше контрактов")}>
                       +
                     </button>
                   </div>
                   <div className="field-pair">
                     <div>
-                      <label htmlFor="stop">Стоп, пт</label>
+                      <label htmlFor="stop">{translate("Стоп, пт")}</label>
                       <input
                         id="stop"
                         type="number"
@@ -406,7 +403,7 @@ export function ReplayWorkspace() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="target">Тейк, пт</label>
+                      <label htmlFor="target">{translate("Тейк, пт")}</label>
                       <input
                         id="target"
                         type="number"
@@ -418,8 +415,8 @@ export function ReplayWorkspace() {
                   </div>
                 </div>
                 <details className="risk-sizing">
-                  <summary>Рассчитать объём по риску</summary>
-                  <label htmlFor="riskBudget">Бюджет риска, $</label>
+                  <summary>{translate("Рассчитать объём по риску")}</summary>
+                  <label htmlFor="riskBudget">{translate("Бюджет риска, $")}</label>
                   <div className="risk-sizing-row">
                     <input
                       id="riskBudget"
@@ -434,33 +431,32 @@ export function ReplayWorkspace() {
                       id="sizeByRisk"
                       type="button"
                       className="button secondary compact"
-                      title="Подобрать число контрактов по бюджету риска"
+                      title={translate("Подобрать число контрактов по бюджету риска")}
                     >
-                      Рассчитать
-                    </button>
+                      {translate("Рассчитать")}</button>
                   </div>
                 </details>
                 <div className="risk-summary">
                   <div>
-                    <span>Риск сделки ≈</span>
+                    <span>{translate("Риск сделки ≈")}</span>
                     <strong id="riskValue">$250.00</strong>
                   </div>
                   <div>
-                    <span>Соотношение R:R</span>
+                    <span>{translate("Соотношение R:R")}</span>
                     <strong id="rrValue">1 : 2.0</strong>
                   </div>
                 </div>
                 <div className="trade-buttons">
                   <button id="long" className="trade long">
-                    Long <span>Купить</span>
+                    Long <span>{translate("Купить")}</span>
                   </button>
                   <button id="short" className="trade short">
-                    Short <span>Продать</span>
+                    Short <span>{translate("Продать")}</span>
                   </button>
                 </div>
                 <details className="costs">
-                  <summary>Комиссия и проскальзывание</summary>
-                  <label htmlFor="fee">Комиссия, $ / сторона / контракт</label>
+                  <summary>{translate("Комиссия и проскальзывание")}</summary>
+                  <label htmlFor="fee">{translate("Комиссия, $ / сторона / контракт")}</label>
                   <input
                     type="number"
                     id="fee"
@@ -469,7 +465,7 @@ export function ReplayWorkspace() {
                     step="0.01"
                     defaultValue="2.50"
                   />
-                  <label htmlFor="slip">Проскальзывание, тики</label>
+                  <label htmlFor="slip">{translate("Проскальзывание, тики")}</label>
                   <input
                     type="number"
                     id="slip"
@@ -478,12 +474,11 @@ export function ReplayWorkspace() {
                     step={1}
                     defaultValue={1}
                   />
-                  <p>Пример издержек. Укажите условия своего брокера.</p>
+                  <p>{translate("Пример издержек. Укажите условия своего брокера.")}</p>
                 </details>
                 <div className="position-box" id="positionBox" />
                 <p className="order-footnote">
-                  Учебная симуляция. Реальные ордера не отправляются.
-                </p>
+                  {translate("Учебная симуляция. Реальные ордера не отправляются.")}</p>
               </aside>
             </div>
           </section>
@@ -495,7 +490,7 @@ export function ReplayWorkspace() {
           >
             <div className="view-heading">
               <div>
-                <h1>Сессии</h1>
+                <h1>{translate("Сессии")}</h1>
               </div>
               <div className="heading-actions">
                 <button
@@ -503,23 +498,19 @@ export function ReplayWorkspace() {
                   type="button"
                   className="button secondary"
                 >
-                  История данных
-                </button>
+                  {translate("История данных")}</button>
                 <Link href="/strategies" scroll={false}
                   className="button secondary"
                   data-view="playbooks"
                 >
-                  Стратегии
-                </Link>
+                  {translate("Стратегии")}</Link>
                 <button id="setupOpen" className="button primary" type="button">
-                  ＋ Новая сессия
-                </button>
+                  {translate("＋ Новая сессия")}</button>
               </div>
             </div>
             <div id="sessionsContent" className="view-content">
               <p className="muted" role="status">
-                Загружаем сессии…
-              </p>
+                {translate("Загружаем сессии…")}</p>
             </div>
           </section>
           <section
@@ -531,7 +522,7 @@ export function ReplayWorkspace() {
             <div className="view-heading">
               <div>
                 <p className="eyebrow">TRADE JOURNAL</p>
-                <h1>Журнал сделок</h1>
+                <h1>{translate("Журнал сделок")}</h1>
               </div>
             </div>
             <div id="journalFilters" className="journal-filters" />
@@ -540,32 +531,31 @@ export function ReplayWorkspace() {
               <div className="journal-header">
                 <div>
                   <h2>
-                    Журнал сделок <span id="tradeCount">0</span>
+                    {translate("Журнал сделок")}<span id="tradeCount">0</span>
                   </h2>
-                  <p>Закрытые сделки, сетапы и заметки в одном месте.</p>
+                  <p>{translate("Закрытые сделки, сетапы и заметки в одном месте.")}</p>
                 </div>
                 <button
                   className="button secondary compact"
                   id="export"
                   disabled
                 >
-                  Экспорт CSV
-                </button>
+                  {translate("Экспорт CSV")}</button>
               </div>
               <div className="table-scroll">
                 <table>
                   <thead>
                     <tr>
                       <th>
-                        Инструмент / вход <span id="journalZone">ET</span>
+                        {translate("Инструмент / вход")}<span id="journalZone">ET</span>
                       </th>
-                      <th>Сторона</th>
-                      <th>Объём</th>
-                      <th>Вход</th>
-                      <th>Выход</th>
-                      <th>Результат</th>
+                      <th>{translate("Сторона")}</th>
+                      <th>{translate("Объём")}</th>
+                      <th>{translate("Вход")}</th>
+                      <th>{translate("Выход")}</th>
+                      <th>{translate("Результат")}</th>
                       <th>R</th>
-                      <th>Стратегия / закрытие</th>
+                      <th>{translate("Стратегия / закрытие")}</th>
                     </tr>
                   </thead>
                   <tbody id="tradeRows" />
@@ -573,15 +563,12 @@ export function ReplayWorkspace() {
                 <div id="emptyJournal" className="empty-journal">
                   <span className="empty-icon">≡</span>
                   <div>
-                    <strong>Здесь появятся ваши сделки</strong>
+                    <strong>{translate("Здесь появятся ваши сделки")}</strong>
                     <p>
-                      Завершите сделку в replay. Она сохранится вместе с вашей
-                      сессией.
-                    </p>
+                      {translate("Завершите сделку в replay. Она сохранится вместе с вашей сессией.")}</p>
                   </div>
                   <span className="empty-hint">
-                    01 <span>/</span> Найдите свой сетап
-                  </span>
+                    01 <span>/</span> {translate("Найдите свой сетап")}</span>
                 </div>
               </div>
             </section>
@@ -595,10 +582,9 @@ export function ReplayWorkspace() {
             <div className="view-heading">
               <div>
                 <p className="eyebrow">PERFORMANCE</p>
-                <h1>Аналитика торговли</h1>
+                <h1>{translate("Аналитика торговли")}</h1>
                 <p className="heading-description">
-                  Результаты, риски и закономерности по вашим закрытым сделкам.
-                </p>
+                  {translate("Результаты, риски и закономерности по вашим закрытым сделкам.")}</p>
               </div>
             </div>
             <div id="analyticsContent" className="view-content" />
@@ -612,10 +598,9 @@ export function ReplayWorkspace() {
             <div className="view-heading">
               <div>
                 <p className="eyebrow">YOUR EDGE</p>
-                <h1>Мои стратегии</h1>
+                <h1>{translate("Мои стратегии")}</h1>
                 <p className="heading-description">
-                  Правила сетапов и дисциплина исполнения.
-                </p>
+                  {translate("Правила сетапов и дисциплина исполнения.")}</p>
               </div>
             </div>
             <div id="playbooksContent" className="view-content" />
@@ -627,29 +612,29 @@ export function ReplayWorkspace() {
           <div className="dialog-header">
             <div>
               <p className="eyebrow">REPLAY SESSION</p>
-              <h2>Новая сессия</h2>
+              <h2>{translate("Новая сессия")}</h2>
             </div>
             <button
               type="button"
               className="icon-button"
               data-close="setupDialog"
-              aria-label="Закрыть"
+              aria-label={translate("Закрыть")}
             >
               ×
             </button>
           </div>
-          <label htmlFor="sessionName">Название сессии</label>
+          <label htmlFor="sessionName">{translate("Название сессии")}</label>
           <input
             id="sessionName"
             className="full"
             type="text"
             maxLength={100}
             required
-            placeholder="Введите название сессии"
+            placeholder={translate("Введите название сессии")}
           />
           <div className="field-pair session-setup-fields">
             <div>
-              <label htmlFor="sessionCapital">Начальный капитал, $</label>
+              <label htmlFor="sessionCapital">{translate("Начальный капитал, $")}</label>
               <select id="sessionCapital" defaultValue="50000" required>
                 {ACCOUNT_DEPOSITS.map((amount) => (
                   <option key={amount} value={amount}>
@@ -659,14 +644,14 @@ export function ReplayWorkspace() {
               </select>
             </div>
             <div>
-              <label htmlFor="sessionStrategy">Стратегия</label>
+              <label htmlFor="sessionStrategy">{translate("Стратегия")}</label>
               <select id="sessionStrategy" className="full">
-                <option value="">Без стратегии</option>
+                <option value="">{translate("Без стратегии")}</option>
               </select>
             </div>
           </div>
           <fieldset className="session-instruments">
-            <legend>Инструменты</legend>
+            <legend>{translate("Инструменты")}</legend>
             <label className="session-instrument" htmlFor="sessionNQ">
               <input
                 id="sessionNQ"
@@ -693,9 +678,7 @@ export function ReplayWorkspace() {
             </label>
           </fieldset>
           <p className="dialog-intro">
-            Выберите даты. Для NQ + ES оба графика идут по одному времени
-            replay.
-          </p>
+            {translate("Выберите даты. Для NQ + ES оба графика идут по одному времени replay.")}</p>
           <div className="card-actions" id="setupYears">
             <button
               type="button"
@@ -721,91 +704,77 @@ export function ReplayWorkspace() {
           </div>
           <div className="field-pair">
             <div>
-              <label htmlFor="fromDate">Начало, ET</label>
+              <label htmlFor="fromDate">{translate("Начало, ET")}</label>
               <input id="fromDate" type="date" required />
             </div>
             <div>
-              <label htmlFor="toDate">Конец, ET · включительно</label>
+              <label htmlFor="toDate">{translate("Конец, ET · включительно")}</label>
               <input id="toDate" type="date" required />
             </div>
           </div>
           <div id="setupError" className="form-error" role="alert" />
           <button className="button primary full" type="submit">
-            Начать сессию
-          </button>
+            {translate("Начать сессию")}</button>
         </form>
       </dialog>
       <dialog id="importDialog">
         <div className="dialog-header">
           <div>
             <p className="eyebrow">YOUR MARKET DATA</p>
-            <h2>Загрузить историю</h2>
+            <h2>{translate("Загрузить историю")}</h2>
           </div>
           <button
             className="icon-button"
             data-close="importDialog"
-            aria-label="Закрыть"
+            aria-label={translate("Закрыть")}
           >
             ×
           </button>
         </div>
         <p className="dialog-intro">
-          Минутные свечи для одного фьючерса. Файл обрабатывается в браузере.
-        </p>
-        <label htmlFor="importSymbol">Инструмент файла</label>
+          {translate("Минутные свечи для одного фьючерса. Файл обрабатывается в браузере.")}</p>
+        <label htmlFor="importSymbol">{translate("Инструмент файла")}</label>
         <select id="importSymbol">
           <option value="NQ">NQ · E-mini Nasdaq-100</option>
           <option value="ES">ES · E-mini S&amp;P 500</option>
         </select>
-        <label htmlFor="csvFormat">Формат времени</label>
+        <label htmlFor="csvFormat">{translate("Формат времени")}</label>
         <select id="csvFormat">
           <option value="standard">
-            Стандартный CSV / Databento · Unix или ISO с поясом
-          </option>
+            {translate("Стандартный CSV / Databento · Unix или ISO с поясом")}</option>
           <option value="firstrate">
-            FirstRate · без заголовка, время по Нью-Йорку
-          </option>
+            {translate("FirstRate · без заголовка, время по Нью-Йорку")}</option>
         </select>
         <label className="upload-zone" htmlFor="csvFile">
           <span className="upload-symbol">↥</span>
-          <strong>Выбрать CSV</strong>
-          <span>До 250 МБ · до 3 млн свечей · сохранение по месяцам</span>
+          <strong>{translate("Выбрать CSV")}</strong>
+          <span>{translate("До 250 МБ · до 3 млн свечей · сохранение по месяцам")}</span>
           <input
             id="csvFile"
             type="file"
             accept=".csv,.txt,text/csv,text/plain"
           />
         </label>
-        <p className="format-label">Формат данных</p>
+        <p className="format-label">{translate("Формат данных")}</p>
         <pre>
           time,open,high,low,close,volume{"\n"}
           2026-09-21T09:30:00-04:00,21480,21482,21478,21481,530
         </pre>
         <p className="muted dialog-note">
-          time — время открытия: Unix (секунды / миллисекунды) или ISO с часовым
-          поясом. Также принимается ts_event вместо time (включая наносекунды).
-          volume и contract необязательны. Для ролловера добавьте contract
-          (например NQH24 / NQM24); без него смену контракта определить нельзя.
-          Цены кратны 0.25. Даты на сайте — по Нью-Йорку. Используйте один
-          контракт или корректно подготовленную непрерывную серию. Для Databento
-          выбирайте CSV с ценами в пунктах, не в целочисленных единицах 1e-9.
-        </p>
+          {translate("time — время открытия: Unix (секунды / миллисекунды) или ISO с часовым поясом. Также принимается ts_event вместо time (включая наносекунды). volume и contract необязательны. Для ролловера добавьте contract (например NQH24 / NQM24); без него смену контракта определить нельзя. Цены кратны 0.25. Даты на сайте — по Нью-Йорку. Используйте один контракт или корректно подготовленную непрерывную серию. Для Databento выбирайте CSV с ценами в пунктах, не в целочисленных единицах 1e-9.")}</p>
         <button className="text-button" id="sample">
-          Скачать шаблон CSV · синтетический
-        </button>
+          {translate("Скачать шаблон CSV · синтетический")}</button>
         <div id="importError" className="form-error" role="alert" />
         <p className="muted dialog-note">
-          Текущая сессия сохранится. Импорт обновит историю выбранного
-          инструмента.
-        </p>
+          {translate("Текущая сессия сохранится. Импорт обновит историю выбранного инструмента.")}</p>
       </dialog>
       <dialog id="sourceDialog">
         <div className="dialog-header">
-          <h2>Источник данных</h2>
+          <h2>{translate("Источник данных")}</h2>
           <button
             className="icon-button"
             data-close="sourceDialog"
-            aria-label="Закрыть"
+            aria-label={translate("Закрыть")}
           >
             ×
           </button>
@@ -814,17 +783,9 @@ export function ReplayWorkspace() {
         <p className="dialog-intro" id="sourceRange" />
         <div id="providerNotes">
           <p className="dialog-note">
-            Настоящие минутные OHLCV: FirstRate Data via HF Market Data.
-            Встроенное покрытие — 2–31 января 2024. Поставщик HF Market Data
-            сейчас отключён. Этот ранее сохранённый архив доступен; новые даты
-            добавляются через CSV.
-          </p>
+            {translate("Настоящие минутные OHLCV: FirstRate Data via HF Market Data. Встроенное покрытие — 2–31 января 2024. Поставщик HF Market Data сейчас отключён. Этот ранее сохранённый архив доступен; новые даты добавляются через CSV.")}</p>
           <p className="dialog-note">
-            Непрерывная серия: основной контракт, ролловер по объёму, все
-            сессии, без корректировки цены (adjust: none). Код фактического
-            контракта сохранён для каждой свечи. Цены и объёмы не изменялись;
-            пропуски не заполнялись.
-          </p>
+            {translate("Непрерывная серия: основной контракт, ролловер по объёму, все сессии, без корректировки цены (adjust: none). Код фактического контракта сохранён для каждой свечи. Цены и объёмы не изменялись; пропуски не заполнялись.")}</p>
           <p className="dialog-note muted" id="sourceContracts" />
           <div className="contract-specs">
             <a
@@ -833,20 +794,16 @@ export function ReplayWorkspace() {
               target="_blank"
               rel="noopener"
             >
-              HF Market Data · документация источника
-            </a>
+              {translate("HF Market Data · документация источника")}</a>
             <a
               href="https://www.hfmarketdata.io/data-license"
               target="_blank"
               rel="noopener"
             >
-              Лицензия данных и атрибуция
-            </a>
+              {translate("Лицензия данных и атрибуция")}</a>
           </div>
           <p className="dialog-note muted">
-            Market data: FirstRate Data via HF Market Data (hfmarketdata.io). ©
-            FirstRate Data. Для вашего личного использования в приватном сайте.
-          </p>
+            {translate("Market data: FirstRate Data via HF Market Data (hfmarketdata.io). © FirstRate Data. Для вашего личного использования в приватном сайте.")}</p>
         </div>
         <div id="curatedSourceNotes" hidden>
           <p id="curatedSourceSummary" className="dialog-note" />
@@ -857,74 +814,54 @@ export function ReplayWorkspace() {
             target="_blank"
             rel="noopener"
           >
-            Оригинальный источник данных ↗
-          </a>
+            {translate("Оригинальный источник данных ↗")}</a>
         </div>
         <p id="userSourceNote" className="dialog-note" hidden>
-          Данные из загруженного вами CSV. Источник и качество этого файла не
-          проверялись у поставщика.
-        </p>
+          {translate("Данные из загруженного вами CSV. Источник и качество этого файла не проверялись у поставщика.")}</p>
       </dialog>
       <dialog id="historyDialog">
         <div className="dialog-header">
           <div>
             <p className="eyebrow">2024 / 2025 / 2026 · NQ + ES</p>
-            <h2>Реальная история</h2>
+            <h2>{translate("Реальная история")}</h2>
           </div>
           <button
             type="button"
             className="icon-button"
             data-close="historyDialog"
-            aria-label="Закрыть"
+            aria-label={translate("Закрыть")}
           >
             ×
           </button>
         </div>
         <p className="dialog-intro">
-          Доступная история зависит от инструмента и выбранных дат. В форме
-          новой сессии сайт подберёт подходящие архивы автоматически.
-        </p>
+          {translate("Доступная история зависит от инструмента и выбранных дат. В форме новой сессии сайт подберёт подходящие архивы автоматически.")}</p>
         <div className="content-card">
-          <strong>Цена и время проверены</strong>
+          <strong>{translate("Цена и время проверены")}</strong>
           <p className="dialog-note">
-            Проверены порядок времени, шаг цены 0,25, OHLC и повторы. Свечи с
-            временем закрытия переведены ко времени открытия минуты. Цены и
-            объёмы не изменялись. Корректировку цены, частичное покрытие сессий
-            и отсутствие контрактов показываем у соответствующего архива.
-          </p>
+            {translate("Проверены порядок времени, шаг цены 0,25, OHLC и повторы. Свечи с временем закрытия переведены ко времени открытия минуты. Цены и объёмы не изменялись. Корректировку цены, частичное покрытие сессий и отсутствие контрактов показываем у соответствующего архива.")}</p>
         </div>
         <p className="dialog-note">
-          Полные 2024–2025 и 2026 по текущую дату пока доступны не для каждой
-          серии. Наличие месяца означает наличие свечей, а не полный месяц без
-          пропусков. HF Market Data отключён 2 октября 2026; сохранённый январь
-          2024 продолжает работать.
-        </p>
+          {translate("Полные 2024–2025 и 2026 по текущую дату пока доступны не для каждой серии. Наличие месяца означает наличие свечей, а не полный месяц без пропусков. HF Market Data отключён 2 октября 2026; сохранённый январь 2024 продолжает работать.")}</p>
         <div className="contract-specs">
           <a href="https://firstratedata.com/" target="_blank" rel="noopener">
-            FirstRate Data · дополнительные архивы ↗
-          </a>
+            {translate("FirstRate Data · дополнительные архивы ↗")}</a>
           <a href="https://databento.com/" target="_blank" rel="noopener">
-            Databento · контрактные данные ↗
-          </a>
+            {translate("Databento · контрактные данные ↗")}</a>
         </div>
         <p className="dialog-note">
-          Свой CSV: до 250 МБ / 3 млн свечей. Платные данные сайт автоматически
-          не покупает.
-        </p>
+          {translate("Свой CSV: до 250 МБ / 3 млн свечей. Платные данные сайт автоматически не покупает.")}</p>
         <button type="button" className="button primary full" id="historyData">
-          Выбрать даты сессии
-        </button>
+          {translate("Выбрать даты сессии")}</button>
         <button
           type="button"
           className="button secondary full"
           id="historyImport"
         >
-          Добавить свой CSV
-        </button>
+          {translate("Добавить свой CSV")}</button>
       </dialog>
       <button id="importOpen" type="button" hidden>
-        Импорт CSV
-      </button>
+        {translate("Импорт CSV")}</button>
       <dialog id="settingsDialog" className="tv-settings" />
       <dialog id="tradeDetailDialog" className="trade-detail-dialog" />
       <div
@@ -934,7 +871,7 @@ export function ReplayWorkspace() {
         aria-live="polite"
         hidden
       />
-      <noscript>Для replay включите JavaScript.</noscript>
+      <noscript>{translate("Для replay включите JavaScript.")}</noscript>
     </>
   );
 }

@@ -1,3 +1,4 @@
+import { t as translate, locale } from "../i18n/language";
 const NY = "America/New_York";
 const nyDate = new Intl.DateTimeFormat("en-CA", {
   timeZone: NY,
@@ -5,7 +6,7 @@ const nyDate = new Intl.DateTimeFormat("en-CA", {
   month: "2-digit",
   day: "2-digit",
 });
-const nyTime = new Intl.DateTimeFormat("ru-RU", {
+const nyTime = new Intl.DateTimeFormat(locale(), {
   timeZone: NY,
   day: "2-digit",
   month: "2-digit",
@@ -18,12 +19,12 @@ const usd = new Intl.NumberFormat("en-US", {
   currency: "USD",
   maximumFractionDigits: 2,
 });
-const monthFormat = new Intl.DateTimeFormat("ru-RU", {
+const monthFormat = new Intl.DateTimeFormat(locale(), {
   timeZone: "UTC",
   year: "numeric",
   month: "long",
 });
-const weekdays = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+const weekdays = [translate("Вс"), translate("Пн"), translate("Вт"), translate("Ср"), translate("Чт"), translate("Пт"), translate("Сб")];
 let renderId = 0;
 
 const escapeHTML = (value: any) =>
@@ -247,7 +248,7 @@ export function analyzeTrades(trades: any, { capital = 50000 }: any = {}) {
       id,
       name:
         text(strategyRows[0].trade.strategyName) ||
-        (id ? "Стратегия " + id : "Без стратегии"),
+        (id ? translate("Стратегия ") + id : translate("Без стратегии")),
       ...summarize(strategyRows),
     }),
   ).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
@@ -294,7 +295,7 @@ export function filterTrades(
   trades: any,
   { symbol, from, to, strategyId, tag, search, sessionId }: any = {},
 ) {
-  const needle = text(search).trim().toLocaleLowerCase("ru-RU");
+  const needle = text(search).trim().toLocaleLowerCase(locale());
   const fromDay = validDay(from) ? from : null,
     toDay = validDay(to) ? to : null;
   if (
@@ -322,8 +323,8 @@ export function filterTrades(
         !any(tag) &&
         !tags.some(
           (value: any) =>
-            value.toLocaleLowerCase("ru-RU") ===
-            text(tag).toLocaleLowerCase("ru-RU"),
+            value.toLocaleLowerCase(locale()) ===
+            text(tag).toLocaleLowerCase(locale()),
         )
       )
         return false;
@@ -343,7 +344,7 @@ export function filterTrades(
         ]
           .map(text)
           .join(" ")
-          .toLocaleLowerCase("ru-RU");
+          .toLocaleLowerCase(locale());
         if (!haystack.includes(needle)) return false;
       }
       return true;
@@ -591,8 +592,8 @@ function graph(points: any, field: any, id: any, emptyText: any) {
     id +
     '-title">' +
     (field === "drawdown"
-      ? "Просадка по закрытым сделкам в долларах"
-      : "Баланс после каждой закрытой сделки в долларах") +
+      ? translate("Просадка по закрытым сделкам в долларах")
+      : translate("Баланс после каждой закрытой сделки в долларах")) +
     '</title><defs><linearGradient id="' +
     id +
     '-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="currentColor" stop-opacity=".18"/><stop offset="100%" stop-color="currentColor" stop-opacity=".015"/></linearGradient></defs>' +
@@ -622,7 +623,7 @@ function breakdown(title: any, subtitle: any, rows: any, labelKey: any) {
     subtitle +
     "</p></div></header>" +
     (rows.length
-      ? '<div class="an-table-scroll"><table class="an-table"><thead><tr><th>Группа</th><th>Сделки</th><th>Win rate</th><th>Avg R</th><th>Net P&L</th></tr></thead><tbody>' +
+      ? translate('<div class="an-table-scroll"><table class="an-table"><thead><tr><th>Группа</th><th>Сделки</th><th>Win rate</th><th>Avg R</th><th>Net P&L</th></tr></thead><tbody>') +
         rows
           .map(
             (row: any) =>
@@ -647,7 +648,7 @@ function breakdown(title: any, subtitle: any, rows: any, labelKey: any) {
           )
           .join("") +
         "</tbody></table></div>"
-      : '<p class="an-empty-small">Здесь появятся результаты закрытых сделок.</p>') +
+      : translate('<p class="an-empty-small">Здесь появятся результаты закрытых сделок.</p>')) +
     "</section>"
   );
 }
@@ -706,7 +707,7 @@ function renderCalendar(
           date +
           ", " +
           result.count +
-          " сделок, " +
+          translate(" сделок, ") +
           escapeHTML(money(result.net)) +
           '"><span>' +
           day +
@@ -716,21 +717,21 @@ function renderCalendar(
           result.count +
           " " +
           (result.count === 1
-            ? "сделка"
+            ? translate("сделка")
             : result.count > 1 && result.count < 5
-              ? "сделки"
-              : "сделок") +
+              ? translate("сделки")
+              : translate("сделок")) +
           "</small></button>"
         );
       },
     ).join("");
     container.innerHTML =
-      '<header class="an-card-header an-calendar-header"><div><h3>Календарь результатов</h3><p>День закрытия · New York</p></div><div class="an-month-nav"><button type="button" data-month-step="-1" aria-label="Предыдущий месяц">‹</button><strong>' +
+      translate('<header class="an-card-header an-calendar-header"><div><h3>Календарь результатов</h3><p>День закрытия · New York</p></div><div class="an-month-nav"><button type="button" data-month-step="-1" aria-label="Предыдущий месяц">‹</button><strong>') +
       escapeHTML(monthFormat.format(first)) +
-      '</strong><button type="button" data-month-step="1" aria-label="Следующий месяц">›</button></div></header><div class="an-month-summary"><span>' +
+      translate('</strong><button type="button" data-month-step="1" aria-label="Следующий месяц">›</button></div></header><div class="an-month-summary"><span>') +
       (count
-        ? count + " закрытых сделок"
-        : "Нет закрытых сделок в этом месяце") +
+        ? count + translate(" закрытых сделок")
+        : translate("Нет закрытых сделок в этом месяце")) +
       "</span>" +
       (count
         ? '<strong class="' +
@@ -740,7 +741,7 @@ function renderCalendar(
           "</strong>"
         : "") +
       '</div><div class="an-calendar-grid">' +
-      ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
+      [translate("Пн"), translate("Вт"), translate("Ср"), translate("Чт"), translate("Пт"), translate("Сб"), translate("Вс")]
         .map((day) => '<span class="an-calendar-weekday">' + day + "</span>")
         .join("") +
       cells +
@@ -775,7 +776,7 @@ function renderCalendar(
         details.innerHTML =
           '<div class="an-day-detail-header"><strong>' +
           date.split("-").reverse().join(".") +
-          '</strong><button type="button" aria-label="Закрыть сделки дня">×</button></div><div class="an-table-scroll"><table class="an-table"><thead><tr><th>Инструмент</th><th>Направление</th><th>Время NY</th><th>Net P&L</th></tr></thead><tbody>' +
+          translate('</strong><button type="button" aria-label="Закрыть сделки дня">×</button></div><div class="an-table-scroll"><table class="an-table"><thead><tr><th>Инструмент</th><th>Направление</th><th>Время NY</th><th>Net P&L</th></tr></thead><tbody>') +
           rows
             .map(
               (trade) =>
@@ -824,62 +825,62 @@ export function renderAnalytics(
     analysis.avgHoldMinutes === null
       ? "—"
       : analysis.avgHoldMinutes < 60
-        ? decimal(analysis.avgHoldMinutes, 1) + " мин"
-        : decimal(analysis.avgHoldMinutes / 60, 1) + " ч";
+        ? decimal(analysis.avgHoldMinutes, 1) + translate(" мин")
+        : decimal(analysis.avgHoldMinutes / 60, 1) + translate(" ч");
   const winDetail = empty
-    ? "После закрытия первой сделки"
-    : analysis.wins + " прибыльных / " + analysis.losses + " убыточных";
+    ? translate("После закрытия первой сделки")
+    : analysis.wins + translate(" прибыльных / ") + analysis.losses + translate(" убыточных");
   container.innerHTML =
-    '<div class="an-root"><div class="an-overview"><div><span class="an-eyebrow">PERFORMANCE</span><h2>Аналитика торговли</h2><p>' +
+    translate('<div class="an-root"><div class="an-overview"><div><span class="an-eyebrow">PERFORMANCE</span><h2>Аналитика торговли</h2><p>') +
     (empty
-      ? "Ваши решения, измеренные в результатах."
+      ? translate("Ваши решения, измеренные в результатах.")
       : analysis.count +
-        " закрытых сделок · " +
+        translate(" закрытых сделок · ") +
         analysis.firstDate +
         " — " +
         analysis.lastDate) +
-    '</p></div><span class="an-scope">Закрытые сделки · USD</span></div>' +
+    translate('</p></div><span class="an-scope">Закрытые сделки · USD</span></div>') +
     (empty
-      ? '<div class="an-empty-state"><span class="an-empty-icon">↗</span><div><h3>Пока нет закрытых сделок</h3><p>Откройте сессию, проведите сделку и закройте позицию. Здесь появятся реальные результаты вашего бэктеста.</p></div></div>'
+      ? translate('<div class="an-empty-state"><span class="an-empty-icon">↗</span><div><h3>Пока нет закрытых сделок</h3><p>Откройте сессию, проведите сделку и закройте позицию. Здесь появятся реальные результаты вашего бэктеста.</p></div></div>')
       : "") +
     '<div class="an-stats">' +
     stat(
       "Net P&L",
       empty ? "—" : escapeHTML(signedMoney(analysis.net)),
-      empty ? "Нет результатов" : "После торговых издержек",
+      empty ? translate("Нет результатов") : translate("После торговых издержек"),
       tone(analysis.net),
     ) +
     stat("Win rate", percent(analysis.winRate), winDetail) +
-    stat("Profit factor", decimal(analysis.pf), "Прибыль / абсолютный убыток") +
+    stat("Profit factor", decimal(analysis.pf), translate("Прибыль / абсолютный убыток")) +
     stat(
       "Expectancy",
       escapeHTML(money(analysis.expectancy)),
-      "Средний net P&L на сделку",
+      translate("Средний net P&L на сделку"),
       tone(analysis.expectancy),
     ) +
     stat(
-      "Средний R",
+      translate("Средний R"),
       decimal(analysis.avgR) + (analysis.avgR === null ? "" : "R"),
-      analysis.rCount + " сделок с известным риском",
+      analysis.rCount + translate(" сделок с известным риском"),
     ) +
     stat(
-      "Макс. просадка",
+      translate("Макс. просадка"),
       empty ? "—" : escapeHTML(money(analysis.maxClosedDrawdown)),
-      "Только по закрытым сделкам",
+      translate("Только по закрытым сделкам"),
       empty ? "" : "an-negative",
     ) +
-    '</div><div class="an-secondary-stats"><span>Сделок <strong>' +
+    translate('</div><div class="an-secondary-stats"><span>Сделок <strong>') +
     analysis.count +
-    "</strong></span><span>Среднее удержание <strong>" +
+    translate("</strong></span><span>Среднее удержание <strong>") +
     avgHold +
-    "</strong></span><span>Серия побед <strong>" +
+    translate("</strong></span><span>Серия побед <strong>") +
     analysis.maxWinStreak +
-    "</strong></span><span>Серия убытков <strong>" +
+    translate("</strong></span><span>Серия убытков <strong>") +
     analysis.maxLossStreak +
-    "</strong></span><span>Безубыток <strong>" +
+    translate("</strong></span><span>Безубыток <strong>") +
     analysis.breakeven +
     "</strong></span></div>" +
-    '<div class="an-chart-grid"><section class="an-card"><header class="an-card-header"><div><h3>Кривая капитала</h3><p>Стартовый капитал ' +
+    translate('<div class="an-chart-grid"><section class="an-card"><header class="an-card-header"><div><h3>Кривая капитала</h3><p>Стартовый капитал ') +
     escapeHTML(money(analysis.capital)) +
     '</p></div><strong class="an-chart-total">' +
     (empty ? "—" : escapeHTML(money(analysis.endingBalance))) +
@@ -888,9 +889,9 @@ export function renderAnalytics(
       analysis.equity,
       "balance",
       id + "-equity",
-      "Баланс появится после закрытия сделки",
+      translate("Баланс появится после закрытия сделки"),
     ) +
-    '</section><section class="an-card"><header class="an-card-header"><div><h3>Просадка</h3><p>От максимума закрытого баланса</p></div><strong class="an-chart-total ' +
+    translate('</section><section class="an-card"><header class="an-card-header"><div><h3>Просадка</h3><p>От максимума закрытого баланса</p></div><strong class="an-chart-total ') +
     (empty ? "" : "an-negative") +
     '">' +
     (empty ? "—" : "−" + escapeHTML(money(analysis.maxClosedDrawdown))) +
@@ -899,32 +900,32 @@ export function renderAnalytics(
       analysis.equity,
       "drawdown",
       id + "-drawdown",
-      "Просадка появится после закрытия сделки",
+      translate("Просадка появится после закрытия сделки"),
     ) +
     "</section></div>" +
     '<section class="an-card an-calendar"></section><div class="an-breakdown-grid">' +
     breakdown(
-      "По инструментам",
-      "Где формируется ваш результат",
+      translate("По инструментам"),
+      translate("Где формируется ваш результат"),
       analysis.symbols,
       "symbol",
     ) +
     breakdown(
-      "По дням недели",
-      "День закрытия сделки в New York",
+      translate("По дням недели"),
+      translate("День закрытия сделки в New York"),
       analysis.weekdays,
       "label",
     ) +
     "</div>" +
     breakdown(
-      "По стратегиям",
-      "Сравнение сетапов по реальным сделкам",
+      translate("По стратегиям"),
+      translate("Сравнение сетапов по реальным сделкам"),
       analysis.strategies,
       "name",
     ) +
-    '<p class="an-method-note">Win rate включает все закрытые сделки. Средний R исключает сделки без сохранённого начального риска. Просадка не отражает плавающий P&L внутри открытой позиции.' +
+    translate('<p class="an-method-note">Win rate включает все закрытые сделки. Средний R исключает сделки без сохранённого начального риска. Просадка не отражает плавающий P&L внутри открытой позиции.') +
     (analysis.skipped
-      ? " Не включено незакрытых или некорректных записей: " +
+      ? translate(" Не включено незакрытых или некорректных записей: ") +
         analysis.skipped +
         "."
       : "") +

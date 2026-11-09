@@ -1,3 +1,4 @@
+import { t as translate } from "../i18n/language";
 import { element as $ } from "./dom";
 import {
   defaults,
@@ -398,7 +399,7 @@ export function createChartSettings({
     try {
       localStorage.setItem("replay-lab-chart-v3", JSON.stringify(prefs));
     } catch {
-      toast("Не удалось сохранить настройки. Они действуют до перезагрузки.");
+      toast(translate("Не удалось сохранить настройки. Они действуют до перезагрузки."));
     }
     baseline = structuredClone(prefs);
     return true;
@@ -417,7 +418,7 @@ export function createChartSettings({
     if (save()) close(false);
   };
   $("settingsApply").onclick = () => {
-    if (save()) toast("Настройки применены к NQ и ES в этом браузере.");
+    if (save()) toast(translate("Настройки применены к NQ и ES в этом браузере."));
   };
   dialog.addEventListener("cancel", (e) => {
     e.preventDefault();
@@ -766,9 +767,9 @@ export function createChartSettings({
     if (action === "save")
       try {
         localStorage.setItem("replay-lab-template", JSON.stringify(prefs));
-        toast("Шаблон сохранён в этом браузере.");
+        toast(translate("Шаблон сохранён в этом браузере."));
       } catch {
-        toast("Не удалось сохранить шаблон.");
+        toast(translate("Не удалось сохранить шаблон."));
       }
     if (action === "load")
       try {
@@ -776,9 +777,9 @@ export function createChartSettings({
           localStorage.getItem("replay-lab-template") || "null",
         );
         if (saved) replace(saved);
-        else toast("Сначала сохраните шаблон.");
+        else toast(translate("Сначала сохраните шаблон."));
       } catch {
-        toast("Не удалось прочитать шаблон.");
+        toast(translate("Не удалось прочитать шаблон."));
       }
     if (action === "export") {
       const url = URL.createObjectURL(
@@ -808,7 +809,7 @@ export function createChartSettings({
     const file = $("chartTemplateFile").files[0];
     if (!file) return;
     try {
-      if (file.size > 100000) throw Error("Шаблон больше 100 КБ.");
+      if (file.size > 100000) throw Error(translate("Шаблон больше 100 КБ."));
       const saved = JSON.parse(await file.text());
       if (
         saved.replayLabChartSettings !== 1 ||
@@ -816,10 +817,10 @@ export function createChartSettings({
         typeof saved.preferences !== "object"
       )
         throw Error(
-          "Нужен шаблон Replay Lab JSON. Экспорт аккаунта TradingView не поддерживается.",
+          translate("Нужен шаблон Replay Lab JSON. Экспорт аккаунта TradingView не поддерживается."),
         );
       replace(saved.preferences);
-      toast("Шаблон загружен. Нажмите Ok для сохранения.");
+      toast(translate("Шаблон загружен. Нажмите Ok для сохранения."));
     } catch (e) {
       toast(e.message);
     }

@@ -1,4 +1,6 @@
 "use client";
+import { t as translate } from "../src/i18n/language";
+import { useLanguage } from "../src/i18n/use-language";
 import { createContext, useContext, useEffect, useState, useRef } from "react";
 import {
   ensureSession,
@@ -14,6 +16,7 @@ type User = {
 const UpdateUserContext = createContext<(user: User) => void>(() => {});
 const UserContext = createContext<User | null>(null);
 export function AuthBoundary({ children }: { children: React.ReactNode }) {
+  useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -47,14 +50,15 @@ export function AuthBoundary({ children }: { children: React.ReactNode }) {
       <main className="auth-page">
         <p>
           {failed
-            ? "Unable to reach the server. Please reload."
-            : "Loading your workspace…"}
+            ? translate("Сервер недоступен. Обновите страницу.")
+            : translate("Загрузка рабочего пространства…")}
         </p>
       </main>
     );
   return <UserContext.Provider value={user}><UpdateUserContext.Provider value={setUser}>{children}</UpdateUserContext.Provider></UserContext.Provider>;
 }
 export function AccountMenu() {
+  useLanguage();
   const user = useContext(UserContext);
   const updateUser = useContext(UpdateUserContext);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -64,7 +68,7 @@ export function AccountMenu() {
   return (
     <>
       <button type="button" className="account-menu profile-trigger"
-        aria-label="Настройки профиля" aria-haspopup="dialog"
+        aria-label={translate("Настройки профиля")} aria-haspopup="dialog"
         onClick={() => {
           setName(user?.displayName || "");
           setMessage("");
@@ -76,8 +80,8 @@ export function AccountMenu() {
       </button>
       <dialog ref={dialog} className="profile-settings" aria-labelledby="profile-title">
         <div className="dialog-header">
-          <h2 id="profile-title">Настройки профиля</h2>
-          <button type="button" className="icon-button" aria-label="Закрыть настройки профиля"
+          <h2 id="profile-title">{translate("Настройки профиля")}</h2>
+          <button type="button" className="icon-button" aria-label={translate("Закрыть настройки профиля")}
             onClick={() => dialog.current?.close()}>×</button>
         </div>
         <form onSubmit={async (event) => {
@@ -90,24 +94,24 @@ export function AccountMenu() {
               body: JSON.stringify({ displayName: name }),
             });
             const result = await response.json();
-            if (!response.ok) throw new Error(result.message || "Не удалось сохранить профиль.");
+            if (!response.ok) throw new Error(result.message || translate("Не удалось сохранить профиль."));
             updateUser(result);
             setName(result.displayName);
-            setMessage("Изменения сохранены.");
+            setMessage(translate("Изменения сохранены."));
           } catch (error) {
-            setMessage(error instanceof Error ? error.message : "Не удалось сохранить профиль.");
+            setMessage(error instanceof Error ? error.message : translate("Не удалось сохранить профиль."));
           } finally { setBusy(false); }
         }}>
-          <label htmlFor="profile-name">Отображаемое имя</label>
+          <label htmlFor="profile-name">{translate("Отображаемое имя")}</label>
           <input id="profile-name" value={name} onChange={(e) => setName(e.target.value)}
             required maxLength={100} autoComplete="name" disabled={busy} />
           <dl className="profile-details">
-            <div><dt>Логин</dt><dd>{user?.username || "—"}</dd></div>
+            <div><dt>{translate("Логин")}</dt><dd>{user?.username || "—"}</dd></div>
             <div><dt>Email</dt><dd>{user?.email || "—"}</dd></div>
           </dl>
           <p role="status" className="profile-message">{message}</p>
           <button type="submit" className="button primary full" disabled={busy || !name.trim()}>
-            {busy ? "Сохранение…" : "Сохранить изменения"}
+            {busy ? translate("Сохранение…") : translate("Сохранить изменения")}
           </button>
         </form>
       </dialog>

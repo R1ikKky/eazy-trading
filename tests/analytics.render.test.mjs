@@ -1,6 +1,9 @@
+import {setLanguage} from "../frontend/src/i18n/language.ts";
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { renderAnalytics } from '../frontend/src/replay/analytics.ts';
+
+setLanguage("ru");
 
 // The renderer uses only its supplied container: it also works without a global document.
 function container() {

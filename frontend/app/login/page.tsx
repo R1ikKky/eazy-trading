@@ -1,7 +1,10 @@
 "use client";
+import {t as translate} from "../../src/i18n/language";
+import {useLanguage} from "../../src/i18n/use-language";
 import { useEffect, useState } from "react";
 import { setUserScope } from "../../src/auth/session";
 export default function Login() {
+  useLanguage();
   const [register, setRegister] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -15,20 +18,20 @@ export default function Login() {
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setProviders)
       .catch(() =>
-        setError("Unable to load sign-in options. Reload to try again."),
+        setError(translate("Не удалось загрузить способы входа. Обновите страницу.")),
       );
     const params = new URLSearchParams(location.search);
     if (params.has("error")) {
       const messages: Record<string, string> = {
         ACCOUNT_EXISTS:
-          "An account with this email already exists. Sign in using its original method. Google and GitHub accounts are not linked automatically.",
+          translate("Аккаунт с этим email уже существует. Используйте исходный способ входа. Аккаунты Google и GitHub не объединяются автоматически."),
         REGISTRATION_DISABLED:
-          "New accounts are currently disabled. Sign in with an existing account or ask the site owner to enable registration.",
-        ACCESS_DENIED: "This email is not permitted to access this site.",
+          translate("Регистрация отключена. Войдите в существующий аккаунт или обратитесь к владельцу сайта."),
+        ACCESS_DENIED: translate("Этот email не имеет доступа к сайту."),
       };
       setError(
         messages[params.get("reason") || ""] ||
-          "Social sign-in could not be completed. Please try again. If it continues, contact the site owner.",
+          translate("Не удалось войти через внешний сервис. Повторите попытку или обратитесь к владельцу сайта."),
       );
     }
   }, []);
@@ -45,8 +48,8 @@ export default function Login() {
             replay<span className="auth-brand-light">lab</span>
           </span>
         </a>
-        <h1>{register ? "Create an account" : "Welcome back"}</h1>
-        <p className="oauth-label">Login with</p>
+        <h1>{register ? translate("Создать аккаунт") : translate("С возвращением")}</h1>
+        <p className="oauth-label">{translate("Войти через")}</p>
         <div className="oauth-buttons">
           {(["google", "github"] as const).map((provider) => (
             <button
@@ -54,12 +57,12 @@ export default function Login() {
               type="button"
               aria-label={
                 provider === "google"
-                  ? "Continue with Google"
-                  : "Continue with GitHub"
+                  ? translate("Продолжить с Google")
+                  : translate("Продолжить с GitHub")
               }
               disabled={!providers[provider] || busy}
               title={
-                providers[provider] ? "" : "This sign-in method is unavailable"
+                providers[provider] ? "" : translate("Этот способ входа недоступен")
               }
               onClick={() => location.assign(`/api/auth/${provider}/start`)}
             >
@@ -126,11 +129,11 @@ export default function Login() {
               );
               const result = await response.json();
               if (!response.ok)
-                throw Error(result.message || "Sign-in failed.");
+                throw Error(result.message || translate("Ошибка входа."));
               setUserScope(result.user.id);
               location.assign("/");
             } catch (e) {
-              setError(e instanceof Error ? e.message : "Unable to sign in.");
+              setError(e instanceof Error ? e.message : translate("Не удалось войти."));
               setBusy(false);
             }
           }}
@@ -138,8 +141,7 @@ export default function Login() {
           {register ? (
             <>
               <label>
-                Username
-                <input
+                {translate("Имя пользователя")}<input
                   name="username"
                   autoComplete="username"
                   required
@@ -161,9 +163,8 @@ export default function Login() {
             </>
           ) : (
             <label>
-              Username or email
-              <input
-                placeholder="Username or email"
+              {translate("Имя пользователя или email")}<input
+                placeholder={translate("Имя пользователя или email")}
                 name="login"
                 autoComplete="username"
                 required
@@ -172,10 +173,9 @@ export default function Login() {
             </label>
           )}
           <label>
-            Password
-            <input
+            {translate("Пароль")}<input
               placeholder={
-                register ? "At least 12 characters" : "Enter your password"
+                register ? translate("Минимум 12 символов") : translate("Введите пароль")
               }
               name="password"
               type="password"
@@ -188,8 +188,8 @@ export default function Login() {
           {register && (
             <p className="auth-help">
               {providers.registration
-                ? "Use at least 12 characters."
-                : "Account registration is currently closed."}
+                ? translate("Используйте минимум 12 символов.")
+                : translate("Регистрация аккаунтов сейчас закрыта.")}
             </p>
           )}
           <p role="alert" className="auth-error">
@@ -200,7 +200,7 @@ export default function Login() {
             type="submit"
             disabled={busy || (register && !providers.registration)}
           >
-            {busy ? "Please wait…" : register ? "Create account" : "Sign in"}
+            {busy ? translate("Подождите…") : register ? translate("Создать аккаунт сейчас") : translate("Войти")}
           </button>
         </form>
         {
@@ -214,8 +214,8 @@ export default function Login() {
             }}
           >
             {register
-              ? "Already have an account? Sign in"
-              : "Create an account"}
+              ? translate("Уже есть аккаунт? Войти")
+              : translate("Создать аккаунт")}
           </button>
         }
       </section>

@@ -1,3 +1,4 @@
+import { tr, t as translate } from "../i18n/language";
 import { drawingTool } from "./drawing-catalog";
 export const FIB_LEVELS = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1, 1.272, 1.618];
 export function anchoredVWAP(bars: any[], start: number, now: number) {
@@ -163,7 +164,7 @@ export function renderDrawing(d: any, group: SVGGElement, ctx: any) {
   const timeLabel = () => {
     const mins =
       Math.abs((bPoint.time || source[0].time) - source[0].time) / 60;
-    return `${Math.round(mins)} мин`;
+    return tr`${Math.round(mins)} мин`;
   };
   if (
     ["trend", "info-line", "angle", "trend-ray", "extended"].includes(d.type)
@@ -190,7 +191,7 @@ export function renderDrawing(d: any, group: SVGGElement, ctx: any) {
       label(
         a.x + 40,
         a.y - 8,
-        `${((-Math.atan2(dy, dx) * 180) / Math.PI).toFixed(1)}° · экран`,
+        tr`${((-Math.atan2(dy, dx) * 180) / Math.PI).toFixed(1)}° · экран`,
       );
     }
     return;
@@ -365,10 +366,10 @@ export function renderDrawing(d: any, group: SVGGElement, ctx: any) {
       a.y - 8,
       valid
         ? `${d.type === "long-position" ? "Long" : "Short"} · R:R ${risk ? (reward / risk).toFixed(2) : "—"}`
-        : "Проверьте порядок входа, стопа и цели",
+        : translate("Проверьте порядок входа, стопа и цели"),
     );
-    label(a.x + 6, stop + 15, `Стоп ${bPoint.price.toFixed(2)}`);
-    label(a.x + 6, target - 6, `Цель ${cPoint.price.toFixed(2)}`);
+    label(a.x + 6, stop + 15, tr`Стоп ${bPoint.price.toFixed(2)}`);
+    label(a.x + 6, target - 6, tr`Цель ${cPoint.price.toFixed(2)}`);
     return;
   }
   if (d.type === "forecast" || d.type === "projection") {
@@ -384,7 +385,7 @@ export function renderDrawing(d: any, group: SVGGElement, ctx: any) {
     } else {
       arrow(a, b);
       arrow(b, c);
-      label(c.x + 5, c.y - 8, "Сценарий");
+      label(c.x + 5, c.y - 8, translate("Сценарий"));
     }
     return;
   }
@@ -410,7 +411,7 @@ export function renderDrawing(d: any, group: SVGGElement, ctx: any) {
         line(cl.x, cl.y, cl.x + 3, cl.y);
       }
     }
-    label(c.x, c.y - 15, "Копия баров · не прогноз");
+    label(c.x, c.y - 15, translate("Копия баров · не прогноз"));
     return;
   }
   if (d.type === "vwap") {
@@ -461,7 +462,7 @@ export function renderDrawing(d: any, group: SVGGElement, ctx: any) {
     const py = coordinates({ time: source[0].time, price: poc.price }).y;
     if (py != null)
       line(Math.min(a.x, b.x), py, right, py, { "stroke-dasharray": "4 4" });
-    label(right - span, a.y - 15, "Профиль OHLCV · оценка");
+    label(right - span, a.y - 15, translate("Профиль OHLCV · оценка"));
     return;
   }
   if (

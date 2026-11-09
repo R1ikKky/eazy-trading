@@ -1,3 +1,4 @@
+import {setLanguage} from "../frontend/src/i18n/language.ts";
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -5,6 +6,8 @@ import {curatedArchives,readCuratedDataset,decodeCuratedPart,isSupersededCurated
 import {Replay,dayKey} from '../frontend/src/replay/engine.ts';
 import {WorkspaceStore,blankWorkspace} from '../frontend/src/replay/workspace-store.ts';
 import {validateWorkspace} from '../frontend/src/replay/workspace-validation.ts';
+
+setLanguage('ru');
 
 test('shipped real archives decode exactly, preserve prices and replay across actual contracts',async()=>{
  assert.ok(curatedArchives.length>=2);

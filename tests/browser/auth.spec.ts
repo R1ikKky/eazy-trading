@@ -49,10 +49,10 @@ test("password signup, private workspace, automatic refresh, logout and login", 
   )!.value;
   expect(refreshAfter).not.toBe(refreshBefore);
   await expect(page.getByRole("button", { name: "Sign out", exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: "Настройки профиля", exact: true }).click();
-  await page.getByLabel("Отображаемое имя", { exact: true }).fill("Profile test name");
-  await page.getByRole("button", { name: "Сохранить изменения", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Изменения сохранены." })).toBeVisible();
+  await page.getByRole("button", { name: "Profile settings", exact: true }).click();
+  await page.getByLabel("Display name", { exact: true }).fill("Profile test name");
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Changes saved." })).toBeVisible();
   expect((await (await page.request.get("/api/auth/me")).json()).displayName).toBe("Profile test name");
   expect((await page.request.patch("/api/auth/me", {
     headers: { origin: base }, data: { displayName: "" },
@@ -60,7 +60,7 @@ test("password signup, private workspace, automatic refresh, logout and login", 
   expect((await page.request.patch("/api/auth/me", {
     headers: { origin: base }, data: { displayName: "Other", email: "changed@example.test" },
   })).status()).toBe(400);
-  await page.getByRole("button", { name: "Закрыть настройки профиля", exact: true }).click();
+  await page.getByRole("button", { name: "Close profile settings", exact: true }).click();
   await expect(page.locator(".profile-trigger")).toHaveText("P");
   await page.reload();
   await expect(page.locator(".profile-trigger")).toHaveText("P");

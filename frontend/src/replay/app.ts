@@ -1,3 +1,4 @@
+import { t as translate, locale } from "../i18n/language";
 import { createFootprint } from "./footprint";
 import { ACCOUNT_DEPOSITS } from "./account-deposits";
 import type { Instrument } from "./types";
@@ -33,7 +34,7 @@ const price = (v: any) => {
     maximumFractionDigits: digits,
   });
 };
-const nyTime = new Intl.DateTimeFormat("ru-RU", {
+const nyTime = new Intl.DateTimeFormat(locale(), {
   timeZone: "America/New_York",
   day: "2-digit",
   month: "2-digit",
@@ -59,7 +60,7 @@ let displayTime = nyTime,
 function chartPreferenceChanged(p: any) {
   product?.preferencesChanged(p);
   comparison?.render();
-  displayTime = new Intl.DateTimeFormat("ru-RU", {
+  displayTime = new Intl.DateTimeFormat(locale(), {
     timeZone: p.timezone,
     day: "2-digit",
     month: "2-digit",
@@ -90,7 +91,7 @@ function chartPreferenceChanged(p: any) {
   }
 }
 const dateText = (s: any) =>
-  new Date(s + "T12:00:00Z").toLocaleDateString("ru-RU", {
+  new Date(s + "T12:00:00Z").toLocaleDateString(locale(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -145,7 +146,7 @@ let symbol: any = "NQ",
   activeSession: any = loadSettings().session,
   lastChartSession = activeSession;
 function toast(message: any) {
-  $("toast").textContent = message;
+  $("toast").textContent = translate(String(message));
   $("toast").hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => ($("toast").hidden = true), 5000);
@@ -158,6 +159,7 @@ function guard(action: any) {
     return false;
   }
 }
+window.addEventListener("language-will-change", () => pause());
 function pause() {
   if (timer) clearInterval(timer);
   timer = null;
@@ -166,13 +168,13 @@ function pause() {
 function syncPlayback() {
   if (!replay) return;
   $("playIcon").textContent = timer ? "Ⅱ" : "▶";
-  $("playLabel").textContent = timer ? "Пауза" : "Replay";
-  $("play").setAttribute("aria-label", timer ? "Пауза" : "Воспроизвести");
+  $("playLabel").textContent = timer ? translate("Пауза") : "Replay";
+  $("play").setAttribute("aria-label", timer ? translate("Пауза") : translate("Воспроизвести"));
   $("chartStatus").textContent = replay.ended
-    ? "ЗАВЕРШЕНО"
+    ? translate("ЗАВЕРШЕНО")
     : timer
       ? "REPLAY"
-      : "ПАУЗА";
+      : translate("ПАУЗА");
   $("play").disabled = replay.ended || !chart;
   $("step").disabled = replay.ended || !chart;
 }
@@ -188,7 +190,7 @@ function togglePlay() {
 }
 function initChart() {
   const L = window.LightweightCharts;
-  if (!L) throw Error("Библиотека графика не загрузилась.");
+  if (!L) throw Error(translate("Библиотека графика не загрузилась."));
   chart = L.createChart($("chart"), {
     autoSize: true,
     layout: {
@@ -212,7 +214,7 @@ function initChart() {
       tickMarkFormatter: (t) => nyClock.format(new Date(t * 1000)),
     },
     localization: {
-      locale: "ru-RU",
+      locale: locale(),
       timeFormatter: (t) => nyTime.format(new Date(t * 1000)) + " ET",
     },
     crosshair: {
@@ -444,7 +446,7 @@ function startSession(
       snapshot: replay.snapshot(),
       name:
         options.name ||
-        (options.record ? options.record.name + " · повтор" : s + " · " + a),
+        (options.record ? options.record.name + translate(" · повтор") : s + " · " + a),
       capital: options.capital || options.record?.capital || 50000,
       strategyId: options.strategyId || options.record?.strategyId || "",
     });
@@ -452,7 +454,7 @@ function startSession(
   $("contractName").textContent = contracts[symbol].name;
   $("rangeLabel").textContent = dateText(from) + " — " + dateText(to);
   $("tickInfo").textContent =
-    "1 тик = " + money(contracts[symbol].point * 0.25);
+    translate("1 тик = ") + money(contracts[symbol].point * 0.25);
   if (tools && tools.preferences.session !== session) {
     lastChartSession = session;
     tools.updatePreferences({ session });
@@ -467,7 +469,7 @@ async function activateRecord(
   rerun = false,
   discardCurrent = false,
 ) {
-  if (!record) throw Error("Сессия не найдена");
+  if (!record) throw Error(translate("Сессия не найдена"));
   pause();
   let d = datasetMap.get(record.datasetId);
   if (d?.archive) d = null;
@@ -512,7 +514,7 @@ function assertDatasetSymbol(data: any, id: any, expected: any) {
   const actual =
     data.symbol || product.store.value.settings.datasets?.[id]?.symbol;
   if (actual !== expected)
-    throw Error("История второго инструмента не соответствует " + expected);
+    throw Error(translate("История второго инструмента не соответствует ") + expected);
 }
 async function loadHistoryById(id: any, a: any, b: any) {
   let d = datasetMap.get(id);
@@ -543,7 +545,7 @@ async function openDataset(id: any) {
     return;
   }
   const entry = product.store.value.settings.datasets?.[id];
-  if (!entry) throw Error("Исторические данные не найдены");
+  if (!entry) throw Error(translate("Исторические данные не найдены"));
   openSetup(entry.symbol, id);
 }
 async function loadComparisonData() {
@@ -658,39 +660,39 @@ function openSource() {
   const d = datasets[symbol],
     curated = isCuratedDataset(d.id),
     meta = d.metadata || {};
-  $("sourceName").textContent = d.name || "Ваш CSV";
+  $("sourceName").textContent = d.name || translate("Ваш CSV");
   $("sourceRange").textContent =
     nyTime.format(new Date(d.bars[0].time * 1000)) +
     " — " +
     nyTime.format(new Date(d.bars.at(-1).time * 1000)) +
     " ET · " +
-    d.bars.length.toLocaleString("ru-RU") +
-    " свечей в загруженном диапазоне";
+    d.bars.length.toLocaleString(locale()) +
+    translate(" свечей в загруженном диапазоне");
   $("providerNotes").hidden = d.source !== "hf_market_data";
   $("userSourceNote").hidden = d.source !== "user_csv";
   $("curatedSourceNotes").hidden = !curated;
   if (curated) {
     $("curatedSourceSummary").textContent = meta.note || "";
     $("curatedSourceDetails").textContent =
-      "Источник: " +
+      translate("Источник: ") +
       meta.provider +
-      ". Загрузка: " +
+      translate(". Загрузка: ") +
       meta.retrievedAt +
       ". " +
       (meta.contracts?.length
-        ? "Контракты / идентификаторы: " + meta.contracts.join(", ") + ". "
-        : "Контрактные коды не указаны. ") +
+        ? translate("Контракты / идентификаторы: ") + meta.contracts.join(", ") + ". "
+        : translate("Контрактные коды не указаны. ")) +
       (meta.adjusted
-        ? "Цены скорректированы источником. "
-        : "Цены сохранены как в исходном архиве. ");
+        ? translate("Цены скорректированы источником. ")
+        : translate("Цены сохранены как в исходном архиве. "));
     $("curatedSourceLink").href = meta.sourceUrl;
   }
   $("sourceContracts").textContent =
-    "Контракты: " +
-    (meta.contracts?.join(", ") || "не указаны") +
-    ". Загружено: " +
+    translate("Контракты: ") +
+    (meta.contracts?.join(", ") || translate("не указаны")) +
+    translate(". Загружено: ") +
     (meta.fetchedAt
-      ? new Date(meta.fetchedAt).toLocaleDateString("ru-RU")
+      ? new Date(meta.fetchedAt).toLocaleDateString(locale())
       : "—") +
     ".";
   $("sourceDialog").showModal();
@@ -740,14 +742,14 @@ function riskPreview() {
 function order(side: any) {
   if (orderflow?.isStreaming())
     throw Error("Switch to Replay to simulate orders");
-  if (!chart) throw Error("Сначала загрузите график.");
+  if (!chart) throw Error(translate("Сначала загрузите график."));
   replay.queue(side, config());
   render();
   toast(
     (side === 1 ? "Long" : "Short") +
       " · " +
       config().kind.toUpperCase() +
-      " заявка создана",
+      translate(" заявка создана"),
   );
 }
 function step() {
@@ -767,15 +769,15 @@ function step() {
       t.reason +
         " · " +
         money(t.pnl) +
-        (t.ambiguous ? " · SL и TP в одной свече" : ""),
+        (t.ambiguous ? translate(" · SL и TP в одной свече") : ""),
     );
   }
   if (replay.ended) {
     pause();
     toast(
       replay.position
-        ? "Период завершён. Позиция остаётся открытой; её P&L не включён в статистику."
-        : "Период завершён. Выберите новую сессию.",
+        ? translate("Период завершён. Позиция остаётся открытой; её P&L не включён в статистику.")
+        : translate("Период завершён. Выберите новую сессию."),
     );
   }
   render();
@@ -788,7 +790,7 @@ function renderLines() {
   const p = replay.position;
   if (p) {
     for (const [title, v, color] of [
-      ["ВХОД", p.entry, "#748b59"],
+      [translate("ВХОД"), p.entry, "#748b59"],
       ["SL", p.sl, "#cf6c66"],
       ["TP", p.tp, "#2a967a"],
     ])
@@ -823,7 +825,7 @@ function renderLines() {
 function render() {
   $("primaryChartTitle").textContent = symbol + " · " + tf + "m";
   $("mainChartNotice").textContent =
-    "Заявки по " + symbol + " · общий шаг replay 1 мин";
+    translate("Заявки по ") + symbol + translate(" · общий шаг replay 1 мин");
   const b: any = replay.current,
     s = replay.stats();
   $("contractName").textContent = b.contract || contracts[symbol].name;
@@ -834,13 +836,13 @@ function render() {
   $("replayTime").textContent =
     displayTime.format(new Date(b.time * 1000)) + " " + displayZone;
   $("progressLabel").textContent =
-    "Свеча " + (replay.index + 1) + " из " + replay.bars.length;
+    translate("Свеча ") + (replay.index + 1) + translate(" из ") + replay.bars.length;
   $("progressBar").style.width =
     ((replay.index + 1) / replay.bars.length) * 100 + "%";
   $("baseInterval").textContent =
-    "Шаг: 1 мин · " +
+    translate("Шаг: 1 мин · ") +
     displayZone +
-    (tf > 1 ? " · " + tf + "m формируется" : "");
+    (tf > 1 ? " · " + tf + translate("m формируется") : "");
   const unavailable: any = !!(
     replay.position ||
     replay.pending ||
@@ -926,7 +928,7 @@ $("fromDate").onchange = previewRange;
 $("toDate").onchange = previewRange;
 $("sessionName").oninput = () => {
   $("sessionName").setCustomValidity(
-    $("sessionName").value.trim() ? "" : "Введите название сессии.",
+    $("sessionName").value.trim() ? "" : translate("Введите название сессии."),
   );
 };
 $("setupForm").onsubmit = async (e) => {
@@ -937,10 +939,10 @@ $("setupForm").onsubmit = async (e) => {
     label = button.textContent;
   settingUp = true;
   (button as HTMLButtonElement).disabled = true;
-  button.textContent = "Загружаю данные…";
+  button.textContent = translate("Загружаю данные…");
   try {
     const name = $("sessionName").value.trim();
-    if (!name) throw Error("Введите название сессии.");
+    if (!name) throw Error(translate("Введите название сессии."));
     const selected = setupSymbols(),
       next = setupPrimary(),
       a = $("fromDate").value,
@@ -954,7 +956,7 @@ $("setupForm").onsubmit = async (e) => {
         setupPreferredId,
       );
     if (!ACCOUNT_DEPOSITS.some((amount) => amount === capital))
-      throw Error("Выберите начальный капитал из списка.");
+      throw Error(translate("Выберите начальный капитал из списка."));
     const loaded = await Promise.all(
       entries.map((entry) => loadHistoryById(entry.id, a, b)),
     );
@@ -964,7 +966,7 @@ $("setupForm").onsubmit = async (e) => {
       a !== $("fromDate").value ||
       b !== $("toDate").value
     )
-      throw Error("Параметры изменены. Нажмите «Начать сессию» ещё раз.");
+      throw Error(translate("Параметры изменены. Нажмите «Начать сессию» ещё раз."));
     for (let i = 0; i < selected.length; i++) {
       assertDatasetSymbol(loaded[i], entries[i].id, selected[i]);
       selectReplayBars(loaded[i], a, b, activeSession);
@@ -1070,11 +1072,11 @@ $("positionBox").onclick = (e) => {
     pause();
     if (action === "cancel") {
       replay.cancelOrder();
-      toast("Заявка отменена");
+      toast(translate("Заявка отменена"));
     }
     if (action === "be" || action === "be-costs") {
       replay.breakEven(action === "be-costs");
-      toast(action === "be-costs" ? "BE с издержками" : "Стоп на цене входа");
+      toast(action === "be-costs" ? translate("BE с издержками") : translate("Стоп на цене входа"));
     }
     if (action === "close" || action === "partial") {
       replay.requestClose(
@@ -1088,7 +1090,7 @@ $("positionBox").onclick = (e) => {
             )
           : null,
       );
-      toast("Выход на следующем открытии");
+      toast(translate("Выход на следующем открытии"));
     }
     if (action === "protect") {
       replay.modifyProtection({
@@ -1107,7 +1109,7 @@ $("positionBox").onclick = (e) => {
           ).value,
         ),
       });
-      toast("Уровни обновлены");
+      toast(translate("Уровни обновлены"));
     }
     if (action === "review") product.reviewLatest();
     render();
@@ -1119,10 +1121,10 @@ $("orderKind").onchange = () => {
   $("orderTypeBadge").textContent = kind.toUpperCase();
   $("orderHint").textContent =
     kind === "market"
-      ? "Вход на следующем открытии. Одна позиция за раз."
+      ? translate("Вход на следующем открытии. Одна позиция за раз.")
       : kind === "limit"
-        ? "Limit исполняется по указанной цене или лучше на последующих свечах."
-        : "Stop активируется на последующих свечах с учётом гэпа и проскальзывания.";
+        ? translate("Limit исполняется по указанной цене или лучше на последующих свечах.")
+        : translate("Stop активируется на последующих свечах с учётом гэпа и проскальзывания.");
   if (replay) $("entryPrice").value = replay.current.close;
 };
 $("sizeByRisk").onclick = () =>
@@ -1139,15 +1141,15 @@ $("sizeByRisk").onclick = () =>
       !Number.isFinite(per) ||
       per <= 0
     )
-      throw Error("Укажите риск и положительный стоп");
+      throw Error(translate("Укажите риск и положительный стоп"));
     const qty = Math.min(100, Math.floor(budget / per));
     if (qty < 1)
       throw Error(
-        "Один контракт превышает заданный риск. Уменьшите стоп или увеличьте лимит.",
+        translate("Один контракт превышает заданный риск. Уменьшите стоп или увеличьте лимит."),
       );
     $("qty").value = String(qty);
     riskPreview();
-    toast("Объём " + qty + " контр. · риск не больше " + money(budget));
+    toast(translate("Объём ") + qty + translate(" контр. · риск не больше ") + money(budget));
   });
 
 document.querySelectorAll<HTMLElement>("[data-tf]").forEach(
@@ -1213,15 +1215,15 @@ $("csvFile").onchange = async () => {
       format: $("csvFormat").value,
       onProgress: (state) =>
         ($("importError").textContent =
-          "Проверено " +
-          state.count.toLocaleString("ru-RU") +
-          " свечей · сохранено " +
+          translate("Проверено ") +
+          state.count.toLocaleString(locale()) +
+          translate(" свечей · сохранено ") +
           state.parts +
-          " частей…"),
+          translate(" частей…")),
       onPart: async (bars, index) =>
         product.store.uploadDataset({
           symbol: next,
-          name: (file.name + " · часть " + (index + 1)).slice(0, 180),
+          name: (file.name + translate(" · часть ") + (index + 1)).slice(0, 180),
           source: "user_csv",
           bars,
         }),
@@ -1237,12 +1239,12 @@ $("csvFile").onchange = async () => {
     $("importDialog").close();
     openSetup(next, archive.id);
     toast(
-      "Данные сохранены: " +
-        result.count.toLocaleString("ru-RU") +
-        " свечей" +
+      translate("Данные сохранены: ") +
+        result.count.toLocaleString(locale()) +
+        translate(" свечей") +
         (result.hasContracts
           ? ""
-          : ". Нет contract: ролловер определить нельзя."),
+          : translate(". Нет contract: ролловер определить нельзя.")),
     );
   } catch (error) {
     $("importError").textContent = error.message;
@@ -1273,7 +1275,7 @@ $("sample").onclick = () => {
         )
         .join("\n"),
   );
-  toast("Пример содержит синтетические данные.");
+  toast(translate("Пример содержит синтетические данные."));
 };
 product = createProduct({
   toast,
@@ -1295,7 +1297,7 @@ product = createProduct({
     if (tools) tools.updatePreferences(p);
   },
   capture: async () => {
-    if (!chart) throw Error("График недоступен");
+    if (!chart) throw Error(translate("График недоступен"));
     pause();
     product.navigate("replay");
     await new Promise((r: any) =>
@@ -1324,7 +1326,7 @@ product = createProduct({
         await new Promise((resolve: any, reject: any) => {
           image.onload = resolve;
           image.onerror = () =>
-            reject(Error("Не удалось включить разметку в скриншот"));
+            reject(Error(translate("Не удалось включить разметку в скриншот")));
           image.src = url;
         });
         canvas
@@ -1337,7 +1339,7 @@ product = createProduct({
     const blob = await new Promise<Blob | null>((r) =>
       canvas.toBlob(r, "image/png"),
     );
-    if (!blob) throw Error("Не удалось снять график");
+    if (!blob) throw Error(translate("Не удалось снять график"));
     return new File([blob], "replay-chart-" + symbol + ".png", {
       type: "image/png",
     });
@@ -1370,7 +1372,7 @@ async function bootstrap() {
       await activateRecord(saved);
       return;
     } catch (e) {
-      toast("Не удалось восстановить сессию: " + e.message);
+      toast(translate("Не удалось восстановить сессию: ") + e.message);
     }
   }
 }
@@ -1406,7 +1408,7 @@ if (document.modelContext?.registerTool) {
   };
   register({
     name: "get_replay_state",
-    title: "Состояние replay",
+    title: translate("Состояние replay"),
     description:
       "Read the current manual replay and revealed candle; never returns future prices.",
     inputSchema: {
@@ -1419,7 +1421,7 @@ if (document.modelContext?.registerTool) {
   });
   register({
     name: "advance_replay",
-    title: "Открыть следующие свечи",
+    title: translate("Открыть следующие свечи"),
     description:
       "Pause autoplay and reveal 1 to 100 next one-minute candles. Simulated orders can fill. Stops on a closed trade or range end.",
     inputSchema: {
@@ -1438,7 +1440,7 @@ if (document.modelContext?.registerTool) {
         Object.keys(input).some((k) => k !== "count")
       )
         throw Error("count must be an integer from 1 to 100");
-      if (!replay) throw Error("Сначала создайте или продолжите сессию");
+      if (!replay) throw Error(translate("Сначала создайте или продолжите сессию"));
       pause();
       const before = replay.trades.length;
       for (let i = 0; i < input.count; i++) {

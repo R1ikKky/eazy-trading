@@ -1,3 +1,4 @@
+import { t as translate, locale, configureLanguagePersistence } from "../i18n/language";
 import { element as $ } from "./dom";
 import { dayKey } from "./engine";
 import { WORKSPACE_ROUTES, workspaceView } from "./workspace-routes";
@@ -25,7 +26,7 @@ const attachmentURL = (v: any) =>
   typeof v === "string" && /^\/api\/attachments\/[a-zA-Z0-9_-]+$/.test(v);
 const date = (s: any) =>
   s && Number.isFinite(Date.parse(s))
-    ? new Date(s).toLocaleDateString("ru-RU", {
+    ? new Date(s).toLocaleDateString(locale(), {
         day: "numeric",
         month: "short",
       })
@@ -33,7 +34,7 @@ const date = (s: any) =>
 const time = (t: any) =>
   !Number.isFinite(t) || !Number.isFinite(new Date(t * 1000).getTime())
     ? "—"
-    : new Intl.DateTimeFormat("ru-RU", {
+    : new Intl.DateTimeFormat(locale(), {
         timeZone: "America/New_York",
         day: "2-digit",
         month: "2-digit",
@@ -78,10 +79,16 @@ export function createProduct({
     const status = $("saveStatus");
     if (status) {
       status.dataset.state = state;
-      status.textContent = label;
-      status.title = label;
+      status.textContent = translate(label);
+      status.title = translate(label);
     }
     if (state === "conflict") toast(label);
+  });
+  configureLanguagePersistence(async () => {
+    store.cache();
+    while (store.saving) await new Promise(resolve => setTimeout(resolve, 25));
+    await store.flush();
+    store.cache();
   });
   const ws = () => store.value;
   const active = () =>
@@ -109,7 +116,7 @@ export function createProduct({
           strategyId,
           strategyName:
             strategies().find((x: any) => x.id === strategyId)?.name ||
-            "Без стратегии",
+            translate("Без стратегии"),
           source: s.source,
         };
       }),
@@ -119,7 +126,7 @@ export function createProduct({
   );
   function options(selected = "", includeEmpty = true) {
     return (
-      (includeEmpty ? '<option value="">Без стратегии</option>' : "") +
+      (includeEmpty ? translate('<option value="">Без стратегии</option>') : "") +
       strategies()
         .map(
           (p: any) =>
@@ -206,7 +213,7 @@ export function createProduct({
       drawings: [],
     };
     if (ws().sessions.length >= 1000)
-      throw Error("Достигнут предел: 1000 сессий. Экспортируйте архив.");
+      throw Error(translate("Достигнут предел: 1000 сессий. Экспортируйте архив."));
     ws().sessions.push(s);
     ws().settings.activeSessionId = s.id;
     changed();
@@ -231,7 +238,7 @@ export function createProduct({
       b.updatedAt.localeCompare(a.updatedAt),
     );
     box.innerHTML =
-      '<div class="view-toolbar sessions-toolbar"><span>Все сессии</span><span class="session-count">' +
+      translate('<div class="view-toolbar sessions-toolbar"><span>Все сессии</span><span class="session-count">') +
       sessions.length +
       "</span></div>" +
       (sessions.length
@@ -254,32 +261,32 @@ export function createProduct({
                 " → " +
                 esc(s.to) +
                 " · " +
-                (s.session === "rth" ? "RTH" : "Все сессии") +
+                (s.session === "rth" ? "RTH" : translate("Все сессии")) +
                 '</p><div class="session-result"><strong class="' +
                 (a.net < 0 ? "negative" : a.net > 0 ? "positive" : "") +
                 '">' +
                 money(a.net) +
                 "</strong><span>" +
                 a.count +
-                " сделок · " +
-                (s.snapshot?.position ? "Есть позиция" : "Свеча " + (i + 1)) +
+                translate(" сделок · ") +
+                (s.snapshot?.position ? translate("Есть позиция") : translate("Свеча ") + (i + 1)) +
                 '</span></div><p class="muted session-strategy">' +
                 esc(
                   strategies().find((p: any) => p.id === s.strategyId)?.name ||
-                    "Без стратегии",
+                    translate("Без стратегии"),
                 ) +
                 '</p><div class="card-actions"><button class="button secondary compact" data-resume="' +
                 esc(s.id) +
-                '">Продолжить →</button><button class="icon-button" data-rerun="' +
+                translate('">Продолжить →</button><button class="icon-button" data-rerun="') +
                 esc(s.id) +
-                '" title="Новый проход с сохранением результата" aria-label="Повторить сессию">↺</button><button class="icon-button" data-delete-session="' +
+                translate('" title="Новый проход с сохранением результата" aria-label="Повторить сессию">↺</button><button class="icon-button" data-delete-session="') +
                 esc(s.id) +
-                '" title="Удалить сессию" aria-label="Удалить сессию">×</button></div></article>'
+                translate('" title="Удалить сессию" aria-label="Удалить сессию">×</button></div></article>')
               );
             })
             .join("") +
           "</div>"
-        : '<div class="sessions-empty"><div class="empty-market" aria-hidden="true"><svg viewBox="0 0 240 112" fill="none"><path class="empty-grid" d="M0 28h240M0 56h240M0 84h240M40 0v112M80 0v112M120 0v112M160 0v112M200 0v112"/><g class="empty-candles"><path d="M48 68v28M80 41v45M112 52v34M144 26v41M176 13v40M208 22v37"/><rect x="42" y="75" width="12" height="12" rx="2"/><rect x="74" y="52" width="12" height="23" rx="2"/><rect x="106" y="59" width="12" height="16" rx="2"/><rect x="138" y="35" width="12" height="20" rx="2"/><rect x="170" y="23" width="12" height="16" rx="2"/><rect x="202" y="30" width="12" height="17" rx="2"/></g></svg></div><h2>Сессий пока нет</h2></div>');
+        : translate('<div class="sessions-empty"><div class="empty-market" aria-hidden="true"><svg viewBox="0 0 240 112" fill="none"><path class="empty-grid" d="M0 28h240M0 56h240M0 84h240M40 0v112M80 0v112M120 0v112M160 0v112M200 0v112"/><g class="empty-candles"><path d="M48 68v28M80 41v45M112 52v34M144 26v41M176 13v40M208 22v37"/><rect x="42" y="75" width="12" height="12" rx="2"/><rect x="74" y="52" width="12" height="23" rx="2"/><rect x="106" y="59" width="12" height="16" rx="2"/><rect x="138" y="35" width="12" height="20" rx="2"/><rect x="170" y="23" width="12" height="16" rx="2"/><rect x="202" y="30" width="12" height="17" rx="2"/></g></svg></div><h2>Сессий пока нет</h2></div>'));
   }
   function renderJournal() {
     const rows = filterTrades(allTrades(), filter),
@@ -287,15 +294,15 @@ export function createProduct({
     $("tradeCount").textContent = String(rows.length);
     $("export").disabled = !rows.length;
     $("journalSummary").innerHTML =
-      '<div class="journal-metrics"><span>Результат <strong class="' +
+      translate('<div class="journal-metrics"><span>Результат <strong class="') +
       (summary.net < 0 ? "negative" : "positive") +
       '">' +
       money(summary.net) +
-      "</strong></span><span>Сделок <strong>" +
+      translate("</strong></span><span>Сделок <strong>") +
       summary.count +
       "</strong></span><span>Win rate <strong>" +
       (summary.winRate === null ? "—" : summary.winRate.toFixed(1) + "%") +
-      "</strong></span><span>Средний R <strong>" +
+      translate("</strong></span><span>Средний R <strong>") +
       (summary.avgR === null ? "—" : summary.avgR.toFixed(2) + "R") +
       "</strong></span></div>";
     $("emptyJournal").hidden = !!rows.length;
@@ -304,7 +311,7 @@ export function createProduct({
       .sort((a, b) => b.exitTime - a.exitTime)
       .map(
         (t) =>
-          '<tr tabindex="0" role="button" aria-label="Открыть сделку ' +
+          translate('<tr tabindex="0" role="button" aria-label="Открыть сделку ') +
           esc(t.symbol) +
           '" data-trade-id="' +
           esc(t.id) +
@@ -333,8 +340,8 @@ export function createProduct({
           "</td><td>" +
           esc(t.strategyName) +
           '<small class="trade-row-note">' +
-          esc(t.reason) +
-          (t.ambiguous ? " · OHLC неопределённость" : "") +
+          esc(translate(t.reason)) +
+          (t.ambiguous ? translate(" · OHLC неопределённость") : "") +
           "</small></td></tr>",
       )
       .join("");
@@ -342,9 +349,9 @@ export function createProduct({
   function initFilters() {
     const box = $("journalFilters");
     box.innerHTML =
-      '<div class="filter-grid"><label class="filter-control">Поиск<input id="journalSearch" type="search" placeholder="Сессия, стратегия, заметка"></label><label class="filter-control">Инструмент<select id="journalSymbol"><option value="">Все</option><option>NQ</option><option>ES</option></select></label><label class="filter-control">Стратегия<select id="journalStrategy">' +
-      options("", false).replace(/^/, '<option value="">Все</option>') +
-      '</select></label><label class="filter-control">С даты<input id="journalFrom" type="date"></label><label class="filter-control">По дату<input id="journalTo" type="date"></label><label class="filter-control">Тег<input id="journalTag" placeholder="например, дисциплина"></label></div>';
+      translate('<div class="filter-grid"><label class="filter-control">Поиск<input id="journalSearch" type="search" placeholder="Сессия, стратегия, заметка"></label><label class="filter-control">Инструмент<select id="journalSymbol"><option value="">Все</option><option>NQ</option><option>ES</option></select></label><label class="filter-control">Стратегия<select id="journalStrategy">') +
+      options("", false).replace(/^/, translate('<option value="">Все</option>')) +
+      translate('</select></label><label class="filter-control">С даты<input id="journalFrom" type="date"></label><label class="filter-control">По дату<input id="journalTo" type="date"></label><label class="filter-control">Тег<input id="journalTag" placeholder="например, дисциплина"></label></div>');
     const read = () => {
       filter = {
         search: $("journalSearch").value,
@@ -363,7 +370,7 @@ export function createProduct({
     selectedTrade = { sessionId, tradeId };
     const s = ws().sessions.find((x: any) => x.id === sessionId),
       t = s?.snapshot?.trades.find((x: any) => x.id === tradeId);
-    if (!t) throw Error("Сделка не найдена");
+    if (!t) throw Error(translate("Сделка не найдена"));
     const a = s.annotations?.[t.id] || {},
       p = strategies().find(
         (x: any) => x.id === (a.strategyId ?? s.strategyId),
@@ -376,7 +383,7 @@ export function createProduct({
       esc(t.symbol) +
       " · " +
       (t.side === 1 ? "Long" : "Short") +
-      '</h2></div><button class="icon-button" type="button" data-detail-close aria-label="Закрыть">×</button></div><div class="trade-detail-stats"><strong class="' +
+      translate('</h2></div><button class="icon-button" type="button" data-detail-close aria-label="Закрыть">×</button></div><div class="trade-detail-stats"><strong class="') +
       (t.pnl >= 0 ? "positive" : "negative") +
       '">' +
       money(t.pnl) +
@@ -384,25 +391,25 @@ export function createProduct({
       (Number.isFinite(t.r) ? decimal(t.r) + "R" : "—") +
       "</span><span>" +
       t.qty +
-      ' контр.</span></div><p class="muted">' +
+      translate(' контр.</span></div><p class="muted">') +
       time(t.time) +
       " → " +
       time(t.exitTime) +
       " ET · " +
-      esc(t.reason) +
-      '</p><div class="field-pair"><label>Вход<input readonly value="' +
+      esc(translate(t.reason)) +
+      translate('</p><div class="field-pair"><label>Вход<input readonly value="') +
       decimal(t.entry) +
-      '"></label><label>Выход<input readonly value="' +
+      translate('"></label><label>Выход<input readonly value="') +
       decimal(t.exit) +
-      '"></label></div><p class="dialog-note muted">Комиссия ' +
+      translate('"></label></div><p class="dialog-note muted">Комиссия ') +
       money(t.fees) +
       " · " +
       (t.exits?.length || 1) +
-      " исполнений выхода" +
+      translate(" исполнений выхода") +
       (t.ambiguous
-        ? " · В минутной свече порядок касания уровней неизвестен; выбран консервативный SL."
+        ? translate(" · В минутной свече порядок касания уровней неизвестен; выбран консервативный SL.")
         : "") +
-      '</p><label for="tradeStrategy">Стратегия</label><select id="tradeStrategy">' +
+      translate('</p><label for="tradeStrategy">Стратегия</label><select id="tradeStrategy">') +
       options(a.strategyId ?? s.strategyId) +
       '</select><div id="tradeRules" class="trade-rules">' +
       (p?.rules || [])
@@ -417,9 +424,9 @@ export function createProduct({
             "</label>",
         )
         .join("") +
-      '</div><label for="tradeTags">Теги через запятую</label><input id="tradeTags" maxlength="600" placeholder="сетап, ошибка, дисциплина" value="' +
+      translate('</div><label for="tradeTags">Теги через запятую</label><input id="tradeTags" maxlength="600" placeholder="сетап, ошибка, дисциплина" value="') +
       esc((a.tags || []).join(", ")) +
-      '"><label for="tradeNote">Разбор сделки</label><textarea id="tradeNote" rows="6" maxlength="10000" placeholder="Контекст → условия входа → исполнение → вывод">' +
+      translate('"><label for="tradeNote">Разбор сделки</label><textarea id="tradeNote" rows="6" maxlength="10000" placeholder="Контекст → условия входа → исполнение → вывод">') +
       esc(a.notes || "") +
       '</textarea><div id="tradeAttachments" class="attachment-grid">' +
       (Array.isArray(a.attachments) ? a.attachments : [])
@@ -431,11 +438,11 @@ export function createProduct({
             '" target="_blank" rel="noopener"><img src="' +
             esc(x.url) +
             '" alt="' +
-            esc(x.name || "Скриншот сделки") +
+            esc(x.name || translate("Скриншот сделки")) +
             '" loading="lazy"></a>',
         )
         .join("") +
-      '</div><div class="card-actions"><label class="button secondary compact attachment-label">＋ Изображение<input id="tradeImage" type="file" accept="image/png,image/jpeg,image/webp" hidden></label><button type="button" id="tradeCapture" class="button secondary compact">Скриншот текущего чарта</button></div><p id="attachmentStatus" class="muted dialog-note"></p><button class="button primary full" type="submit">Сохранить разбор</button></form>';
+      translate('</div><div class="card-actions"><label class="button secondary compact attachment-label">＋ Изображение<input id="tradeImage" type="file" accept="image/png,image/jpeg,image/webp" hidden></label><button type="button" id="tradeCapture" class="button secondary compact">Скриншот текущего чарта</button></div><p id="attachmentStatus" class="muted dialog-note"></p><button class="button primary full" type="submit">Сохранить разбор</button></form>');
     const saveAnnotation = () => {
       s.annotations ||= {};
       s.annotations[t.id] = {
@@ -464,7 +471,7 @@ export function createProduct({
       e.preventDefault();
       saveAnnotation();
       dialog.close();
-      toast("Разбор сохранён");
+      toast(translate("Разбор сохранён"));
     };
     dialog.querySelector<HTMLElement>("[data-detail-close]").onclick = () =>
       dialog.close();
@@ -487,20 +494,20 @@ export function createProduct({
       saveAnnotation();
       const a = s.annotations[t.id];
       if ((a.attachments || []).length >= 10)
-        throw Error("Не более 10 изображений на сделку");
-      $("attachmentStatus").textContent = "Сохраняю изображение…";
+        throw Error(translate("Не более 10 изображений на сделку"));
+      $("attachmentStatus").textContent = translate("Сохраняю изображение…");
       const result = await store.attachment(file);
       a.attachments ||= [];
       a.attachments.push(result);
       changed();
-      $("attachmentStatus").textContent = "Изображение сохранено";
+      $("attachmentStatus").textContent = translate("Изображение сохранено");
       $("tradeAttachments").insertAdjacentHTML(
         "beforeend",
         '<a href="' +
           esc(result.url) +
           '" target="_blank" rel="noopener"><img src="' +
           esc(result.url) +
-          '" alt="Скриншот сделки"></a>',
+          translate('" alt="Скриншот сделки"></a>'),
       );
     }
     $("tradeImage").onchange = safe(async () => {
@@ -516,7 +523,7 @@ export function createProduct({
   function renderPlaybooks() {
     const box = $("playbooksContent");
     box.innerHTML =
-      '<div class="view-toolbar"><p class="muted">Определите условия до сделки и проверяйте соблюдение правил после.</p><button class="button primary" data-create-strategy>＋ Создать стратегию</button></div>' +
+      translate('<div class="view-toolbar"><p class="muted">Определите условия до сделки и проверяйте соблюдение правил после.</p><button class="button primary" data-create-strategy>＋ Создать стратегию</button></div>') +
       (strategies().length
         ? '<div class="cards-grid">' +
           strategies()
@@ -529,7 +536,7 @@ export function createProduct({
                 '<article class="content-card playbook-card"><span class="eyebrow">PLAYBOOK</span><h3>' +
                 esc(p.name) +
                 '</h3><p class="muted">' +
-                esc(p.description || "Добавьте описание модели") +
+                esc(p.description || translate("Добавьте описание модели")) +
                 '</p><ul class="rule-preview">' +
                 p.rules.map((r: any) => "<li>" + esc(r) + "</li>").join("") +
                 '</ul><div class="session-result"><strong class="' +
@@ -538,16 +545,16 @@ export function createProduct({
                 money(a.net) +
                 "</strong><span>" +
                 a.count +
-                " сделок · " +
+                translate(" сделок · ") +
                 (a.winRate === null ? "—" : a.winRate.toFixed(0) + "% WR") +
                 '</span></div><button class="button secondary compact" data-edit-strategy="' +
                 esc(p.id) +
-                '">Изменить правила</button></article>'
+                translate('">Изменить правила</button></article>')
               );
             })
             .join("") +
           "</div>"
-        : '<div class="empty-state"><h3>Ваши правила, ваша статистика</h3><p>Создайте первый playbook: контекст, вход, риск и выход. Затем назначайте его сессиям и сделкам.</p><button class="button primary" data-create-strategy>Создать стратегию</button></div>');
+        : translate('<div class="empty-state"><h3>Ваши правила, ваша статистика</h3><p>Создайте первый playbook: контекст, вход, риск и выход. Затем назначайте его сессиям и сделкам.</p><button class="button primary" data-create-strategy>Создать стратегию</button></div>'));
   }
   function editStrategy(id?: any) {
     const existing = strategies().find((p: any) => p.id === id);
@@ -559,14 +566,14 @@ export function createProduct({
     }
     dialog.innerHTML =
       '<form id="playbookForm"><div class="dialog-header"><h2>' +
-      (existing ? "Редактировать" : "Новая") +
-      ' стратегия</h2><button type="button" class="icon-button" data-playbook-close>×</button></div><label for="playbookName">Название</label><input id="playbookName" required maxlength="100" value="' +
+      (existing ? translate("Редактировать") : translate("Новая")) +
+      translate(' стратегия</h2><button type="button" class="icon-button" data-playbook-close>×</button></div><label for="playbookName">Название</label><input id="playbookName" required maxlength="100" value="') +
       esc(existing?.name || "") +
-      '" placeholder="Например, NY reversal"><label for="playbookDescription">Описание модели</label><textarea id="playbookDescription" maxlength="2000" rows="3">' +
+      translate('" placeholder="Например, NY reversal"><label for="playbookDescription">Описание модели</label><textarea id="playbookDescription" maxlength="2000" rows="3">') +
       esc(existing?.description || "") +
-      '</textarea><label for="playbookRules">Правила · по одному на строку</label><textarea id="playbookRules" maxlength="5000" rows="7" placeholder="Контекст определён\nУсловия входа выполнены\nРиск соответствует плану\nУровень отмены идеи задан">' +
+      translate('</textarea><label for="playbookRules">Правила · по одному на строку</label><textarea id="playbookRules" maxlength="5000" rows="7" placeholder="Контекст определён\nУсловия входа выполнены\nРиск соответствует плану\nУровень отмены идеи задан">') +
       esc((existing?.rules || []).join("\n")) +
-      '</textarea><button type="submit" class="button primary full">Сохранить стратегию</button></form>';
+      translate('</textarea><button type="submit" class="button primary full">Сохранить стратегию</button></form>');
     dialog.querySelector("[data-playbook-close]").onclick = () =>
       dialog.close();
     $("playbookForm").onsubmit = (e) => {
@@ -584,7 +591,7 @@ export function createProduct({
       if (!p.name) return;
       if (existing) Object.assign(existing, p);
       else {
-        if (strategies().length >= 100) throw Error("Не более 100 стратегий");
+        if (strategies().length >= 100) throw Error(translate("Не более 100 стратегий"));
         ws().playbooks.push(p);
       }
       changed();
@@ -605,14 +612,14 @@ export function createProduct({
     if (view === "analytics") {
       const box = $("analyticsContent");
       box.innerHTML =
-        '<div class="view-toolbar"><label class="filter-control">Область анализа<select id="analyticsScope"><option value="all">Все сессии</option>' +
+        translate('<div class="view-toolbar"><label class="filter-control">Область анализа<select id="analyticsScope"><option value="all">Все сессии</option>') +
         ws()
           .sessions.map(
             (s: any) =>
               '<option value="' + esc(s.id) + '">' + esc(s.name) + "</option>",
           )
           .join("") +
-        '</select></label><span class="muted">Только закрытые сделки · результаты с учётом комиссии</span></div><div id="analyticsCharts"></div>';
+        translate('</select></label><span class="muted">Только закрытые сделки · результаты с учётом комиссии</span></div><div id="analyticsCharts"></div>');
       const draw = () => {
         const id = $("analyticsScope").value,
           s = ws().sessions.find((x: any) => x.id === id);
@@ -664,10 +671,10 @@ export function createProduct({
           (x: any) => x.id === b.dataset.deleteSession,
         );
         if (active()?.id === s.id) {
-          toast("Сначала откройте другую сессию");
+          toast(translate("Сначала откройте другую сессию"));
           return;
         }
-        if (confirm("Удалить сессию «" + s.name + "» вместе с журналом?")) {
+        if (confirm(translate("Удалить сессию «") + s.name + translate("» вместе с журналом?"))) {
           ws().sessions = ws().sessions.filter((x: any) => x.id !== s.id);
           changed();
         }
@@ -708,7 +715,7 @@ export function createProduct({
       ),
     );
     toast(
-      "Сессии и журнал экспортированы. Рыночные архивы хранятся отдельно в вашем аккаунте.",
+      translate("Сессии и журнал экспортированы. Рыночные архивы хранятся отдельно в вашем аккаунте."),
     );
   }
   $("saveStatus").tabIndex = 0;
@@ -721,7 +728,7 @@ export function createProduct({
     exportBackup();
     if (
       !confirm(
-        "Локальная копия скачана. Загрузить облачную версию? Несохранённые изменения останутся в скачанном архиве.",
+        translate("Локальная копия скачана. Загрузить облачную версию? Несохранённые изменения останутся в скачанном архиве."),
       )
     )
       return;
@@ -851,7 +858,7 @@ export function createProduct({
       const s = active(),
         t = s?.snapshot?.trades.at(-1);
       if (t) openTrade(s.id, t.id);
-      else toast("Сначала закройте сделку");
+      else toast(translate("Сначала закройте сделку"));
     },
   };
 }

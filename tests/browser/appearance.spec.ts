@@ -11,7 +11,7 @@ test("icon-only profile and persistent Dark, Yellow and Blue appearance settings
   const backgrounds = new Set<string>();
   for (const theme of ["Dark", "Yellow", "Blue"] as const) {
     await page.getByRole("button", { name: "Настройки оформления", exact: true }).click();
-    await expect(page.getByRole("radio")).toHaveCount(3);
+    await expect(page.locator(".theme-choices").getByRole("radio")).toHaveCount(6);
     await page.getByRole("radio", { name: theme, exact: true }).check();
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme.toLowerCase());
     backgrounds.add(await page.locator(".app-shell").evaluate((element) => getComputedStyle(element).backgroundColor));

@@ -1,3 +1,4 @@
+import { t as translate, locale } from "../i18n/language";
 import { drawingTool } from "./drawing-catalog";
 import { chartDate } from "./settings-model";
 
@@ -145,24 +146,24 @@ export function createChartMenu({
   async function paste() {
     try {
       if (!navigator.clipboard?.readText)
-        throw Error("Браузер не предоставляет доступ к буферу обмена.");
+        throw Error(translate("Браузер не предоставляет доступ к буферу обмена."));
       const text = (await navigator.clipboard.readText()).trim();
       if (text.startsWith("{")) {
         const data = JSON.parse(text);
         if (data.replayLabDrawing !== 1)
-          throw Error("В буфере нет разметки Replay Lab.");
+          throw Error(translate("В буфере нет разметки Replay Lab."));
         pasteDrawing(data.drawing, data.symbol);
       } else {
         const value = Number(text.replace(/,/g, ""));
         if (!text || !Number.isFinite(value) || value <= 0)
-          throw Error("Скопируйте цену либо объект из Object tree.");
+          throw Error(translate("Скопируйте цену либо объект из Object tree."));
         createLevel(Math.round(value * 4) / 4);
       }
-      toast("Объект вставлен.");
+      toast(translate("Объект вставлен."));
     } catch (e) {
       toast(
         e.name === "NotAllowedError"
-          ? "Разрешите доступ к буферу обмена в браузере."
+          ? translate("Разрешите доступ к буферу обмена в браузере.")
           : e.message,
       );
     }
@@ -186,11 +187,11 @@ export function createChartMenu({
     if (name === "copy")
       try {
         if (!navigator.clipboard?.writeText)
-          throw Error("Буфер обмена недоступен.");
+          throw Error(translate("Буфер обмена недоступен."));
         await navigator.clipboard.writeText(clickedPrice.toFixed(2));
-        toast("Цена скопирована.");
+        toast(translate("Цена скопирована."));
       } catch (e) {
-        toast("Не удалось скопировать цену: " + e.message);
+        toast(translate("Не удалось скопировать цену: ") + e.message);
       }
     if (name === "paste") await paste();
     if (["latest", "first", "left", "right"].includes(name)) {
@@ -216,8 +217,8 @@ export function createChartMenu({
       setLock(getLock() ? null : clickedTime);
       toast(
         getLock()
-          ? "Вертикальная линия закреплена по времени."
-          : "Вертикальная линия разблокирована.",
+          ? translate("Вертикальная линия закреплена по времени.")
+          : translate("Вертикальная линия разблокирована."),
       );
     }
     if (name === "table") {
@@ -231,7 +232,7 @@ export function createChartMenu({
     }
     if (name === "remove") {
       if (
-        confirm("Удалить " + visibleDrawings().length + " объектов разметки?")
+        confirm(translate("Удалить ") + visibleDrawings().length + translate(" объектов разметки?"))
       )
         removeDrawings();
     }
@@ -244,8 +245,8 @@ export function createChartMenu({
     page = Math.max(0, Math.min(pages - 1, page));
     const rows = bars.slice(page * 100, page * 100 + 100);
     table.innerHTML =
-      '<div class="tv-data-header"><h2>Table view</h2><button type="button" data-table-close aria-label="Close table">×</button></div><p class="tv-note">Только раскрытые свечи · ' +
-      bars.length.toLocaleString("ru-RU") +
+      translate('<div class="tv-data-header"><h2>Table view</h2><button type="button" data-table-close aria-label="Close table">×</button></div><p class="tv-note">Только раскрытые свечи · ') +
+      bars.length.toLocaleString(locale()) +
       " bars · " +
       prefs.timezone +
       '</p><div class="tv-table-scroll"><table><thead><tr><th>Time</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Volume</th></tr></thead><tbody></tbody></table></div><div class="tv-data-footer"><button type="button" data-table-prev ' +
@@ -348,9 +349,9 @@ export function createChartMenu({
                   drawing: d,
                 }),
               );
-              toast("Объект скопирован.");
+              toast(translate("Объект скопирован."));
             } catch {
-              toast("Не удалось скопировать объект.");
+              toast(translate("Не удалось скопировать объект."));
             }
           },
         ],
@@ -371,7 +372,7 @@ export function createChartMenu({
       const note = document.createElement("p");
       note.className = "tv-note";
       note.textContent =
-        "Разметка появится после создания уровней, линий или зон.";
+        translate("Разметка появится после создания уровней, линий или зон.");
       list.append(note);
     }
   }

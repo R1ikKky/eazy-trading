@@ -1,3 +1,4 @@
+import { t as translate, locale } from "../i18n/language";
 import { dayKey } from "./engine";
 
 const endpoint = "https://www.hfmarketdata.io";
@@ -9,26 +10,26 @@ export function historyRequest(root: any, from: any, to: any, key = "") {
     !/^\d{4}-\d{2}-\d{2}$/.test(to) ||
     from > to
   )
-    throw Error("Проверьте инструмент и диапазон дат.");
+    throw Error(translate("Проверьте инструмент и диапазон дат."));
   const days = Math.round((Date.parse(to) - Date.parse(from)) / 86400000) + 1;
   if (
     !Number.isFinite(days) ||
     from < "2024-01-02" ||
     to > dayKey(Date.now() / 1000)
   )
-    throw Error("Выберите даты с 2 января 2024 года до сегодняшнего дня.");
+    throw Error(translate("Выберите даты с 2 января 2024 года до сегодняшнего дня."));
   if (days > (key ? 366 : 31))
     throw Error(
       key
-        ? "С ключом можно загрузить до 366 дней за один раз."
-        : "Без ключа можно загрузить до 31 дня за один раз. Для длинного периода доступен бесплатный ключ HF Market Data.",
+        ? translate("С ключом можно загрузить до 366 дней за один раз.")
+        : translate("Без ключа можно загрузить до 31 дня за один раз. Для длинного периода доступен бесплатный ключ HF Market Data."),
     );
   return { root, from, to, days, key };
 }
 
 export function validateProviderBars(rows: any, root: any) {
   if (!Array.isArray(rows))
-    throw Error("Источник вернул неизвестный формат данных.");
+    throw Error(translate("Источник вернул неизвестный формат данных."));
   return rows.map((b) => {
     const time = Date.parse(b.datetime) / 1000,
       prices = ["open", "high", "low", "close"].map((k) => b[k]);
@@ -51,7 +52,7 @@ export function validateProviderBars(rows: any, root: any) {
       !new RegExp("^" + root + "[A-Z][0-9]{2,4}$").test(b.symbol)
     )
       throw Error(
-        "Источник вернул некорректную свечу. Текущая история сохранена.",
+        translate("Источник вернул некорректную свечу. Текущая история сохранена."),
       );
     return {
       time,
@@ -76,26 +77,26 @@ export async function loadHistory(
     const response = await fetch(url, { headers, signal, credentials: "omit" });
     if (response.status === 429) {
       const reset = Number(response.headers.get("X-RateLimit-Reset")),
-        when = reset ? new Date(reset * 1000).toLocaleTimeString("ru-RU") : "";
+        when = reset ? new Date(reset * 1000).toLocaleTimeString(locale()) : "";
       throw Error(
-        "Лимит источника исчерпан." +
-          (when ? " Повторите после " + when + "." : " Повторите позже.") +
-          " Можно подключить бесплатный ключ HF Market Data. Текущие данные сохранены.",
+        translate("Лимит источника исчерпан.") +
+          (when ? translate(" Повторите после ") + when + "." : translate(" Повторите позже.")) +
+          translate(" Можно подключить бесплатный ключ HF Market Data. Текущие данные сохранены."),
       );
     }
     if (response.status === 401 || response.status === 403)
       throw Error(
-        "Источник не принял API-ключ. Проверьте ключ HF Market Data.",
+        translate("Источник не принял API-ключ. Проверьте ключ HF Market Data."),
       );
     if (!response.ok)
       throw Error(
-        "Исторический источник недоступен (HTTP " +
+        translate("Исторический источник недоступен (HTTP ") +
           response.status +
-          "). Попробуйте позже или импортируйте CSV.",
+          translate("). Попробуйте позже или импортируйте CSV."),
       );
     return response.json();
   }
-  onProgress("Проверяю доступный лимит…");
+  onProgress(translate("Проверяю доступный лимит…"));
   const limits = await read(endpoint + "/v1/limits");
   const principal = limits.data?.principal;
   const pageSize = Math.min(principal?.max_rows_per_request || 5000, 50000);
@@ -107,7 +108,7 @@ export async function loadHistory(
       principal.rows.remaining < estimate)
   )
     throw Error(
-      "Для этого периода недостаточно текущего лимита. Уменьшите диапазон, дождитесь обновления лимита или используйте бесплатный ключ. Текущая история сохранена.",
+      translate("Для этого периода недостаточно текущего лимита. Уменьшите диапазон, дождитесь обновления лимита или используйте бесплатный ключ. Текущая история сохранена."),
     );
   const base = new URL(endpoint + "/v1/futures/" + root + "/continuous");
   Object.entries<any>({
@@ -131,29 +132,29 @@ export async function loadHistory(
     meta = response.meta || {};
     bars.push(...validateProviderBars(response.data, root));
     onProgress(
-      "Загружено " + bars.length.toLocaleString("ru-RU") + " минутных свечей…",
+      translate("Загружено ") + bars.length.toLocaleString(locale()) + translate(" минутных свечей…"),
     );
     cursor = meta.next_cursor || null;
     if (cursor) {
       if (seen.has(cursor))
         throw Error(
-          "Источник повторил страницу. Загрузка остановлена; прежняя история сохранена.",
+          translate("Источник повторил страницу. Загрузка остановлена; прежняя история сохранена."),
         );
       seen.add(cursor);
     }
     if (bars.length > 600000)
-      throw Error("Слишком большой ответ источника. Выберите меньший период.");
+      throw Error(translate("Слишком большой ответ источника. Выберите меньший период."));
   } while (cursor);
   if (bars.length < 2)
     throw Error(
-      "В эти даты нет достаточного количества свечей. Выберите торговые дни.",
+      translate("В эти даты нет достаточного количества свечей. Выберите торговые дни."),
     );
   for (let i = 1; i < bars.length; i++)
     if (bars[i].time <= bars[i - 1].time)
-      throw Error("Источник вернул повторяющиеся или неупорядоченные свечи.");
+      throw Error(translate("Источник вернул повторяющиеся или неупорядоченные свечи."));
   const dateKeys = bars.map((b) => dayKey(b.time));
   if (dateKeys[0] < from || dateKeys.at(-1) > to)
-    throw Error("Источник вернул свечи за пределами выбранных дат.");
+    throw Error(translate("Источник вернул свечи за пределами выбранных дат."));
   return {
     bars,
     days: dateKeys,

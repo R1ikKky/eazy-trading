@@ -1,3 +1,4 @@
+import { t as translate, tr } from "../i18n/language";
 import { element as $ } from "./dom";
 import { drawingTool, NAVIGATION_TOOLS } from "./drawing-catalog";
 import { sanitizeDrawing } from "./drawing-schema";
@@ -151,7 +152,7 @@ export function createChartTools({
       localStorage.setItem("replay-lab-chart-v3", JSON.stringify(prefs));
     } catch {
       toast(
-        "Браузер не разрешил сохранить настройки. Они действуют до перезагрузки.",
+        translate("Браузер не разрешил сохранить настройки. Они действуют до перезагрузки."),
       );
     }
   }
@@ -173,7 +174,7 @@ export function createChartTools({
         JSON.stringify(drawings),
       );
     } catch {
-      toast("Не удалось сохранить разметку в браузере.");
+      toast(translate("Не удалось сохранить разметку в браузере."));
     }
     onDrawingsChange?.(structuredClone(drawings));
   }
@@ -406,7 +407,7 @@ export function createChartTools({
         : isExtendedSession(b.time);
     $("marketOpenStatus").classList.toggle("closed", !open);
     $("marketOpenStatus").title =
-      "Историческая сессия: " + (open ? "рынок открыт" : "рынок закрыт");
+      translate("Историческая сессия: ") + (open ? translate("рынок открыт") : translate("рынок закрыт"));
     $("marketOpenStatus").setAttribute(
       "aria-label",
       $("marketOpenStatus").title,
@@ -730,7 +731,7 @@ export function createChartTools({
           width: prefs.drawingWidth,
           dashed: !strokePoints.length,
           opacity: prefs.zoneOpacity,
-          text: "Текст",
+          text: translate("Текст"),
         },
         group,
       );
@@ -790,23 +791,23 @@ export function createChartTools({
   function pointInstruction(type: string, index: number) {
     const tool = drawingTool(type);
     const steps: Record<string, string[]> = {
-      "long-position": ["Вход", "Стоп ниже входа", "Цель выше входа"],
-      "short-position": ["Вход", "Стоп выше входа", "Цель ниже входа"],
+      "long-position": [translate("Вход"), translate("Стоп ниже входа"), translate("Цель выше входа")],
+      "short-position": [translate("Вход"), translate("Стоп выше входа"), translate("Цель ниже входа")],
       "bars-pattern": [
-        "Начало копируемого участка",
-        "Конец участка",
-        "Куда перенести",
+        translate("Начало копируемого участка"),
+        translate("Конец участка"),
+        translate("Куда перенести"),
       ],
-      curve: ["Начало", "Контрольная точка", "Конец"],
+      curve: [translate("Начало"), translate("Контрольная точка"), translate("Конец")],
       "double-curve": [
-        "Начало",
-        "Первая контрольная точка",
-        "Вторая контрольная точка",
-        "Конец",
+        translate("Начало"),
+        translate("Первая контрольная точка"),
+        translate("Вторая контрольная точка"),
+        translate("Конец"),
       ],
     };
     const name = steps[type]?.[index] || tool?.labels?.[index];
-    return `${name ? name + " · " : ""}точка ${index + 1}${tool?.points > 0 ? " из " + tool.points : " · Enter — завершить"}`;
+    return tr`${name ? name + " · " : ""}точка ${index + 1}${tool?.points > 0 ? translate(" из ") + tool.points : translate(" · Enter — завершить")}`;
   }
   function selectMode(value: any) {
     mode = value;
@@ -858,16 +859,16 @@ export function createChartTools({
     const tool = drawingTool(value);
     $("drawingHint").textContent =
       value === "select"
-        ? "Выберите объект · тяните точку или весь объект · Delete — удалить"
+        ? translate("Выберите объект · тяните точку или весь объект · Delete — удалить")
         : value === "eraser"
-          ? "Нажмите или проведите по объекту, чтобы удалить"
+          ? translate("Нажмите или проведите по объекту, чтобы удалить")
           : tool?.points === -1
-            ? "Удерживайте кнопку и рисуйте"
+            ? translate("Удерживайте кнопку и рисуйте")
             : NAVIGATION_TOOLS.includes(value)
-              ? "Перемещение и масштаб"
+              ? translate("Перемещение и масштаб")
               : tool?.points === 0
-                ? "Расставьте точки · Enter или двойной клик — завершить · Esc — отмена"
-                : `${tool?.name || value} · ${pointInstruction(value, 0)} · Esc — отмена`;
+                ? translate("Расставьте точки · Enter или двойной клик — завершить · Esc — отмена")
+                : tr`${tool?.name || value} · ${pointInstruction(value, 0)} · Esc — отмена`;
     schedule();
   }
   function near(d: any, x: any, y: any) {
@@ -940,7 +941,7 @@ export function createChartTools({
       schedule();
       text =
         (await drawingUI.text(
-          type === "sign" ? "★" : type === "flag" ? "Флаг" : "",
+          type === "sign" ? "★" : type === "flag" ? translate("Флаг") : "",
         )) || undefined;
       if (scope !== originalScope) return;
       if (!text) {
@@ -949,7 +950,7 @@ export function createChartTools({
       }
     }
     if (drawings.length >= 500) {
-      toast("Достигнут предел: 500 объектов.");
+      toast(translate("Достигнут предел: 500 объектов."));
       return;
     }
     const d = sanitizeDrawing({
@@ -966,7 +967,7 @@ export function createChartTools({
       ...(text !== undefined ? { text } : {}),
     });
     if (!d) {
-      toast("Проверьте точки разметки.");
+      toast(translate("Проверьте точки разметки."));
       return;
     }
     drawings.push(d);
@@ -984,7 +985,7 @@ export function createChartTools({
     if (pending.at(-1)?.time === p.time && pending.at(-1)?.price === p.price)
       return;
     if (pending.length >= 256) {
-      toast("Максимум 256 точек. Нажмите Enter, чтобы завершить.");
+      toast(translate("Максимум 256 точек. Нажмите Enter, чтобы завершить."));
       return;
     }
     pending.push(p);
@@ -995,7 +996,7 @@ export function createChartTools({
       void finishDrawing([...pending]);
     else
       $("drawingHint").textContent =
-        `${tool.name} · ${pointInstruction(mode, pending.length)} · Esc — отмена`;
+        tr`${tool.name} · ${pointInstruction(mode, pending.length)} · Esc — отмена`;
     schedule();
   }
   container.addEventListener("pointerdown", (e) => {
@@ -1197,7 +1198,7 @@ export function createChartTools({
   $("drawClear").onclick = () => {
     if (
       confirm(
-        "Удалить всю разметку для этой истории " + $("symbol").value + "?",
+        translate("Удалить всю разметку для этой истории ") + $("symbol").value + "?",
       )
     ) {
       drawings = [];
@@ -1234,14 +1235,14 @@ export function createChartTools({
     }
   });
   function addDrawing(d: any) {
-    if (drawings.length >= 500) throw Error("Достигнут предел: 500 объектов.");
+    if (drawings.length >= 500) throw Error(translate("Достигнут предел: 500 объектов."));
     drawings.push(d);
     saveDrawings();
     schedule();
   }
   function createLevel(price: any) {
     const bars = getBars();
-    if (!bars.length) throw Error("Сначала раскройте свечу.");
+    if (!bars.length) throw Error(translate("Сначала раскройте свечу."));
     addDrawing({
       id: Date.now() + "-" + Math.random().toString(36).slice(2),
       type: "level",
@@ -1309,9 +1310,9 @@ export function createChartTools({
     },
     pasteDrawing: (d, symbol) => {
       if (symbol !== $("symbol").value)
-        throw Error("Объект относится к другому инструменту.");
+        throw Error(translate("Объект относится к другому инструменту."));
       const clean = sanitizeDrawing(d);
-      if (!clean) throw Error("Некорректный объект разметки.");
+      if (!clean) throw Error(translate("Некорректный объект разметки."));
       d = clean;
       addDrawing({
         ...d,
@@ -1375,7 +1376,7 @@ export function createChartTools({
       else if (container.requestFullscreen) await container.requestFullscreen();
       else throw Error("Fullscreen is unavailable.");
     } catch {
-      toast("Браузер не разрешил полноэкранный режим.");
+      toast(translate("Браузер не разрешил полноэкранный режим."));
     }
   };
   let plusPrice = null;
