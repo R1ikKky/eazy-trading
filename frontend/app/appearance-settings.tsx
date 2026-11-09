@@ -8,6 +8,12 @@ export function ThemeInitializer() {
 export function AppearanceSettings() {
   const dialog = useRef<HTMLDialogElement>(null);
   const [selected, select] = useState<Theme>("dark");
+  const outsidePress = useRef(false);
+  const isOutside = (event: { clientX: number; clientY: number }, element: HTMLDialogElement) => {
+    const bounds = element.getBoundingClientRect();
+    return event.clientX < bounds.left || event.clientX > bounds.right ||
+      event.clientY < bounds.top || event.clientY > bounds.bottom;
+  };
   return <>
     <button type="button" className="icon-button theme-toggle" id="appearanceOpen"
       aria-label="Настройки оформления" aria-haspopup="dialog"
@@ -17,7 +23,16 @@ export function AppearanceSettings() {
         <circle cx="12" cy="12" r="3" />
       </svg>
     </button>
-    <dialog ref={dialog} className="appearance-settings" aria-labelledby="appearance-title">
+    <dialog ref={dialog} className="appearance-settings" aria-labelledby="appearance-title"
+      onPointerDown={(event) => {
+        outsidePress.current = event.button === 0 && event.target === event.currentTarget && isOutside(event, event.currentTarget);
+      }}
+      onPointerCancel={() => { outsidePress.current = false; }}
+      onClick={(event) => {
+        if (outsidePress.current && event.target === event.currentTarget && isOutside(event, event.currentTarget))
+          event.currentTarget.close();
+        outsidePress.current = false;
+      }}>
       <div className="dialog-header">
         <h2 id="appearance-title">Оформление</h2>
         <button type="button" className="icon-button" aria-label="Закрыть настройки оформления" onClick={() => dialog.current?.close()}>×</button>

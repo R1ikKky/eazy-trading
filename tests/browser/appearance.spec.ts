@@ -16,7 +16,11 @@ test("icon-only profile and persistent Dark, Yellow and Blue appearance settings
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme.toLowerCase());
     backgrounds.add(await page.locator(".app-shell").evaluate((element) => getComputedStyle(element).backgroundColor));
     await page.screenshot({ path: `/tmp/appearance-${theme.toLowerCase()}.png` });
-    await page.getByRole("button", { name: "Закрыть настройки оформления", exact: true }).click();
+    await page.locator("#appearance-title").click();
+    await expect(page.locator(".appearance-settings")).toBeVisible();
+    await page.mouse.click(3, 3);
+    await expect(page.locator(".appearance-settings")).not.toBeVisible();
+    await expect(page.getByRole("button", { name: "Настройки оформления", exact: true })).toBeFocused();
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme.toLowerCase());
   }
@@ -28,7 +32,11 @@ test("icon-only profile and persistent Dark, Yellow and Blue appearance settings
   expect(bounds.x).toBeGreaterThanOrEqual(0);
   expect(bounds.x + bounds.width).toBeLessThanOrEqual(320);
   await page.screenshot({ path: "/tmp/appearance-mobile.png" });
+  await page.mouse.click(3, 3);
+  await expect(page.locator(".appearance-settings")).not.toBeVisible();
+  await page.getByRole("button", { name: "Настройки оформления", exact: true }).click();
   await page.keyboard.press("Escape");
+  await expect(page.locator(".appearance-settings")).not.toBeVisible();
   await page.getByRole("button", { name: "Настройки профиля", exact: true }).click();
   await expect(page.getByLabel("Отображаемое имя", { exact: true })).toBeVisible();
   expect(errors).toEqual([]);
