@@ -28,14 +28,17 @@ test("footprint mode and a deduplicated demo reconnect", async ({
     await expect(page.locator("#setupDialog")).not.toBeVisible();
   }
 
-  await page.locator("#chartDisplay").selectOption("footprint");
+  await expect(page.locator("#view-replay")).toBeVisible();
+
+  // Legacy feed controllers are internal; exercise the engine without exposing its controls.
+  await page.locator("#chartDisplay").selectOption("footprint", { force: true });
   await expect(page.locator(".footprint-notice")).toContainText(
     "Tick trade data required",
   );
   await expect(page.locator(".trade-import")).toHaveCount(0);
   const replay = await page.locator("#progressLabel").textContent();
-  await page.locator("#chartDisplay").selectOption("candles");
-  await page.locator("#chartDisplay").selectOption("footprint");
+  await page.locator("#chartDisplay").selectOption("candles", { force: true });
+  await page.locator("#chartDisplay").selectOption("footprint", { force: true });
   expect(await page.locator("#progressLabel").textContent()).toBe(replay);
   const bounds = await page.locator("#chart").boundingBox();
   await page.mouse.move(
@@ -45,14 +48,14 @@ test("footprint mode and a deduplicated demo reconnect", async ({
   await page.mouse.wheel(0, -500);
   await page.waitForTimeout(250);
   await page.screenshot({ path: "/tmp/footprint-replay.png", fullPage: true });
-  await page.locator("#orderflowSource").selectOption("demo");
+  await page.locator("#orderflowSource").selectOption("demo", { force: true });
   await expect(page.locator("#feedStatus")).toHaveText("Demo · live", {
     timeout: 15000,
   });
   await expect(page.locator("#long")).toBeDisabled();
   const data = () =>
     page.request.get("/api/orderflow/stream?source=demo").then((r) => r.json());
-  await page.locator("#demoDisconnect").click();
+  await page.locator("#demoDisconnect").evaluate((button: HTMLButtonElement) => button.click());
   await expect(page.locator("#feedStatus")).toHaveText("Demo · interrupted");
   const before = await data();
   const beforeIds = new Set(before.events.map((e: { id: string }) => e.id));
@@ -74,7 +77,7 @@ test("footprint mode and a deduplicated demo reconnect", async ({
   await expect(page.locator("#footprintSummary")).toContainText("ESZ6");
   await page.locator("#symbol").selectOption("NQ");
   await expect(page.locator("#footprintSummary")).toContainText("NQZ6");
-  await page.locator("#orderflowSource").selectOption("replay");
+  await page.locator("#orderflowSource").selectOption("replay", { force: true });
   await expect(page.locator("#orderflowSource")).toHaveValue("replay");
   expect(await page.locator("#progressLabel").textContent()).toBe(replay);
   await expect(page.locator("#saveStatus")).toHaveAttribute(
@@ -87,7 +90,7 @@ test("footprint mode and a deduplicated demo reconnect", async ({
     "saved",
   );
   await page.locator("[data-view=replay]").click();
-  await page.locator("#chartDisplay").selectOption("footprint");
+  await page.locator("#chartDisplay").selectOption("footprint", { force: true });
   await expect(page.locator(".footprint-notice")).toContainText(
     "Tick trade data required",
   );

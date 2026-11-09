@@ -118,64 +118,67 @@ export function ReplayWorkspace() {
             data-app-view="replay"
             hidden={currentView !== "replay"}
           >
-            <div className="replay-context">
-              <div className="replay-period">
-                <span id="rangeLabel">—</span>
-                <span className="muted">New York · ET</span>
+            {/* Internal controllers remain mounted for replay state restoration. */}
+            <div hidden inert>
+              <div className="replay-context">
+                <div className="replay-period">
+                  <span id="rangeLabel">—</span>
+                  <span className="muted">New York · ET</span>
+                </div>
+                <div className="replay-result">
+                  <span>Результат сессии</span>
+                  <strong id="netStat">$0.00</strong>
+                </div>
               </div>
-              <div className="replay-result">
-                <span>Результат сессии</span>
-                <strong id="netStat">$0.00</strong>
+              <div
+                className="orderflow-controls"
+                aria-label="Order flow controls"
+              >
+                <label>
+                  Chart{" "}
+                  <select id="chartDisplay" defaultValue="candles">
+                    <option value="candles">Candles</option>
+                    <option value="footprint">Footprint</option>
+                  </select>
+                </label>
+                <label>
+                  Source{" "}
+                  <select id="orderflowSource" defaultValue="replay">
+                    <option value="replay">Replay</option>
+                    <option value="demo">Demo</option>
+                    <option value="live">Live</option>
+                  </select>
+                </label>
+                <label>
+                  Rows{" "}
+                  <select id="footprintGrouping" defaultValue="1" hidden>
+                    <option value="1">1 tick</option>
+                    <option value="2">2 ticks</option>
+                    <option value="4">4 ticks</option>
+                    <option value="8">8 ticks</option>
+                  </select>
+                </label>
+                <span id="feedStatus" role="status">
+                  Replay
+                </span>
+                <span id="footprintSummary" aria-live="polite" />
+                <span id="feedClock" />
+                <button id="demoDisconnect" type="button" hidden>
+                  Demo disconnect / reconnect
+                </button>
+                <label id="tradeClockWrap" hidden>
+                  Within minute{" "}
+                  <input
+                    id="tradeClock"
+                    type="range"
+                    min="0"
+                    max="59999"
+                    step="1"
+                    defaultValue="0"
+                  />
+                  <output id="tradeClockLabel" />
+                </label>
               </div>
-            </div>
-            <div
-              className="orderflow-controls"
-              aria-label="Order flow controls"
-            >
-              <label>
-                Chart{" "}
-                <select id="chartDisplay" defaultValue="candles">
-                  <option value="candles">Candles</option>
-                  <option value="footprint">Footprint</option>
-                </select>
-              </label>
-              <label>
-                Source{" "}
-                <select id="orderflowSource" defaultValue="replay">
-                  <option value="replay">Replay</option>
-                  <option value="demo">Demo</option>
-                  <option value="live">Live</option>
-                </select>
-              </label>
-              <label>
-                Rows{" "}
-                <select id="footprintGrouping" defaultValue="1" hidden>
-                  <option value="1">1 tick</option>
-                  <option value="2">2 ticks</option>
-                  <option value="4">4 ticks</option>
-                  <option value="8">8 ticks</option>
-                </select>
-              </label>
-              <span id="feedStatus" role="status">
-                Replay
-              </span>
-              <span id="footprintSummary" aria-live="polite" />
-              <span id="feedClock" />
-              <button id="demoDisconnect" type="button" hidden>
-                Demo disconnect / reconnect
-              </button>
-              <label id="tradeClockWrap" hidden>
-                Within minute{" "}
-                <input
-                  id="tradeClock"
-                  type="range"
-                  min="0"
-                  max="59999"
-                  step="1"
-                  defaultValue="0"
-                />
-                <output id="tradeClockLabel" />
-              </label>
             </div>
             <div className="workspace-grid">
               <section className="chart-card" id="chartCard">

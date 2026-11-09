@@ -11,6 +11,9 @@ test("replay dock frees chart width and holds the floating trade ticket", async 
   await page.locator('[data-view="replay"]').click();
   await expect(page).toHaveURL(/\/replay$/);
   await expect(page.locator("#view-replay")).toBeVisible();
+  await expect(page.locator(".replay-context")).not.toBeVisible();
+  await expect(page.locator(".orderflow-controls")).not.toBeVisible();
+  expect((await page.locator("#chartCard").boundingBox())!.y).toBeLessThan(150);
   const dock = page.locator(".app-sidebar");
   const trade = page.getByRole("button", { name: "Панель сделки", exact: true });
   const ticket = page.locator("#orderTicket");
