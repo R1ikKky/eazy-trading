@@ -924,5 +924,7 @@
   "Азия": "Asia",
   "Лондон": "London",
   "Нью-Йорк": "New York",
-  "Нет открытия в оставшихся данных": "No opening in the remaining data"
+  "Нет открытия в оставшихся данных": "No opening in the remaining data",
+  "Скрыть панель рисования": "Hide drawing toolbar",
+  "Показать панель рисования": "Show drawing toolbar"
 }

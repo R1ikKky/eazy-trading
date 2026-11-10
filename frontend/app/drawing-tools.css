@@ -2,11 +2,17 @@
   display: contents;
 }
 body:not(:has(#view-replay:not([hidden]))) .drawing-rail,
+body:not(:has(#view-replay:not([hidden]))) .drawing-rail-reveal,
 body:not(:has(#view-replay:not([hidden]))) .drawing-favorites {
   display: none;
 }
 body.product-app:has(#view-replay:not([hidden])) .product-main {
   padding-left: 76px;
+  transition: padding-left 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+body.product-app:has(#view-replay:not([hidden])):has(.drawing-rail.is-collapsed)
+  .product-main {
+  padding-left: 36px;
 }
 .drawing-rail,
 .drawing-favorites,
@@ -21,19 +27,51 @@ body.product-app:has(#view-replay:not([hidden])) .product-main {
 .drawing-rail {
   position: fixed;
   left: 24px;
-  top: 116px;
-  bottom: 28px;
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
   width: 46px;
   height: max-content;
-  max-height: calc(100dvh - 144px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  max-height: calc(100dvh - 32px);
+  overflow: hidden;
   z-index: 110;
   padding: 5px;
   display: flex;
   flex-direction: column;
   gap: 2px;
   scrollbar-width: none;
+  transition: translate 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+body.product-app .drawing-rail.is-collapsed {
+  translate: calc(-100% - 32px) 0;
+}
+body.product-app .drawing-rail > button {
+  flex: 0 1 34px;
+  min-height: 0;
+}
+body.product-app .drawing-rail > .drawing-rail-divider {
+  flex: none;
+  margin: 3px;
+}
+.drawing-rail-reveal {
+  position: fixed;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 110;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 8px 24px #0003;
+}
+.drawing-rail-reveal[hidden] {
+  display: none;
+}
+.drawing-ui .drawing-rail-reveal button {
+  width: 28px;
+  height: 44px;
+  padding: 4px;
 }
 .drawing-ui button {
   display: flex;
@@ -287,22 +325,23 @@ body.product-app:has(#view-replay:not([hidden])) .product-main {
   font-variant-numeric: tabular-nums;
 }
 :fullscreen .drawing-rail {
-  top: 12px;
   left: 6px;
-  bottom: 12px;
   max-height: calc(100dvh - 24px);
 }
 @media (max-width: 700px) {
   body.product-app:has(#view-replay:not([hidden])) .product-main {
     padding-left: 56px;
   }
+  body.product-app:has(#view-replay:not([hidden])):has(
+      .drawing-rail.is-collapsed
+    )
+    .product-main {
+    padding-left: 32px;
+  }
   .drawing-rail {
     left: 14px;
-    top: 104px;
-    bottom: 22px;
     width: 38px;
     padding: 3px;
-    max-height: calc(100dvh - 126px);
     border-radius: 14px;
   }
   .drawing-rail button {
@@ -310,11 +349,31 @@ body.product-app:has(#view-replay:not([hidden])) .product-main {
     height: 32px;
     padding: 4px;
   }
+  body.product-app .drawing-rail > button {
+    flex-basis: 32px;
+  }
   .drawing-group-menu {
     padding: 10px;
   }
   .drawing-tool-row button[data-tool] {
     gap: 8px;
     font-size: 11px;
+  }
+}
+@media (max-height: 600px) {
+  .drawing-ui .drawing-rail button {
+    padding: 3px;
+  }
+  .drawing-rail svg {
+    width: 20px;
+    height: 20px;
+  }
+  body.product-app .drawing-rail > .drawing-rail-divider {
+    margin: 1px 3px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawing-rail {
+    transition: none;
   }
 }

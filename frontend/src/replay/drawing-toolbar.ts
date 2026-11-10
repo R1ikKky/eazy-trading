@@ -30,9 +30,10 @@ export function createDrawingToolbar(callbacks: {
     position = saved.position;
   const root = document.createElement("div");
   root.className = "drawing-ui";
-  root.innerHTML = tr`<aside class="drawing-rail" aria-label="Инструменты рисования">${DRAWING_GROUPS.map((group) => `<button type="button" class="drawing-group-button" data-group="${group.id}" aria-label="${group.name}" title="${group.name}" aria-haspopup="dialog" aria-expanded="false">${drawingIcon(group.icon)}</button>`).join("")}<div class="drawing-rail-divider"></div><button type="button" data-drawing-toggle="magnet" title="Привязка к OHLC" aria-label="Привязка к свечам" aria-pressed="false">${drawingIcon("magnet")}</button><button type="button" data-drawing-toggle="locked" title="Зафиксировать разметку" aria-label="Зафиксировать разметку" aria-pressed="false">${drawingIcon("lock")}</button><button type="button" data-drawing-toggle="hidden" title="Скрыть разметку" aria-label="Скрыть разметку" aria-pressed="false">${drawingIcon("eye")}</button><div class="drawing-rail-divider"></div><button id="drawUndo" type="button" title="Отменить рисование" aria-label="Отменить последнее рисование">↶</button><button id="drawDelete" type="button" title="Удалить выбранный объект" aria-label="Удалить выбранный объект">⌫</button><button id="drawClear" type="button" title="Удалить всю разметку" aria-label="Удалить всю разметку">${drawingIcon("trash")}</button><button type="button" data-favorites-toggle title="Избранные инструменты" aria-label="Избранные инструменты">${drawingIcon("star")}</button></aside><section class="drawing-group-menu" popover="auto" role="dialog" aria-label="Выбор инструмента"><header><strong></strong><button type="button" data-menu-close aria-label="Закрыть инструменты">×</button></header><label class="drawing-search-label"><span class="sr-only">Найти инструмент</span><input type="search" class="drawing-tool-search" placeholder="Найти инструмент" autocomplete="off"></label><div class="drawing-tool-list"></div><p class="drawing-menu-help"></p></section><div class="drawing-favorites" role="toolbar" aria-label="Избранные инструменты рисования"><button type="button" class="drawing-favorites-grip" aria-label="Переместить избранное" title="Перетащите панель">⠿</button><div class="drawing-favorites-items"></div></div><section class="drawing-style-menu" popover="auto" role="dialog" aria-label="Стиль рисования"><h3>Стиль разметки</h3><label>Цвет<input type="color" id="drawingStyleColor" value="#99bff1"></label><label>Толщина<select id="drawingStyleWidth"><option value="1">1 px</option><option value="2">2 px</option><option value="3">3 px</option><option value="4">4 px</option></select></label><label>Заливка<input type="range" id="drawingStyleOpacity" min="0" max="100" value="15"></label><label class="drawing-style-check"><input type="checkbox" id="drawingStyleDashed">Пунктир</label></section>`;
+  root.innerHTML = tr`<aside id="drawingRail" class="drawing-rail" aria-label="Инструменты рисования">${DRAWING_GROUPS.map((group) => `<button type="button" class="drawing-group-button" data-group="${group.id}" aria-label="${group.name}" title="${group.name}" aria-haspopup="dialog" aria-expanded="false">${drawingIcon(group.icon)}</button>`).join("")}<div class="drawing-rail-divider"></div><button type="button" data-drawing-toggle="magnet" title="Привязка к OHLC" aria-label="Привязка к свечам" aria-pressed="false">${drawingIcon("magnet")}</button><button type="button" data-drawing-toggle="locked" title="Зафиксировать разметку" aria-label="Зафиксировать разметку" aria-pressed="false">${drawingIcon("lock")}</button><button type="button" data-drawing-toggle="hidden" title="Скрыть разметку" aria-label="Скрыть разметку" aria-pressed="false">${drawingIcon("eye")}</button><div class="drawing-rail-divider"></div><button id="drawUndo" type="button" title="Отменить рисование" aria-label="Отменить последнее рисование">↶</button><button id="drawDelete" type="button" title="Удалить выбранный объект" aria-label="Удалить выбранный объект">⌫</button><button id="drawClear" type="button" title="Удалить всю разметку" aria-label="Удалить всю разметку">${drawingIcon("trash")}</button><button type="button" data-favorites-toggle title="Избранные инструменты" aria-label="Избранные инструменты">${drawingIcon("star")}</button><button type="button" data-rail-hide aria-label="Скрыть панель рисования" title="Скрыть панель рисования" aria-controls="drawingRail" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button></aside><div class="drawing-rail-reveal" hidden><button type="button" data-rail-show aria-label="Показать панель рисования" title="Показать панель рисования" aria-controls="drawingRail" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></div><section class="drawing-group-menu" popover="auto" role="dialog" aria-label="Выбор инструмента"><header><strong></strong><button type="button" data-menu-close aria-label="Закрыть инструменты">×</button></header><label class="drawing-search-label"><span class="sr-only">Найти инструмент</span><input type="search" class="drawing-tool-search" placeholder="Найти инструмент" autocomplete="off"></label><div class="drawing-tool-list"></div><p class="drawing-menu-help"></p></section><div class="drawing-favorites" role="toolbar" aria-label="Избранные инструменты рисования"><button type="button" class="drawing-favorites-grip" aria-label="Переместить избранное" title="Перетащите панель">⠿</button><div class="drawing-favorites-items"></div></div><section class="drawing-style-menu" popover="auto" role="dialog" aria-label="Стиль рисования"><h3>Стиль разметки</h3><label>Цвет<input type="color" id="drawingStyleColor" value="#99bff1"></label><label>Толщина<select id="drawingStyleWidth"><option value="1">1 px</option><option value="2">2 px</option><option value="3">3 px</option><option value="4">4 px</option></select></label><label>Заливка<input type="range" id="drawingStyleOpacity" min="0" max="100" value="15"></label><label class="drawing-style-check"><input type="checkbox" id="drawingStyleDashed">Пунктир</label></section>`;
   document.body.append(root);
   const rail = root.querySelector<HTMLElement>(".drawing-rail")!,
+    reveal = root.querySelector<HTMLElement>(".drawing-rail-reveal")!,
     menu = root.querySelector<HTMLElement>(".drawing-group-menu")!,
     list = root.querySelector<HTMLElement>(".drawing-tool-list")!,
     search = root.querySelector<HTMLInputElement>(".drawing-tool-search")!,
@@ -43,15 +44,30 @@ export function createDrawingToolbar(callbacks: {
     locked: !!saved.locked,
     hidden: !!saved.hidden,
   };
-  let showFavorites = saved.showFavorites !== false;
+  let showFavorites = saved.showFavorites !== false,
+    railCollapsed = saved.railCollapsed === true;
   const persist = () => {
     try {
       localStorage.setItem(
         key,
-        JSON.stringify({ ...state, favorites, position, showFavorites }),
+        JSON.stringify({ ...state, favorites, position, showFavorites, railCollapsed }),
       );
     } catch {}
   };
+  function setRailCollapsed(collapsed: boolean, save = true) {
+    railCollapsed = collapsed;
+    rail.classList.toggle("is-collapsed", collapsed);
+    rail.inert = collapsed;
+    rail.setAttribute("aria-hidden", String(collapsed));
+    reveal.hidden = !collapsed;
+    if (collapsed) {
+      if (menu.matches(":popover-open")) menu.hidePopover();
+      if (styleMenu.matches(":popover-open")) styleMenu.hidePopover();
+      if (save) callbacks.selectTool("cursor");
+    }
+    if (save) persist();
+  }
+  setRailCollapsed(railCollapsed, false);
   function placeMenu(element: HTMLElement, trigger: HTMLElement) {
     const rect = trigger.getBoundingClientRect();
     const top = Math.max(10, Math.min(rect.top, innerHeight - 650));
@@ -153,6 +169,16 @@ export function createDrawingToolbar(callbacks: {
       "button",
     );
     if (!button) return;
+    if (button.hasAttribute("data-rail-hide")) {
+      setRailCollapsed(true);
+      reveal.querySelector<HTMLButtonElement>("button")!.focus({ preventScroll: true });
+      return;
+    }
+    if (button.hasAttribute("data-rail-show")) {
+      setRailCollapsed(false);
+      rail.querySelector<HTMLButtonElement>("button")!.focus({ preventScroll: true });
+      return;
+    }
     if (button.dataset.tool) {
       choose(button.dataset.tool);
       return;
