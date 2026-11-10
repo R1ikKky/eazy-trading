@@ -553,8 +553,7 @@ export function createDrawingWorkspace({
     strokePoints = [];
     anchor = null;
     hover = null;
-    if (!drawingUI.state.repeat) selectMode("cursor");
-    else selectMode(type);
+    selectMode("cursor");
     schedule();
   }
   function recordPoint(p: any) {
