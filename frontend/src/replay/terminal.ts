@@ -133,7 +133,7 @@ export function createComparison({
   host.hidden = true;
   host.setAttribute("aria-label", translate("Второй инструмент"));
   host.innerHTML = translate(
-    '<div class="comparison-header"><button type="button" class="pane-instrument-trigger" id="comparisonTitle">ES</button><strong class="comparison-price" id="comparisonPrice"></strong><label class="sr-only" for="compareInterval">Таймфрейм второго графика</label><select id="compareInterval"><option value="sync" selected>Как основной</option><option value="1">1m</option><option value="3">3m</option><option value="5">5m</option><option value="15">15m</option><option value="30">30m</option><option value="60">1h</option></select></div><div id="compareChart" class="comparison-chart"></div><p id="compareNotice" class="pane-notice muted"></p>',
+    '<div class="comparison-header"><button type="button" class="pane-instrument-trigger" id="comparisonTitle">ES</button><strong class="comparison-price" id="comparisonPrice"></strong></div><div id="compareChart" class="comparison-chart"></div><p id="compareNotice" class="pane-notice muted"></p>',
   );
   panes.append(host);
   const title = document.getElementById("comparisonTitle"),
@@ -343,13 +343,6 @@ export function createComparison({
   button.onclick = () => setVisible(!visible);
   expand.onclick = () =>
     setExpanded(!card.classList.contains("charts-expanded"));
-  document.getElementById("compareInterval").onchange = (e) => {
-    minutes =
-      (e.target as HTMLInputElement).value === "sync"
-        ? null
-        : Number((e.target as HTMLInputElement).value);
-    render();
-  };
   document.addEventListener("keydown", (e) => {
     if (
       e.key === "Escape" &&
@@ -366,8 +359,6 @@ export function createComparison({
     getTimeframe: interval,
     setTimeframe(value: any) {
       minutes = value;
-      (document.getElementById("compareInterval") as HTMLSelectElement).value =
-        value === null ? "sync" : String(value);
       render();
     },
     getVisible: () => visible,
