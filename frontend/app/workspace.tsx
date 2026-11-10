@@ -366,6 +366,28 @@ export function ReplayWorkspace() {
                     >
                       ▸│
                     </button>
+                    <button
+                      id="sessionSkip"
+                      type="button"
+                      className="icon-button"
+                      aria-label={translate("Перейти к открытию сессии")}
+                      title={translate("Перейти к открытию сессии")}
+                      aria-haspopup="menu"
+                      aria-expanded="false"
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        aria-hidden="true"
+                      >
+                        <path d="m4 6 7 6-7 6V6Zm8 0 7 6-7 6V6ZM21 5v14" strokeLinejoin="round" />
+                      </svg>
+                      <span>{translate("К открытию")}</span>
+                    </button>
                     <select
                       id="speed"
                       aria-label={translate("Скорость воспроизведения")}

@@ -38,6 +38,7 @@ export interface Elements {
   playIcon: HTMLElement;
   playLabel: HTMLElement;
   step: HTMLButtonElement;
+  sessionSkip: HTMLButtonElement;
   speed: HTMLSelectElement;
   replayTime: HTMLElement;
   progressLabel: HTMLElement;

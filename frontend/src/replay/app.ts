@@ -2,6 +2,12 @@ import { t as translate, locale } from "../i18n/language";
 import { createDrawingWorkspace } from "./drawing-workspace";
 import { installPaneInstrumentMenu } from "./pane-instruments";
 import { installChartSplitter } from "./chart-splitter";
+import { installSessionJump } from "./session-jump";
+import {
+  nextSessionOpening,
+  advanceReplayToOpening,
+  type SessionOpening,
+} from "./session-openings";
 import { createFootprint } from "./footprint";
 import { ACCOUNT_DEPOSITS } from "./account-deposits";
 import type { Instrument } from "./types";
@@ -915,6 +921,21 @@ function step() {
   render();
   return true;
 }
+function skipToOpening(session: SessionOpening) {
+  if (!replay || orderflow?.isStreaming()) return;
+  pause();
+  const target = nextSessionOpening(replay.bars, replay.index, session);
+  if (target < 0) {
+    toast(translate("Нет открытия в оставшихся данных"));
+    return;
+  }
+  tools?.cancel();
+  tradeOffset = 0;
+  advanceReplayToOpening(replay, target);
+  rebuildChart();
+  render();
+  toast(translate(session.name) + " · " + displayTime.format(new Date(replay.current.time * 1000)) + " " + displayZone);
+}
 function renderLines() {
   if (!series) return;
   for (const line of priceLines) series.removePriceLine(line);
@@ -1198,6 +1219,11 @@ $("symbol").onchange = async () => {
   }
 };
 $("play").onclick = togglePlay;
+installSessionJump({
+  getReplay: () => replay,
+  pause,
+  jump: (session) => guard(() => skipToOpening(session)),
+});
 $("step").onclick = () => {
   pause();
   step();

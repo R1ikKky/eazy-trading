@@ -324,7 +324,7 @@ export function createFootprint({
     cursor = 0;
     epoch = "";
     gap = "";
-    for (const id of ["play", "step", "long", "short"])
+    for (const id of ["play", "step", "sessionSkip", "long", "short"])
       el(id).disabled = source !== "replay";
     el("demoDisconnect").hidden = source !== "demo";
     el("feedStatus").textContent =

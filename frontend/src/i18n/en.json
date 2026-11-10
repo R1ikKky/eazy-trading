@@ -918,5 +918,11 @@
   "Этот email не имеет доступа к сайту.": "This email is not permitted to access this site.",
   "Не удалось войти через внешний сервис. Повторите попытку или обратитесь к владельцу сайта.": "Social sign-in could not be completed. Please try again. If it continues, contact the site owner.",
   "Изменить размеры графиков": "Resize charts",
-  "Перетащите для изменения размеров · двойной клик — поровну": "Drag to resize · double-click for equal charts"
+  "Перетащите для изменения размеров · двойной клик — поровну": "Drag to resize · double-click for equal charts",
+  "Перейти к открытию сессии": "Skip to session opening",
+  "К открытию": "Skip to session",
+  "Азия": "Asia",
+  "Лондон": "London",
+  "Нью-Йорк": "New York",
+  "Нет открытия в оставшихся данных": "No opening in the remaining data"
 }
