@@ -280,16 +280,6 @@ export function ReplayWorkspace() {
                       </svg>
                     </button>
                     <button
-                      id="chartExpand"
-                      className="icon-button"
-                      type="button"
-                      aria-pressed="false"
-                      aria-label={translate("Развернуть графики")}
-                      title={translate("Развернуть графики")}
-                    >
-                      ⤢
-                    </button>
-                    <button
                       id="settingsOpen"
                       className="settings-button"
                       aria-label={translate("Настройки графика")}

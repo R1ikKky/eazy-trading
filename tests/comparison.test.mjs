@@ -6,7 +6,7 @@ import {defaults} from '../frontend/src/replay/settings-model.ts';
 function fixture({past=0}={}){
  const oldDocument=globalThis.document,oldWindow=globalThis.window;
  const element=()=>{const classes=new Set();return {hidden:false,textContent:'',events:{},classList:{contains:c=>classes.has(c),toggle(c,next){if(next)classes.add(c);else classes.delete(c);}},setAttribute(key,value){this[key]=value;},append(child){this.child=child;},addEventListener(type,fn){this.events[type]=fn;}};};
- const ids=Object.fromEntries(['compareToggle','comparisonTitle','compareNotice','compareChart','compareInterval','chart','chartPanes','chartCard','chartExpand'].map(id=>[id,element()]));
+ const ids=Object.fromEntries(['compareToggle','comparisonTitle','compareNotice','compareChart','chart','chartPanes'].map(id=>[id,element()]));
  const chartMock=()=>{
   const callbacks=[],crosshairCallbacks=[];const result={range:null,rangeSets:0,crosshair:null,data:[],applyOptions(){},addSeries(){const series={applyOptions(){},setData:rows=>{result.data=rows;}};result.series=series;return series;},subscribeCrosshairMove:fn=>crosshairCallbacks.push(fn),emitCrosshair:param=>crosshairCallbacks.forEach(fn=>fn(param)),setCrosshairPosition(price,time,series){this.crosshair={price,time,series};this.emitCrosshair({time,point:{x:1,y:1}});},clearCrosshairPosition(){this.crosshair=null;this.emitCrosshair({});}};
   const scale={getVisibleRange:()=>result.range,setVisibleRange(range){result.range={...range};result.rangeSets++;callbacks.forEach(fn=>fn(range));},getVisibleLogicalRange:()=>result.logical,setVisibleLogicalRange(range){result.logical={...range};},subscribeVisibleTimeRangeChange:fn=>callbacks.push(fn)};result.timeScale=()=>scale;return result;
@@ -39,7 +39,6 @@ test('panning either pane leaves the other pane viewport unchanged',async()=>{
   f.secondary.timeScale().setVisibleRange({from:f.start-60,to:f.start+240});assert.deepEqual(f.primary.range,originalPrimary);
   const secondaryView={...f.secondary.range};f.primary.timeScale().setVisibleRange({from:f.start-120,to:f.start+300});assert.deepEqual(f.secondary.range,secondaryView);
   const primaryView={...f.primary.range};f.comparison.render();assert.deepEqual(f.primary.range,primaryView);
-  f.comparison.setExpanded(true);f.comparison.setExpanded(false);assert.deepEqual(f.primary.range,primaryView);
   assert.ok(f.secondary.data.every(b=>b.time<=f.now));
  }finally{f.restore();}
 });

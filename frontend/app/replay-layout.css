@@ -1,0 +1,53 @@
+body.product-app:has(#view-replay:not([hidden])) .product-main {
+  padding-right: 12px;
+  padding-bottom: 0;
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+body.product-app #view-replay #chartCard {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 130px);
+  min-height: 400px;
+  margin: 0;
+}
+body.product-app #view-replay #chartPanes {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+}
+body.product-app #view-replay .chart-pane {
+  min-height: 0;
+}
+body.product-app
+  #view-replay
+  .chart-panes
+  :is(.chart-container, .comparison-chart) {
+  height: 0;
+  min-height: 0;
+  flex: 1;
+}
+body.product-app #chartCard > :not(.chart-panes) {
+  flex: none;
+}
+@media (min-width: 701px) {
+  body.product-app #chartPanes {
+    grid-template-rows: minmax(0, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  body.product-app:has(#view-replay:not([hidden])) .product-main {
+    padding-right: 0;
+  }
+  body.product-app #view-replay #chartCard {
+    height: calc(100dvh - 104px);
+  }
+}
+@media (max-height: 540px) {
+  body.product-app #view-replay #chartCard {
+    min-height: 0;
+  }
+  body.product-app #view-replay .drawing-hint {
+    display: none;
+  }
+}

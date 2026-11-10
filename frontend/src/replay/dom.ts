@@ -15,7 +15,6 @@ export interface Elements {
   symbol: HTMLSelectElement;
   contractName: HTMLElement;
   compareToggle: HTMLButtonElement;
-  chartExpand: HTMLButtonElement;
   settingsOpen: HTMLButtonElement;
   drawUndo: HTMLButtonElement;
   drawDelete: HTMLButtonElement;

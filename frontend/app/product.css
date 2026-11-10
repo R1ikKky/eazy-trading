@@ -3626,38 +3626,6 @@ body.product-app {
 .product-app .chart-card .chart-tools {
   margin-left: auto;
 }
-body.charts-expanded {
-  overflow: hidden;
-}
-.product-app .chart-card.charts-expanded {
-  position: fixed;
-  inset: 12px;
-  z-index: 90;
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  border-radius: 10px;
-  background: var(--surface);
-}
-.product-app .charts-expanded .chart-panes {
-  flex: 1;
-  min-height: 0;
-  grid-template-rows: minmax(0, 1fr);
-}
-.product-app .charts-expanded .chart-panes .chart-container,
-.product-app .charts-expanded .chart-panes .comparison-chart {
-  height: 0;
-  min-height: 0;
-  flex: 1;
-}
-.product-app .charts-expanded > .chart-toolbar,
-.product-app .charts-expanded > .drawing-toolbar,
-.product-app .charts-expanded > .drawing-hint,
-.product-app .charts-expanded > .replay-panel,
-.product-app .charts-expanded > .progress-track,
-.product-app .charts-expanded > .chart-footer {
-  flex: none;
-}
 @media (max-width: 700px) {
   .product-app .chart-panes.is-dual {
     grid-template-columns: minmax(0, 1fr);
@@ -3666,26 +3634,9 @@ body.charts-expanded {
     border-left: 0;
     border-top: 1px solid var(--p-border);
   }
-  .product-app .chart-card.charts-expanded {
-    inset: 6px;
-  }
-  .product-app .charts-expanded .chart-panes.is-dual {
-    grid-template-rows: repeat(2, minmax(0, 1fr));
-  }
-  .product-app .charts-expanded .drawing-hint,
-  .product-app .charts-expanded .chart-footer {
-    display: none;
-  }
   .product-app .chart-pane > .pane-notice {
     font-size: 9px;
     padding: 8px;
-  }
-}
-@media (max-height: 540px) {
-  .product-app .charts-expanded .drawing-toolbar,
-  .product-app .charts-expanded .drawing-hint,
-  .product-app .charts-expanded .chart-footer {
-    display: none;
   }
 }
 
@@ -3751,10 +3702,6 @@ body.charts-expanded {
   .product-app #view-replay .chart-panes .comparison-chart {
     height: clamp(280px, calc(100dvh - 500px), 800px);
     min-height: 280px;
-  }
-  .product-app #view-replay .charts-expanded .chart-panes .chart-container,
-  .product-app #view-replay .charts-expanded .chart-panes .comparison-chart {
-    height: 0;
   }
 }
 @media (max-width: 700px) {

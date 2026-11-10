@@ -126,8 +126,6 @@ export function createComparison({
     syncingCrosshair = false;
   const button = document.getElementById("compareToggle"),
     panes = document.getElementById("chartPanes"),
-    card = document.getElementById("chartCard"),
-    expand = document.getElementById("chartExpand"),
     host = document.createElement("section");
   host.className = "comparison-card chart-pane";
   host.hidden = true;
@@ -326,36 +324,11 @@ export function createComparison({
     reload();
     window.dispatchEvent(new Event("resize"));
   }
-  function setExpanded(next: any) {
-    if (card.classList.contains("charts-expanded") === Boolean(next)) return;
-    card.classList.toggle("charts-expanded", Boolean(next));
-    document.body.classList.toggle("charts-expanded", Boolean(next));
-    expand.setAttribute("aria-pressed", String(Boolean(next)));
-    expand.setAttribute(
-      "aria-label",
-      next ? translate("Свернуть графики") : translate("Развернуть графики"),
-    );
-    expand.title = next
-      ? translate("Свернуть графики · Esc")
-      : translate("Развернуть графики");
-    window.dispatchEvent(new Event("resize"));
-  }
   button.onclick = () => setVisible(!visible);
-  expand.onclick = () =>
-    setExpanded(!card.classList.contains("charts-expanded"));
-  document.addEventListener("keydown", (e) => {
-    if (
-      e.key === "Escape" &&
-      card.classList.contains("charts-expanded") &&
-      !document.querySelector<HTMLDialogElement>("dialog[open]")
-    )
-      setExpanded(false);
-  });
   return {
     render,
     reload,
     setVisible,
-    setExpanded,
     getTimeframe: interval,
     setTimeframe(value: any) {
       minutes = value;

@@ -17,6 +17,7 @@ import "./active-charts.css";
 import "./session-jump.css";
 import "./button-motion.css";
 import "./route-transitions.css";
+import "./replay-layout.css";
 export const metadata: Metadata = {
   title: "eazy trading · NQ / ES",
   description:

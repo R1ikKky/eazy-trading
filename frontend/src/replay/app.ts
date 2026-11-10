@@ -1490,7 +1490,6 @@ product = createProduct({
   onNavigate: (next) => {
     if (next !== "replay") {
       pause();
-      comparison?.setExpanded(false);
     } else if (!replay) {
       openSetup();
     }

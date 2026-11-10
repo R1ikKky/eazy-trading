@@ -39,6 +39,10 @@ test("chart divider resizes both charts, clamps, resets and persists without cha
     (await page.locator(".app-sidebar").boundingBox())!.y + 64,
   );
   const viewport = (await page.locator("#chartPanes").boundingBox())!;
+  const card = (await page.locator("#chartCard").boundingBox())!;
+  expect(card.y + card.height).toBeLessThanOrEqual(1000);
+  expect(card.y + card.height).toBeGreaterThan(970);
+  await expect(page.locator("#chartExpand")).toHaveCount(0);
   let saves = 0;
   page.on("request", (request) => {
     if (
@@ -139,8 +143,7 @@ test("chart divider resizes both charts, clamps, resets and persists without cha
   await divider.dblclick();
   await expect(divider).toHaveAttribute("aria-valuenow", "50");
   await page.screenshot({ path: "/tmp/chart-splitter-mobile.png" });
-  await page.locator("#chartExpand").scrollIntoViewIfNeeded();
-  await page.locator("#chartExpand").click();
+  await expect(page.locator("#chartExpand")).toHaveCount(0);
   await expect(divider).toBeVisible();
   expect((await page.locator("#chart").boundingBox())!.height).toBeGreaterThan(
     20,
@@ -148,7 +151,12 @@ test("chart divider resizes both charts, clamps, resets and persists without cha
   expect(
     (await page.locator("#compareChart").boundingBox())!.height,
   ).toBeGreaterThan(20);
+  const expandedHeight = (await page.locator("#chartCard").boundingBox())!
+    .height;
   await page.keyboard.press("Escape");
+  expect((await page.locator("#chartCard").boundingBox())!.height).toBe(
+    expandedHeight,
+  );
   await page.setViewportSize({ width: 1440, height: 1000 });
   await expect(divider).toHaveAttribute("aria-orientation", "vertical");
   await expect(divider).toHaveAttribute("aria-valuenow", "60");

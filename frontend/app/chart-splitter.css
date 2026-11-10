@@ -82,9 +82,4 @@ body[data-chart-resize="y"] * {
   body.product-app .chart-splitter::before {
     inset: -4px 0;
   }
-  body.product-app .charts-expanded #chartPanes.is-dual {
-    height: 0;
-    min-height: 0;
-    flex: 1;
-  }
 }
