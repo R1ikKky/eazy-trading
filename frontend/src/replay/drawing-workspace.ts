@@ -1,6 +1,10 @@
 import { t as translate, tr } from "../i18n/language";
 import { element as $ } from "./dom";
-import { drawingTool, NAVIGATION_TOOLS } from "./drawing-catalog";
+import {
+  drawingTool,
+  isDrawingType,
+  NAVIGATION_TOOLS,
+} from "./drawing-catalog";
 import { sanitizeDrawing } from "./drawing-schema";
 import { renderDrawing } from "./drawing-renderer";
 import { createDrawingToolbar } from "./drawing-toolbar";
@@ -42,6 +46,9 @@ export function createDrawingWorkspace({
     strokePoints: any[] = [],
     dragHandle = -1,
     lastSaved: any[] = [];
+  let controlHeld = false,
+    manualMagnet = false,
+    lastPointer: { x: number; y: number } | null = null;
   const histories = new Map<string, any[][]>();
   const symbolOf = (d: any) => d.symbol || getSessionSymbol();
   const belongs = (d: any, ctx = active) =>
@@ -66,6 +73,11 @@ export function createDrawingWorkspace({
       selectMode(id);
     },
     toast,
+    magnet: (enabled) => {
+      manualMagnet = enabled;
+      syncMagnet();
+      schedule();
+    },
     style: (style) => {
       Object.assign(prefs, {
         drawingColor: style.color,
@@ -94,6 +106,45 @@ export function createDrawingWorkspace({
     dashed: prefs.drawingDashed,
   });
   window.addEventListener("drawing-ui-change", schedule);
+  function syncMagnet() {
+    const drawing = isDrawingType(mode) || (mode === "select" && dragging);
+    drawingUI.setMagnet(
+      Boolean(
+        active &&
+        drawing &&
+        location.pathname === "/replay" &&
+        !document.querySelector("dialog[open]") &&
+        (controlHeld || manualMagnet),
+      ),
+    );
+    if (active && lastPointer && drawing)
+      hover = point(lastPointer.x, lastPointer.y);
+  }
+  function updateControl(held: boolean) {
+    controlHeld = held;
+    syncMagnet();
+    schedule();
+  }
+  document.addEventListener("keydown", (event) => {
+    if (
+      location.pathname !== "/replay" ||
+      document.querySelector("dialog[open]") ||
+      (event.target as HTMLElement).closest(
+        "input, textarea, select, [contenteditable='true']",
+      )
+    )
+      return;
+    updateControl(event.ctrlKey);
+  });
+  document.addEventListener("keyup", (event) => updateControl(event.ctrlKey));
+  window.addEventListener("blur", () => updateControl(false));
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) updateControl(false);
+  });
+  window.addEventListener("workspace-route", () => {
+    manualMagnet = false;
+    updateControl(false);
+  });
   function node(tag: any, attrs: any) {
     const n = document.createElementNS(ns, tag);
     for (const [k, v] of Object.entries<any>(attrs))
@@ -385,6 +436,9 @@ export function createDrawingWorkspace({
     selected = null;
     preview = null;
     dragging = false;
+    lastPointer = null;
+    if (!isDrawingType(value)) manualMagnet = false;
+    syncMagnet();
     if (!active) return;
     chart.applyOptions({
       handleScroll: NAVIGATION_TOOLS.includes(value),
@@ -514,6 +568,7 @@ export function createDrawingWorkspace({
     if (tool.kind === "text") {
       pending = [];
       hover = null;
+      drawingUI.setMagnet(false);
       schedule();
       text =
         (await drawingUI.text(
@@ -581,6 +636,7 @@ export function createDrawingWorkspace({
       e.button !== 0
     )
       return;
+    updateControl(e.ctrlKey);
     const rect = container.getBoundingClientRect(),
       x = e.clientX - rect.left,
       y = e.clientY - rect.top,
@@ -631,17 +687,21 @@ export function createDrawingWorkspace({
         dragStart = p;
         preview = structuredClone(best);
         container.setPointerCapture(e.pointerId);
+        syncMagnet();
+        dragStart = point(x, y) || p;
       }
     }
     schedule();
   };
   const pointermove = (e) => {
     if ((e.target as Element).closest(".drawing-ui")) return;
+    updateControl(e.ctrlKey);
     const rect = container.getBoundingClientRect(),
       x = e.clientX - rect.left,
       y = e.clientY - rect.top,
       p: any = point(x, y);
     if (!p) return;
+    lastPointer = { x, y };
     hover = p;
     if (strokePoints.length && e.buttons & 1) {
       const last = coordinates(strokePoints.at(-1));
@@ -711,12 +771,14 @@ export function createDrawingWorkspace({
     dragging = false;
     preview = null;
     dragHandle = -1;
+    syncMagnet();
     schedule();
   };
   const pointercancel = () => {
     dragging = false;
     preview = null;
     strokePoints = [];
+    syncMagnet();
     schedule();
   };
   const dblclick = (event) => {

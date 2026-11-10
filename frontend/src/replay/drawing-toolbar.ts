@@ -9,6 +9,7 @@ export function createDrawingToolbar(callbacks: {
   selectTool: (id: string) => void;
   style: (style: any) => void;
   toast: (text: string) => void;
+  magnet: (enabled: boolean) => void;
 }) {
   let owner = "local";
   try {
@@ -38,7 +39,7 @@ export function createDrawingToolbar(callbacks: {
     dock = root.querySelector<HTMLElement>(".drawing-favorites")!,
     styleMenu = root.querySelector<HTMLElement>(".drawing-style-menu")!;
   const state = {
-    magnet: !!saved.magnet,
+    magnet: false,
     locked: !!saved.locked,
     hidden: !!saved.hidden,
   };
@@ -184,6 +185,10 @@ export function createDrawingToolbar(callbacks: {
     }
     if (button.dataset.drawingToggle) {
       const key = button.dataset.drawingToggle as keyof typeof state;
+      if (key === "magnet") {
+        callbacks.magnet(!state.magnet);
+        return;
+      }
       state[key] = !state[key];
       button.setAttribute("aria-pressed", String(state[key]));
       persist();
@@ -288,6 +293,12 @@ export function createDrawingToolbar(callbacks: {
   renderFavorites();
   return {
     state,
+    setMagnet(enabled: boolean) {
+      if (state.magnet === enabled) return;
+      state.magnet = enabled;
+      rail.querySelector('[data-drawing-toggle="magnet"]')!
+        .setAttribute("aria-pressed", String(enabled));
+    },
     setActive(id: string) {
       active = id;
       root
