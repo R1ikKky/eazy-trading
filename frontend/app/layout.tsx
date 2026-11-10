@@ -15,6 +15,7 @@ import "./drawing-tools.css";
 import "./chart-splitter.css";
 import "./active-charts.css";
 import "./session-jump.css";
+import "./button-motion.css";
 export const metadata: Metadata = {
   title: "eazy trading · NQ / ES",
   description:

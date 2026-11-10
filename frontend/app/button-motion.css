@@ -1,0 +1,10 @@
+/* Controls stay in place; hover and focus feedback only changes colors. */
+body.product-app :is(button, .button, [role="button"], .nav-item) {
+  transition-property: color, background-color, border-color !important;
+  animation: none !important;
+}
+body.product-app :is(button, .button, [role="button"], .nav-item):is(:hover, :active, :focus-visible) {
+  transform: none !important;
+  scale: none !important;
+  translate: none !important;
+}
