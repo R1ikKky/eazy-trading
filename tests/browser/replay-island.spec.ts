@@ -44,9 +44,13 @@ test("replay dock frees chart width and holds the floating trade ticket", async 
   await expect(page).toHaveURL(/\/sessions$/);
   await expect(page.locator("#view-sessions")).toBeVisible();
   await expect(ticket).not.toBeVisible();
-  const sidebar = (await dock.boundingBox())!;
-  expect(sidebar.x).toBeLessThan(20);
-  expect(sidebar.height).toBeGreaterThan(900);
+  const sessionsDock = (await dock.boundingBox())!;
+  expect(sessionsDock.y).toBeLessThan(40);
+  expect(sessionsDock.height).toBeLessThan(80);
+  expect(sessionsDock.width).toBeGreaterThan(sessionsDock.height);
+  expect((await page.locator(".app-shell").boundingBox())!.x).toBeLessThan(20);
+  await expect(trade).not.toBeVisible();
+  await page.screenshot({ path: "/tmp/top-navigation-sessions.png" });
   await page.locator('[data-view="replay"]').click();
   await expect(page).toHaveURL(/\/replay$/);
   await expect(page.locator("#view-replay")).toBeVisible();

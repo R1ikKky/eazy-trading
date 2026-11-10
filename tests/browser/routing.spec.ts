@@ -18,10 +18,16 @@ test("workspace URLs support deep links, history, and navigation without saves",
     await page.locator(`[data-view="${view}"]`).click();
     await expect(page).toHaveURL(new RegExp(path + "$"));
     await expect(page.locator(`#view-${view}`)).toBeVisible();
+    const nav=(await page.locator('.app-sidebar').boundingBox())!;
+    expect(nav.y).toBeLessThan(40);expect(nav.height).toBeLessThan(80);
+    expect((await page.locator('.app-shell').boundingBox())!.x).toBeLessThan(20);
+    expect((await page.locator(`#view-${view} .view-heading`).boundingBox())!.y).toBeGreaterThan(nav.y+nav.height);
+
   }
   await page.locator('[data-view="playbooks"]').click();
   await expect(page).toHaveURL(/\/strategies$/);
   await expect(page.locator("#view-playbooks")).toBeVisible();
+  expect((await page.locator('.app-sidebar').boundingBox())!.height).toBeLessThan(80);
   await page.goBack();
   await expect(page).toHaveURL(/\/sessions$/);
   await expect(page.locator("#view-sessions")).toBeVisible();
@@ -46,5 +52,16 @@ test("workspace URLs support deep links, history, and navigation without saves",
   await page.goto("/replay");
   await expect(page.locator("#chart canvas").first()).toBeVisible({ timeout: 30000 });
   await expect(page).toHaveURL(/\/replay$/);
+  for(const width of [390,320]) {
+    await page.setViewportSize({width,height:844});
+    for(const view of ['sessions','journal','analytics']) {
+      await page.locator(`[data-view="${view}"]`).click();
+      await expect(page.locator(`#view-${view}`)).toBeVisible();
+      const nav=(await page.locator('.app-sidebar').boundingBox())!;
+      expect(nav.x).toBeGreaterThanOrEqual(0);expect(nav.x+nav.width).toBeLessThanOrEqual(width);
+      expect(nav.y).toBeLessThan(30);expect(nav.height).toBeLessThan(65);
+      await page.screenshot({path:`/tmp/top-navigation-${view}-${width}.png`});
+    }
+  }
   expect(errors).toEqual([]);
 });
