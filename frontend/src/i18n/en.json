@@ -916,5 +916,7 @@
   "Аккаунт с этим email уже существует. Используйте исходный способ входа. Аккаунты Google и GitHub не объединяются автоматически.": "An account with this email already exists. Sign in using its original method. Google and GitHub accounts are not linked automatically.",
   "Регистрация отключена. Войдите в существующий аккаунт или обратитесь к владельцу сайта.": "New accounts are currently disabled. Sign in with an existing account or ask the site owner to enable registration.",
   "Этот email не имеет доступа к сайту.": "This email is not permitted to access this site.",
-  "Не удалось войти через внешний сервис. Повторите попытку или обратитесь к владельцу сайта.": "Social sign-in could not be completed. Please try again. If it continues, contact the site owner."
+  "Не удалось войти через внешний сервис. Повторите попытку или обратитесь к владельцу сайта.": "Social sign-in could not be completed. Please try again. If it continues, contact the site owner.",
+  "Изменить размеры графиков": "Resize charts",
+  "Перетащите для изменения размеров · двойной клик — поровну": "Drag to resize · double-click for equal charts"
 }

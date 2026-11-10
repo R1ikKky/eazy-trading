@@ -1,4 +1,5 @@
 import { t as translate, locale } from "../i18n/language";
+import { installChartSplitter } from "./chart-splitter";
 import { createFootprint } from "./footprint";
 import { ACCOUNT_DEPOSITS } from "./account-deposits";
 import type { Instrument } from "./types";
@@ -1363,6 +1364,7 @@ async function bootstrap() {
       getPreferences: () => tools?.preferences || loadSettings(),
       onShow: loadComparisonData,
     });
+    installChartSplitter();
   } catch (e) {
     $("chartError").hidden = false;
     console.error(e);

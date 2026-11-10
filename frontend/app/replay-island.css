@@ -158,7 +158,8 @@ body.product-app .app-shell {
   isolation: isolate;
   z-index: 0;
 }
-body.product-app .product-main {
+body.product-app .product-main,
+body.product-app:has(#view-replay:not([hidden])) .product-main {
   padding-top: 100px;
   scroll-padding-top: 100px;
 }
@@ -199,5 +200,6 @@ body.product-app:has(#view-replay:not([hidden])) .workspace-grid { grid-template
   body.product-app .island-trade-toggle { width: 36px; min-width: 36px; height: 38px; padding: 8px; }
   body.product-app .island-trade-toggle > span { display: none; }
   body.product-app .app-shell { margin: 10px; height: calc(100dvh - 20px); }
-  body.product-app .product-main { padding-top: 82px; scroll-padding-top: 82px; }
+  body.product-app .product-main,
+  body.product-app:has(#view-replay:not([hidden])) .product-main { padding-top: 82px; scroll-padding-top: 82px; }
 }
