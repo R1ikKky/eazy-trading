@@ -73,9 +73,9 @@ test("footprint mode and a deduplicated demo reconnect", async ({
   expect(after.events.length).toBeGreaterThan(before.events.length);
   await expect(page.locator("#footprintSummary")).toContainText("NQZ6");
   await page.screenshot({ path: "/tmp/footprint-demo.png", fullPage: true });
-  await page.locator("#symbol").selectOption("ES");
+  await page.locator("#symbol").selectOption("ES", {force:true});
   await expect(page.locator("#footprintSummary")).toContainText("ESZ6");
-  await page.locator("#symbol").selectOption("NQ");
+  await page.locator("#symbol").selectOption("NQ", {force:true});
   await expect(page.locator("#footprintSummary")).toContainText("NQZ6");
   await page.locator("#orderflowSource").selectOption("replay", { force: true });
   await expect(page.locator("#orderflowSource")).toHaveValue("replay");

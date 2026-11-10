@@ -9,6 +9,10 @@ export function createChartMenu({
   container,
   prefs,
   getBars,
+  idSuffix = "",
+  isActive = () => true,
+  getSymbol = () =>
+    (document.getElementById("symbol") as HTMLSelectElement).value,
   getNow,
   getDrawings,
   changeDrawing,
@@ -25,19 +29,19 @@ export function createChartMenu({
   toast,
 }: any) {
   const menu = document.createElement("div");
-  menu.id = "chartContextMenu";
+  menu.id = "chartContextMenu" + idSuffix;
   menu.className = "tv-context-menu";
   menu.setAttribute("role", "menu");
   menu.setAttribute("aria-label", "Chart menu");
   menu.hidden = true;
   document.body.append(menu);
   const table = document.createElement("dialog");
-  table.id = "chartTableDialog";
+  table.id = "chartTableDialog" + idSuffix;
   table.className = "tv-data-dialog";
   table.setAttribute("aria-label", "Table view");
   document.body.append(table);
   const tree = document.createElement("dialog");
-  tree.id = "chartObjectDialog";
+  tree.id = "chartObjectDialog" + idSuffix;
   tree.className = "tv-data-dialog tv-object-dialog";
   tree.setAttribute("aria-label", "Object tree");
   document.body.append(tree);
@@ -77,7 +81,7 @@ export function createChartMenu({
       item("paste", "Paste", "<small>Ctrl + V</small>") +
       divider +
       item("move", "Move chart", "<span>›</span>") +
-      '<div id="chartMoveMenu" class="tv-move-menu" role="menu" hidden>' +
+      '<div class="tv-move-menu" role="menu" hidden>' +
       item("latest", "Go to latest candle") +
       item("first", "Go to first candle") +
       item("left", "Move left") +
@@ -147,7 +151,9 @@ export function createChartMenu({
   async function paste() {
     try {
       if (!navigator.clipboard?.readText)
-        throw Error(translate("Браузер не предоставляет доступ к буферу обмена."));
+        throw Error(
+          translate("Браузер не предоставляет доступ к буферу обмена."),
+        );
       const text = (await navigator.clipboard.readText()).trim();
       if (text.startsWith("{")) {
         const data = JSON.parse(text);
@@ -171,7 +177,7 @@ export function createChartMenu({
   }
   async function action(name: any) {
     if (name === "move") {
-      const sub = document.getElementById("chartMoveMenu");
+      const sub = menu.querySelector<HTMLElement>(".tv-move-menu");
       sub.hidden = !sub.hidden;
       const trigger = menu.querySelector<HTMLElement>("[data-menu=move]");
       trigger.setAttribute("aria-expanded", String(!sub.hidden));
@@ -233,7 +239,11 @@ export function createChartMenu({
     }
     if (name === "remove") {
       if (
-        confirm(translate("Удалить ") + visibleDrawings().length + translate(" объектов разметки?"))
+        confirm(
+          translate("Удалить ") +
+            visibleDrawings().length +
+            translate(" объектов разметки?"),
+        )
       )
         removeDrawings();
     }
@@ -246,7 +256,9 @@ export function createChartMenu({
     page = Math.max(0, Math.min(pages - 1, page));
     const rows = bars.slice(page * 100, page * 100 + 100);
     table.innerHTML =
-      translate('<div class="tv-data-header"><h2>Table view</h2><button type="button" data-table-close aria-label="Close table">×</button></div><p class="tv-note">Только раскрытые свечи · ') +
+      translate(
+        '<div class="tv-data-header"><h2>Table view</h2><button type="button" data-table-close aria-label="Close table">×</button></div><p class="tv-note">Только раскрытые свечи · ',
+      ) +
       bars.length.toLocaleString(locale()) +
       " bars · " +
       prefs.timezone +
@@ -344,9 +356,7 @@ export function createChartMenu({
               await navigator.clipboard.writeText(
                 JSON.stringify({
                   eazyTradingDrawing: 1,
-                  symbol: (
-                    document.getElementById("symbol") as HTMLInputElement
-                  ).value,
+                  symbol: getSymbol(),
                   drawing: d,
                 }),
               );
@@ -372,8 +382,9 @@ export function createChartMenu({
     if (!visibleDrawings().length) {
       const note = document.createElement("p");
       note.className = "tv-note";
-      note.textContent =
-        translate("Разметка появится после создания уровней, линий или зон.");
+      note.textContent = translate(
+        "Разметка появится после создания уровней, линий или зон.",
+      );
       list.append(note);
     }
   }
@@ -404,7 +415,7 @@ export function createChartMenu({
       return;
     }
     if (e.key === "ArrowLeft") {
-      document.getElementById("chartMoveMenu").hidden = true;
+      menu.querySelector<HTMLElement>(".tv-move-menu").hidden = true;
       menu.querySelector<HTMLElement>("[data-menu=move]").focus();
       return;
     }
@@ -422,6 +433,7 @@ export function createChartMenu({
     ]?.focus();
   });
   document.addEventListener("keydown", (e) => {
+    if (!isActive() || location.pathname !== "/replay") return;
     if (
       document.querySelector<HTMLDialogElement>("dialog[open]") ||
       ["INPUT", "SELECT", "TEXTAREA"].includes(

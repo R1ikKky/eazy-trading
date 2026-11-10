@@ -1,9 +1,5 @@
 import { t as translate, tr } from "../i18n/language";
 import { element as $ } from "./dom";
-import { drawingTool, NAVIGATION_TOOLS } from "./drawing-catalog";
-import { sanitizeDrawing } from "./drawing-schema";
-import { renderDrawing } from "./drawing-renderer";
-import { createDrawingToolbar } from "./drawing-toolbar";
 import {
   defaults,
   presets,
@@ -16,7 +12,6 @@ import {
 } from "./settings-model";
 import { dayKey } from "./engine";
 import { createChartSettings } from "./chart-settings";
-import { createChartMenu } from "./chart-menu";
 export { presets, loadSettings };
 export function indicatorValues(bars: any, period: any, kind: any) {
   let window = [],
@@ -56,6 +51,9 @@ export function createChartTools({
   onDrawingsChange,
   toast,
   pause,
+  drawingWorkspace,
+  getSymbol = () => $("symbol").value,
+  getTimeframe = () => 1,
 }: any) {
   const L = window.LightweightCharts,
     prefs = loadSettings();
@@ -75,128 +73,140 @@ export function createChartTools({
     crosshairMarkerVisible: true,
     title: "EMA",
   });
+  let lockedTime: any = null,
+    decorationLines: any[] = [],
+    settings: any,
+    frame = 0;
   const ns = "http://www.w3.org/2000/svg",
     svg = document.createElementNS(ns, "svg");
-  svg.classList.add("chart-drawings");
+  svg.classList.add("chart-decorations");
   svg.setAttribute("aria-hidden", "true");
   container.append(svg);
-  let mode = "cursor",
-    anchor: any = null,
-    hover: any = null,
-    scope = "",
-    drawings: any = [],
-    selected: any = null,
-    frame = 0,
-    dragging: any = false,
-    preview: any = null,
-    dragStart: any = null,
-    lockedTime: any = null,
-    decorationLines = [],
-    menu,
-    settings;
-  let pending: any[] = [],
-    strokePoints: any[] = [],
-    dragHandle = -1;
-  let undoStack: any[][] = [],
-    lastSaved: any[] = [];
-  const drawingUI = createDrawingToolbar({
-    selectTool: (id) => {
-      pause();
-      selectMode(id);
-    },
-    toast,
-    style: (style) => {
-      Object.assign(prefs, {
-        drawingColor: style.color,
-        drawingWidth: style.width,
-        zoneOpacity: style.opacity,
-        drawingDashed: style.dashed,
+  const schedule = () => {
+    if (!frame)
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        paint();
+        drawingWorkspace.refresh();
       });
-      persist();
-      onChange?.(prefs);
-      if (
-        selected &&
-        !drawingUI.state.locked &&
-        !drawings.find((d) => d.id === selected)?.locked
-      ) {
-        drawings = drawings.map((d) =>
-          d.id === selected ? { ...d, ...style, createdAt: getNow() } : d,
-        );
-        saveDrawings();
-      }
-      schedule();
-    },
-  });
-  drawingUI.setStyle({
-    color: prefs.drawingColor,
-    width: prefs.drawingWidth,
-    opacity: prefs.zoneOpacity,
-    dashed: prefs.drawingDashed,
-  });
-  window.addEventListener("drawing-ui-change", schedule);
+  };
+  const syncScope = () => {};
+  function persist() {
+    try {
+      localStorage.setItem("eazy-trading-chart-v3", JSON.stringify(prefs));
+    } catch {
+      toast(translate("Не удалось сохранить настройки."));
+    }
+  }
   function node(tag: any, attrs: any) {
     const n = document.createElementNS(ns, tag);
     for (const [k, v] of Object.entries<any>(attrs))
       n.setAttribute(k, String(v));
     return n;
   }
-  function schedule() {
-    if (!frame)
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        paint();
-      });
-  }
-  function persist() {
-    try {
-      localStorage.setItem("eazy-trading-chart-v3", JSON.stringify(prefs));
-    } catch {
-      toast(
-        translate("Браузер не разрешил сохранить настройки. Они действуют до перезагрузки."),
-      );
+  function xAt(time: any) {
+    const direct = chart.timeScale().timeToCoordinate(time);
+    if (direct !== null) return direct;
+    const bars = getBars();
+    if (!bars.length) return null;
+    let lo = 0,
+      hi = bars.length - 1;
+    while (lo < hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      if (bars[mid].time < time) lo = mid + 1;
+      else hi = mid;
     }
+    const minutes = getTimeframe();
+    if (time > bars.at(-1).time)
+      return chart
+        .timeScale()
+        .logicalToCoordinate(
+          bars.length - 1 + (time - bars.at(-1).time) / (minutes * 60),
+        );
+    if (time < bars[0].time)
+      return chart
+        .timeScale()
+        .logicalToCoordinate((time - bars[0].time) / (minutes * 60));
+    return chart.timeScale().logicalToCoordinate(lo);
   }
-  function cleanDrawings(value: any) {
-    return (Array.isArray(value) ? value : [])
-      .map(sanitizeDrawing)
-      .filter(Boolean)
-      .slice(-500);
-  }
-  function saveDrawings(record = true) {
-    if (record && JSON.stringify(lastSaved) !== JSON.stringify(drawings)) {
-      undoStack.push(structuredClone(lastSaved));
-      if (undoStack.length > 40) undoStack.shift();
+  function paint() {
+    svg.replaceChildren();
+    const w = container.clientWidth,
+      h = container.clientHeight;
+    if (!w || !h) return;
+    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+    const left = chart.priceScale("left").width?.() || 0,
+      right = chart.priceScale("right").width?.() || 0;
+    const defs = node("defs", {}),
+      clip = node("clipPath", { id: "drawing-plot-clip" });
+    clip.append(
+      node("rect", {
+        x: left,
+        y: 0,
+        width: Math.max(0, w - left - right),
+        height: Math.max(0, h - chart.timeScale().height()),
+      }),
+    );
+    defs.append(clip);
+    svg.append(defs);
+    const group = node("g", { "clip-path": "url(#drawing-plot-clip)" });
+    svg.append(group);
+    const bars = getBars(),
+      range = chart.timeScale().getVisibleLogicalRange?.();
+    if (prefs.sessionBreaks) {
+      const start = Math.max(
+          1,
+          Math.floor(range?.from ?? Math.max(0, bars.length - 100)),
+        ),
+        end = Math.min(bars.length, Math.ceil(range?.to ?? bars.length) + 1);
+      for (let i = start; i < end; i++)
+        if (dayKey(bars[i].time + 21600) !== dayKey(bars[i - 1].time + 21600)) {
+          const x = xAt(bars[i].time);
+          if (x !== null)
+            group.append(
+              node("line", {
+                x1: x + left,
+                y1: 0,
+                x2: x + left,
+                y2: h - chart.timeScale().height(),
+                stroke: settingsColor(prefs, "sessionBreakColor"),
+                "stroke-width": 1,
+                "stroke-dasharray":
+                  prefs.sessionBreakStyle === 0
+                    ? "none"
+                    : prefs.sessionBreakStyle === 1
+                      ? "2 3"
+                      : "6 4",
+              }),
+            );
+        }
     }
-    lastSaved = structuredClone(drawings);
-    try {
-      localStorage.setItem(
-        "eazy-trading-drawings:" + scope,
-        JSON.stringify(drawings),
-      );
-    } catch {
-      toast(translate("Не удалось сохранить разметку в браузере."));
+    if (lockedTime && prefs.crosshair) {
+      const x = xAt(lockedTime);
+      if (x !== null)
+        group.append(
+          node("line", {
+            x1: x + left,
+            y1: 0,
+            x2: x + left,
+            y2: h - chart.timeScale().height(),
+            stroke: settingsColor(prefs, "crosshairColor"),
+            "stroke-width": prefs.crosshairWidth,
+            "stroke-dasharray": prefs.crosshairStyle === 0 ? "none" : "6 4",
+          }),
+        );
     }
-    onDrawingsChange?.(structuredClone(drawings));
-  }
-  function syncScope() {
-    const next = getScope();
-    if (next === scope) return;
-    scope = next;
-    anchor = null;
-    selected = null;
-    preview = null;
-    try {
-      drawings = JSON.parse(
-        localStorage.getItem("eazy-trading-drawings:" + scope) || "[]",
-      );
-    } catch {
-      drawings = [];
-    }
-    drawings = cleanDrawings(drawings);
-    lastSaved = structuredClone(drawings);
-    undoStack = [];
-    pending = [];
-    strokePoints = [];
+    const y = bars.length ? series.priceToCoordinate(bars.at(-1).close) : null;
+    if (y !== null)
+      for (const id of ["chartReplayCountdown", "chartPriceBadge"]) {
+        const el = $(id);
+        el.style.top = Math.max(0, Math.min(h - 42, y)) + "px";
+        el.style.right = prefs.scalePlacement === "left" ? "auto" : "2px";
+        el.style.left = prefs.scalePlacement === "left" ? "2px" : "auto";
+      }
+    if (!$("chartReplayCountdown").hidden && !$("chartPriceBadge").hidden)
+      $("chartReplayCountdown").style.transform = "translateY(22px)";
+    else $("chartReplayCountdown").style.transform = "";
   }
   const overlay = document.createElement("div");
   overlay.className = "chart-overlays";
@@ -204,7 +214,7 @@ export function createChartTools({
     '<div id="chartWatermark" class="chart-watermark" aria-hidden="true"></div><div id="chartScaleModes" class="chart-scale-modes"><button type="button" data-scale-mode="auto" title="Automatic price scale">A</button><button type="button" data-scale-mode="log" title="Logarithmic price scale">L</button></div><div id="chartNavigation" class="chart-navigation"><button type="button" data-nav="out" aria-label="Zoom out">−</button><button type="button" data-nav="in" aria-label="Zoom in">＋</button><button type="button" data-nav="left" aria-label="Move chart left">‹</button><button type="button" data-nav="right" aria-label="Move chart right">›</button><button type="button" data-nav="reset" aria-label="Reset chart view">↶</button></div><button id="chartPaneButton" class="chart-pane-button" title="Fullscreen chart" aria-label="Fullscreen chart">⛶</button><button id="chartAxisPlus" class="chart-axis-plus" aria-label="Add horizontal level at cursor" title="Add price level" hidden>＋</button><div id="chartReplayCountdown" class="chart-countdown" hidden></div><div id="chartPriceBadge" class="chart-price-badge" hidden></div>';
   container.append(overlay);
   const description = () =>
-    $("symbol").value === "NQ" ? "E-mini Nasdaq-100" : "E-mini S&P 500";
+    getSymbol() === "NQ" ? "E-mini Nasdaq-100" : "E-mini S&P 500";
   const decimal = () =>
     prefs.precision === "default" ? 2 : Number(prefs.precision);
   const formatPrice = (v: any) =>
@@ -352,7 +362,7 @@ export function createChartTools({
       },
     });
     chart.applyOptions({
-      handleScale: NAVIGATION_TOOLS.includes(mode)
+      handleScale: drawingWorkspace.isNavigation("primary")
         ? {
             axisPressedMouseMove: { time: true, price: !prefs.lockRatio },
             axisDoubleClickReset: { time: true, price: !prefs.lockRatio },
@@ -378,7 +388,7 @@ export function createChartTools({
     });
     $("chartWatermark").hidden = prefs.watermark === "hidden";
     $("chartWatermark").textContent =
-      prefs.watermark === "description" ? description() : $("symbol").value;
+      prefs.watermark === "description" ? description() : getSymbol();
     $("chartWatermark").style.color = settingsColor(prefs, "watermarkColor");
     $("chartScaleModes")
       .querySelector("[data-scale-mode=auto]")
@@ -390,14 +400,23 @@ export function createChartTools({
     onChange?.(prefs);
   }
   function updateLegend(b: any) {
-    if (!b) return;
+    $("chartWatermark").textContent =
+      prefs.watermark === "description" ? description() : getSymbol();
+    if (!b) {
+      $("statusTitle").textContent = getSymbol();
+      $("ohlc").textContent = "";
+      $("barChange").textContent = "";
+      $("statusVolume").textContent = "";
+      $("lastPrice").textContent = "—";
+      return;
+    }
     $("statusTitle").hidden = !prefs.title;
     $("statusTitle").textContent =
       prefs.titleType === "description"
         ? description()
         : prefs.titleType === "both"
-          ? $("symbol").value + " · " + description()
-          : b.contract || $("symbol").value;
+          ? getSymbol() + " · " + description()
+          : b.contract || getSymbol();
     $("ohlc").hidden = !prefs.chartValues;
     $("lastPrice").hidden = !prefs.chartValues;
     $("marketOpenStatus").hidden = !prefs.marketStatus;
@@ -407,7 +426,8 @@ export function createChartTools({
         : isExtendedSession(b.time);
     $("marketOpenStatus").classList.toggle("closed", !open);
     $("marketOpenStatus").title =
-      translate("Историческая сессия: ") + (open ? translate("рынок открыт") : translate("рынок закрыт"));
+      translate("Историческая сессия: ") +
+      (open ? translate("рынок открыт") : translate("рынок закрыт"));
     $("marketOpenStatus").setAttribute(
       "aria-label",
       $("marketOpenStatus").title,
@@ -562,698 +582,8 @@ export function createChartTools({
     );
     updateLegend(bars.at(-1));
     decorations();
-    menu?.refresh();
+    drawingWorkspace.refresh();
     schedule();
-  }
-  function xAt(time: any) {
-    const direct = chart.timeScale().timeToCoordinate(time);
-    if (direct !== null) return direct;
-    const bars = getBars();
-    if (!bars.length) return null;
-    let lo = 0,
-      hi = bars.length - 1;
-    while (lo < hi) {
-      const mid = Math.floor((lo + hi) / 2);
-      if (bars[mid].time < time) lo = mid + 1;
-      else hi = mid;
-    }
-    const minutes =
-      Number(
-        document.querySelector<HTMLInputElement>("[data-tf].selected")?.dataset
-          .tf,
-      ) || 1;
-    if (time > bars.at(-1).time)
-      return chart
-        .timeScale()
-        .logicalToCoordinate(
-          bars.length - 1 + (time - bars.at(-1).time) / (minutes * 60),
-        );
-    if (time < bars[0].time)
-      return chart
-        .timeScale()
-        .logicalToCoordinate((time - bars[0].time) / (minutes * 60));
-    return chart.timeScale().logicalToCoordinate(lo);
-  }
-  function coordinates(p: any) {
-    const x = xAt(p.time);
-    return {
-      x: x === null ? null : x + (chart.priceScale("left").width?.() || 0),
-      y: series.priceToCoordinate(p.price),
-    };
-  }
-  function plot(d: any, group: any, isSelected = false) {
-    const layer = node("g", d.id ? { "data-drawing-id": d.id } : {});
-    group.append(layer);
-    renderDrawing(d, layer, {
-      node,
-      coordinates,
-      bars: getBars(),
-      now: getNow(),
-      background: prefs.background,
-      left: chart.priceScale("left").width?.() || 0,
-      width: Math.max(
-        0,
-        container.clientWidth - (chart.priceScale("right").width?.() || 0),
-      ),
-      height: Math.max(0, container.clientHeight - chart.timeScale().height()),
-    });
-    if (isSelected && !drawingUI.state.locked && !d.locked) {
-      for (const p of d.points || [d.a, ...(d.b ? [d.b] : [])]) {
-        const c = coordinates(p);
-        if (c.x != null && c.y != null)
-          layer.append(
-            node("circle", {
-              cx: c.x,
-              cy: c.y,
-              r: 4,
-              fill: prefs.background,
-              stroke: d.color,
-              "stroke-width": 2,
-            }),
-          );
-      }
-    }
-  }
-  function paint() {
-    svg.replaceChildren();
-    const w = container.clientWidth,
-      h = container.clientHeight;
-    if (!w || !h) return;
-    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
-    const left = chart.priceScale("left").width?.() || 0,
-      right = chart.priceScale("right").width?.() || 0;
-    const defs = node("defs", {}),
-      clip = node("clipPath", { id: "drawing-plot-clip" });
-    clip.append(
-      node("rect", {
-        x: left,
-        y: 0,
-        width: Math.max(0, w - left - right),
-        height: Math.max(0, h - chart.timeScale().height()),
-      }),
-    );
-    defs.append(clip);
-    svg.append(defs);
-    const group = node("g", { "clip-path": "url(#drawing-plot-clip)" });
-    svg.append(group);
-    const bars = getBars(),
-      range = chart.timeScale().getVisibleLogicalRange?.();
-    if (prefs.sessionBreaks) {
-      const start = Math.max(
-          1,
-          Math.floor(range?.from ?? Math.max(0, bars.length - 100)),
-        ),
-        end = Math.min(bars.length, Math.ceil(range?.to ?? bars.length) + 1);
-      for (let i = start; i < end; i++)
-        if (dayKey(bars[i].time + 21600) !== dayKey(bars[i - 1].time + 21600)) {
-          const x = xAt(bars[i].time);
-          if (x !== null)
-            group.append(
-              node("line", {
-                x1: x + left,
-                y1: 0,
-                x2: x + left,
-                y2: h - chart.timeScale().height(),
-                stroke: settingsColor(prefs, "sessionBreakColor"),
-                "stroke-width": 1,
-                "stroke-dasharray":
-                  prefs.sessionBreakStyle === 0
-                    ? "none"
-                    : prefs.sessionBreakStyle === 1
-                      ? "2 3"
-                      : "6 4",
-              }),
-            );
-        }
-    }
-    if (lockedTime && prefs.crosshair) {
-      const x = xAt(lockedTime);
-      if (x !== null)
-        group.append(
-          node("line", {
-            x1: x + left,
-            y1: 0,
-            x2: x + left,
-            y2: h - chart.timeScale().height(),
-            stroke: settingsColor(prefs, "crosshairColor"),
-            "stroke-width": prefs.crosshairWidth,
-            "stroke-dasharray": prefs.crosshairStyle === 0 ? "none" : "6 4",
-          }),
-        );
-    }
-    const y = bars.length ? series.priceToCoordinate(bars.at(-1).close) : null;
-    if (y !== null)
-      for (const id of ["chartReplayCountdown", "chartPriceBadge"]) {
-        const el = $(id);
-        el.style.top = Math.max(0, Math.min(h - 42, y)) + "px";
-        el.style.right = prefs.scalePlacement === "left" ? "auto" : "2px";
-        el.style.left = prefs.scalePlacement === "left" ? "2px" : "auto";
-      }
-    if (!$("chartReplayCountdown").hidden && !$("chartPriceBadge").hidden)
-      $("chartReplayCountdown").style.transform = "translateY(22px)";
-    else $("chartReplayCountdown").style.transform = "";
-    for (const d of drawings)
-      if (d.createdAt <= getNow() && !d.hidden && !drawingUI.state.hidden)
-        plot(preview?.id === d.id ? preview : d, group, d.id === selected);
-    const points = strokePoints.length
-      ? strokePoints
-      : pending.length && hover
-        ? [...pending, hover]
-        : [];
-    if (points.length)
-      plot(
-        {
-          type: mode,
-          a: points[0],
-          b: points[1] || points[0],
-          points,
-          color: prefs.drawingColor,
-          width: prefs.drawingWidth,
-          dashed: !strokePoints.length,
-          opacity: prefs.zoneOpacity,
-          text: translate("Текст"),
-        },
-        group,
-      );
-    if (mode === "dot" && hover) {
-      const p = coordinates(hover);
-      if (p.x != null && p.y != null)
-        group.append(
-          node("circle", {
-            cx: p.x,
-            cy: p.y,
-            r: 3,
-            fill: prefs.crosshairColor,
-          }),
-        );
-    }
-    $("drawingCount").textContent = drawings.filter(
-      (d) => d.createdAt <= getNow(),
-    ).length;
-    $("drawDelete").disabled =
-      !selected ||
-      drawingUI.state.locked ||
-      !!drawings.find((d) => d.id === selected)?.locked;
-    $("drawUndo").disabled = !undoStack.length;
-    $("drawClear").disabled = !drawings.length;
-  }
-  function point(x: any, y: any) {
-    const logical = chart
-        .timeScale()
-        .coordinateToLogical(x - (chart.priceScale("left").width?.() || 0)),
-      price = series.coordinateToPrice(y),
-      bars = getBars();
-    if (logical === null || price === null || !bars.length) return null;
-    const i = Math.round(logical),
-      minutes =
-        Number(
-          document.querySelector<HTMLInputElement>("[data-tf].selected")
-            ?.dataset.tf,
-        ) || 1;
-    const time =
-      i < 0
-        ? bars[0].time + i * minutes * 60
-        : i >= bars.length
-          ? bars.at(-1).time + (i - bars.length + 1) * minutes * 60
-          : bars[i].time;
-    const bar = bars[i];
-    const snapped =
-      drawingUI.state.magnet && bar
-        ? [bar.open, bar.high, bar.low, bar.close].reduce(
-            (best, value) =>
-              Math.abs(value - price) < Math.abs(best - price) ? value : best,
-            bar.close,
-          )
-        : price;
-    if (time <= 0 || snapped <= 0) return null;
-    return { time, price: Math.max(0.25, Math.round(snapped * 4) / 4) };
-  }
-  function pointInstruction(type: string, index: number) {
-    const tool = drawingTool(type);
-    const steps: Record<string, string[]> = {
-      "long-position": [translate("Вход"), translate("Стоп ниже входа"), translate("Цель выше входа")],
-      "short-position": [translate("Вход"), translate("Стоп выше входа"), translate("Цель ниже входа")],
-      "bars-pattern": [
-        translate("Начало копируемого участка"),
-        translate("Конец участка"),
-        translate("Куда перенести"),
-      ],
-      curve: [translate("Начало"), translate("Контрольная точка"), translate("Конец")],
-      "double-curve": [
-        translate("Начало"),
-        translate("Первая контрольная точка"),
-        translate("Вторая контрольная точка"),
-        translate("Конец"),
-      ],
-    };
-    const name = steps[type]?.[index] || tool?.labels?.[index];
-    return tr`${name ? name + " · " : ""}точка ${index + 1}${tool?.points > 0 ? translate(" из ") + tool.points : translate(" · Enter — завершить")}`;
-  }
-  function selectMode(value: any) {
-    mode = value;
-    pending = [];
-    strokePoints = [];
-    drawingUI.setActive(value);
-    anchor = null;
-    hover = null;
-    selected = null;
-    preview = null;
-    dragging = false;
-    chart.applyOptions({
-      handleScroll: NAVIGATION_TOOLS.includes(value),
-      handleScale: NAVIGATION_TOOLS.includes(value)
-        ? {
-            axisPressedMouseMove: { time: true, price: !prefs.lockRatio },
-            axisDoubleClickReset: { time: true, price: !prefs.lockRatio },
-            mouseWheel: true,
-            pinch: true,
-          }
-        : false,
-    });
-    container.classList.toggle(
-      "drawing-mode",
-      !NAVIGATION_TOOLS.includes(value),
-    );
-    container.style.cursor =
-      value === "arrow-cursor"
-        ? "default"
-        : value === "eraser"
-          ? "cell"
-          : "crosshair";
-    chart.applyOptions({
-      crosshair: {
-        vertLine: {
-          visible: prefs.crosshair && value === "cursor",
-          labelVisible: prefs.crosshair && value === "cursor",
-        },
-        horzLine: {
-          visible: prefs.crosshair && value === "cursor",
-          labelVisible: prefs.crosshair && value === "cursor",
-        },
-      },
-    });
-    document.querySelectorAll<HTMLElement>("[data-draw]").forEach((b) => {
-      b.classList.toggle("selected", b.dataset.draw === value);
-      b.setAttribute("aria-pressed", String(b.dataset.draw === value));
-    });
-    const tool = drawingTool(value);
-    $("drawingHint").textContent =
-      value === "select"
-        ? translate("Выберите объект · тяните точку или весь объект · Delete — удалить")
-        : value === "eraser"
-          ? translate("Нажмите или проведите по объекту, чтобы удалить")
-          : tool?.points === -1
-            ? translate("Удерживайте кнопку и рисуйте")
-            : NAVIGATION_TOOLS.includes(value)
-              ? translate("Перемещение и масштаб")
-              : tool?.points === 0
-                ? translate("Расставьте точки · Enter или двойной клик — завершить · Esc — отмена")
-                : tr`${tool?.name || value} · ${pointInstruction(value, 0)} · Esc — отмена`;
-    schedule();
-  }
-  function near(d: any, x: any, y: any) {
-    const layer = svg.querySelector(`[data-drawing-id="${CSS.escape(d.id)}"]`);
-    if (!layer) return Infinity;
-    let distance = Infinity;
-    for (const element of layer.querySelectorAll<SVGGeometryElement>(
-      "path,line,rect,circle,ellipse,polyline,polygon",
-    )) {
-      try {
-        if (
-          element.getAttribute("fill") !== "none" &&
-          element.isPointInFill(new DOMPoint(x, y))
-        )
-          return 0;
-        const length = element.getTotalLength(),
-          n = Math.min(250, Math.max(2, Math.ceil(length / 5)));
-        for (let i = 0; i <= n; i++) {
-          const p = element.getPointAtLength((length * i) / n);
-          distance = Math.min(distance, Math.hypot(x - p.x, y - p.y));
-        }
-      } catch {}
-    }
-    for (const text of layer.querySelectorAll<SVGTextElement>("text")) {
-      const box = text.getBBox();
-      if (
-        x >= box.x &&
-        x <= box.x + box.width &&
-        y >= box.y &&
-        y <= box.y + box.height
-      )
-        return 0;
-    }
-    return distance;
-  }
-  function hit(x: number, y: number) {
-    let best: any = null,
-      distance = 9;
-    if (drawingUI.state.hidden) return null;
-    for (const d of drawings
-      .filter((d) => d.createdAt <= getNow() && !d.hidden)
-      .slice()
-      .reverse()) {
-      const n = near(d, x, y);
-      if (n < distance) {
-        best = d;
-        distance = n;
-      }
-    }
-    return best;
-  }
-  function setPoints(d: any, points: any[]) {
-    d.points = points;
-    d.a = points[0];
-    d.b = points[1] || null;
-    return d;
-  }
-  async function finishDrawing(points: any[], type = mode) {
-    const tool = drawingTool(type);
-    if (
-      !tool ||
-      (points.length < Math.max(2, tool.points) && tool.points !== 1)
-    )
-      return;
-    const originalScope = scope;
-    let text: string | undefined;
-    if (tool.kind === "text") {
-      pending = [];
-      hover = null;
-      schedule();
-      text =
-        (await drawingUI.text(
-          type === "sign" ? "★" : type === "flag" ? translate("Флаг") : "",
-        )) || undefined;
-      if (scope !== originalScope) return;
-      if (!text) {
-        selectMode("cursor");
-        return;
-      }
-    }
-    if (drawings.length >= 500) {
-      toast(translate("Достигнут предел: 500 объектов."));
-      return;
-    }
-    const d = sanitizeDrawing({
-      id: Date.now() + "-" + Math.random().toString(36).slice(2),
-      type,
-      points,
-      a: points[0],
-      b: points[1] || null,
-      createdAt: getNow(),
-      color: prefs.drawingColor,
-      width: prefs.drawingWidth,
-      dashed: prefs.drawingDashed,
-      opacity: prefs.zoneOpacity,
-      ...(text !== undefined ? { text } : {}),
-    });
-    if (!d) {
-      toast(translate("Проверьте точки разметки."));
-      return;
-    }
-    drawings.push(d);
-    saveDrawings();
-    pending = [];
-    strokePoints = [];
-    anchor = null;
-    hover = null;
-    if (!drawingUI.state.repeat) selectMode("cursor");
-    else selectMode(type);
-    schedule();
-  }
-  function recordPoint(p: any) {
-    pause();
-    if (pending.at(-1)?.time === p.time && pending.at(-1)?.price === p.price)
-      return;
-    if (pending.length >= 256) {
-      toast(translate("Максимум 256 точек. Нажмите Enter, чтобы завершить."));
-      return;
-    }
-    pending.push(p);
-    anchor = pending[0];
-    hover = p;
-    const tool = drawingTool(mode)!;
-    if (tool.points > 0 && pending.length >= tool.points)
-      void finishDrawing([...pending]);
-    else
-      $("drawingHint").textContent =
-        tr`${tool.name} · ${pointInstruction(mode, pending.length)} · Esc — отмена`;
-    schedule();
-  }
-  container.addEventListener("pointerdown", (e) => {
-    if (
-      (e.target as Element).closest(".drawing-ui, button, input, select, a") ||
-      e.button !== 0
-    )
-      return;
-    const rect = container.getBoundingClientRect(),
-      x = e.clientX - rect.left,
-      y = e.clientY - rect.top,
-      p = point(x, y);
-    if (
-      !p ||
-      x > container.clientWidth - (chart.priceScale("right").width?.() || 0) ||
-      y > container.clientHeight - chart.timeScale().height()
-    )
-      return;
-    if (["brush", "marker", "demo"].includes(mode)) {
-      pause();
-      strokePoints = [p];
-      container.setPointerCapture(e.pointerId);
-      e.preventDefault();
-      schedule();
-      return;
-    }
-    if (mode === "eraser") {
-      pause();
-      const d = hit(x, y);
-      if (d && !drawingUI.state.locked && !d.locked) {
-        drawings = drawings.filter((v) => v.id !== d.id);
-        saveDrawings();
-        schedule();
-      }
-      return;
-    }
-    if (mode !== "select") {
-      if (!NAVIGATION_TOOLS.includes(mode)) recordPoint(p);
-      return;
-    }
-    pause();
-    const best = hit(x, y);
-    selected = best?.id || null;
-    dragHandle = -1;
-    if (best) {
-      drawingUI.setStyle(best);
-      if (!drawingUI.state.locked && !best.locked) {
-        const points = best.points || [best.a, ...(best.b ? [best.b] : [])];
-        dragHandle = points.findIndex((v) => {
-          const c = coordinates(v);
-          return (
-            c.x != null && c.y != null && Math.hypot(c.x - x, c.y - y) < 10
-          );
-        });
-        dragging = true;
-        dragStart = p;
-        preview = structuredClone(best);
-        container.setPointerCapture(e.pointerId);
-      }
-    }
-    schedule();
-  });
-  container.addEventListener("pointermove", (e) => {
-    if ((e.target as Element).closest(".drawing-ui")) return;
-    const rect = container.getBoundingClientRect(),
-      x = e.clientX - rect.left,
-      y = e.clientY - rect.top,
-      p: any = point(x, y);
-    if (!p) return;
-    hover = p;
-    if (strokePoints.length && e.buttons & 1) {
-      const last = coordinates(strokePoints.at(-1));
-      if (
-        Math.hypot(last.x - x, last.y - y) > 2 &&
-        (strokePoints.at(-1).time !== p.time ||
-          strokePoints.at(-1).price !== p.price)
-      ) {
-        if (strokePoints.length >= 256)
-          strokePoints = strokePoints.filter((_, i) => i % 2 === 0);
-        strokePoints.push(p);
-      }
-    }
-    if (mode === "eraser" && e.buttons & 1 && !drawingUI.state.locked) {
-      const d = hit(x, y);
-      if (d && !d.locked) {
-        drawings = drawings.filter((v) => v.id !== d.id);
-        saveDrawings();
-      }
-    }
-    if (dragging && preview) {
-      const original = drawings.find((d) => d.id === selected);
-      if (original) {
-        const dt = p.time - dragStart.time,
-          dp = p.price - dragStart.price,
-          points = original.points || [
-            original.a,
-            ...(original.b ? [original.b] : []),
-          ];
-        setPoints(
-          preview,
-          points.map((v, i) =>
-            dragHandle >= 0
-              ? i === dragHandle
-                ? p
-                : v
-              : { time: v.time + dt, price: v.price + dp },
-          ),
-        );
-      }
-    }
-    schedule();
-  });
-  container.addEventListener("pointerup", () => {
-    if (strokePoints.length) {
-      const points = [...strokePoints],
-        type = mode;
-      if (type === "demo") {
-        const stroke = strokePoints;
-        setTimeout(() => {
-          if (strokePoints === stroke) strokePoints = [];
-          schedule();
-        }, 600);
-      } else {
-        strokePoints = [];
-        void finishDrawing(points, type);
-      }
-    }
-    if (dragging && preview) {
-      preview.createdAt = getNow();
-      const clean = sanitizeDrawing(preview);
-      if (clean) {
-        drawings = drawings.map((d) => (d.id === selected ? clean : d));
-        saveDrawings();
-      }
-    }
-    dragging = false;
-    preview = null;
-    dragHandle = -1;
-    schedule();
-  });
-  container.addEventListener("pointercancel", () => {
-    dragging = false;
-    preview = null;
-    strokePoints = [];
-    schedule();
-  });
-  container.addEventListener("dblclick", (event) => {
-    if ((event.target as Element).closest(".drawing-ui")) return;
-    if (["path", "polyline"].includes(mode) && pending.length >= 2) {
-      event.preventDefault();
-      void finishDrawing([...pending]);
-    } else if (mode === "select" && selected && !drawingUI.state.locked) {
-      const d = drawings.find((value) => value.id === selected);
-      if (!d?.locked && drawingTool(d?.type)?.kind === "text")
-        void drawingUI.text(d.text).then((text) => {
-          if (text) {
-            d.text = text;
-            d.createdAt = getNow();
-            saveDrawings();
-            schedule();
-          }
-        });
-    }
-  });
-  container.addEventListener("wheel", schedule, { passive: true });
-  chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
-    decorations();
-    schedule();
-  });
-  new ResizeObserver(schedule).observe(container);
-  document.querySelectorAll<HTMLElement>("[data-draw]").forEach(
-    (b) =>
-      (b.onclick = () => {
-        pause();
-        selectMode(b.dataset.draw);
-      }),
-  );
-  function removeSelected() {
-    if (
-      !selected ||
-      drawingUI.state.locked ||
-      drawings.find((d) => d.id === selected)?.locked
-    )
-      return;
-    drawings = drawings.filter((d) => d.id !== selected);
-    selected = null;
-    saveDrawings();
-    schedule();
-  }
-  $("drawDelete").onclick = removeSelected;
-  $("drawUndo").onclick = () => {
-    const previous = undoStack.pop();
-    if (!previous) return;
-    drawings = previous;
-    selected = null;
-    saveDrawings(false);
-    schedule();
-  };
-  $("drawClear").onclick = () => {
-    if (
-      confirm(
-        translate("Удалить всю разметку для этой истории ") + $("symbol").value + "?",
-      )
-    ) {
-      drawings = [];
-      selected = null;
-      saveDrawings();
-      schedule();
-    }
-  };
-  document.addEventListener("keydown", (e) => {
-    if (
-      location.pathname !== "/replay" ||
-      document.querySelector<HTMLDialogElement>("dialog[open]") ||
-      ["INPUT", "TEXTAREA", "SELECT"].includes(
-        (e.target as HTMLElement).tagName,
-      )
-    )
-      return;
-    if (e.code === "Escape") selectMode("cursor");
-    if (
-      e.code === "Enter" &&
-      ["path", "polyline"].includes(mode) &&
-      pending.length >= 2
-    ) {
-      e.preventDefault();
-      void finishDrawing([...pending]);
-    }
-    if (
-      ["Delete", "Backspace"].includes(e.code) &&
-      mode === "select" &&
-      selected
-    ) {
-      e.preventDefault();
-      removeSelected();
-    }
-  });
-  function addDrawing(d: any) {
-    if (drawings.length >= 500) throw Error(translate("Достигнут предел: 500 объектов."));
-    drawings.push(d);
-    saveDrawings();
-    schedule();
-  }
-  function createLevel(price: any) {
-    const bars = getBars();
-    if (!bars.length) throw Error(translate("Сначала раскройте свечу."));
-    addDrawing({
-      id: Date.now() + "-" + Math.random().toString(36).slice(2),
-      type: "level",
-      a: { time: bars.at(-1).time, price },
-      b: null,
-      createdAt: getNow(),
-      color: prefs.drawingColor,
-      width: prefs.drawingWidth,
-      dashed: prefs.drawingDashed,
-      opacity: prefs.zoneOpacity,
-    });
   }
   function updateSettings(part: any) {
     Object.assign(prefs, sanitizeSettings({ ...prefs, ...part }));
@@ -1261,7 +591,7 @@ export function createChartTools({
     apply();
   }
   function resetView() {
-    selectMode("cursor");
+    drawingWorkspace.cancel();
     prefs.autoScale = true;
     apply();
     const n = getBars().length;
@@ -1277,59 +607,6 @@ export function createChartTools({
       baseline?.session !== current.session && onSessionCommit
         ? onSessionCommit(current.session)
         : true,
-    pause,
-    toast,
-  });
-  menu = createChartMenu({
-    chart,
-    series,
-    container,
-    prefs,
-    getBars,
-    getNow,
-    getDrawings: () => drawings,
-    changeDrawing: (id, change) => {
-      if (change.remove) drawings = drawings.filter((d) => d.id !== id);
-      else
-        drawings = drawings.map((d) =>
-          d.id === id ? { ...d, ...change, createdAt: getNow() } : d,
-        );
-      saveDrawings();
-      schedule();
-    },
-    removeDrawings: () => {
-      drawings = drawings.filter((d) => d.createdAt > getNow());
-      selected = null;
-      saveDrawings();
-      schedule();
-    },
-    selectDrawing: (id) => {
-      selectMode("select");
-      selected = id;
-      schedule();
-    },
-    pasteDrawing: (d, symbol) => {
-      if (symbol !== $("symbol").value)
-        throw Error(translate("Объект относится к другому инструменту."));
-      const clean = sanitizeDrawing(d);
-      if (!clean) throw Error(translate("Некорректный объект разметки."));
-      d = clean;
-      addDrawing({
-        ...d,
-        id: Date.now() + "-" + Math.random().toString(36).slice(2),
-        createdAt: getNow(),
-        hidden: false,
-      });
-    },
-    createLevel,
-    getLock: () => lockedTime,
-    setLock: (time) => {
-      lockedTime = time;
-      apply();
-    },
-    applySettings: updateSettings,
-    openSettings: () => settings.open(),
-    resetView,
     pause,
     toast,
   });
@@ -1406,44 +683,47 @@ export function createChartTools({
     }
   });
   $("chartAxisPlus").onclick = () => {
-    if (Number.isFinite(plusPrice)) createLevel(Math.round(plusPrice * 4) / 4);
+    if (Number.isFinite(plusPrice))
+      drawingWorkspace.addLevel("primary", Math.round(plusPrice * 4) / 4);
   };
   container.addEventListener(
     "pointerleave",
     () => ($("chartAxisPlus").hidden = true),
   );
+  new ResizeObserver(schedule).observe(container);
+  drawingWorkspace.addPane({
+    id: "primary",
+    chart,
+    series,
+    container,
+    getBars,
+    getSymbol,
+    getTimeframe,
+    getLock: () => lockedTime,
+    setLock: (value: any) => {
+      lockedTime = value;
+      apply();
+    },
+    applySettings: updateSettings,
+    openSettings: () => settings.open(),
+    resetView,
+  });
   apply();
-  selectMode("cursor");
+  drawingWorkspace.cancel();
   return {
     refresh,
     preferences: prefs,
     updatePreferences: updateSettings,
     updateLegend,
-    restoreDrawings: (value) => {
-      scope = getScope();
-      drawings = cleanDrawings(value);
-      lastSaved = structuredClone(drawings);
-      undoStack = [];
-      pending = [];
-      strokePoints = [];
-      anchor = null;
-      selected = null;
-      preview = null;
-      try {
-        localStorage.setItem(
-          "eazy-trading-drawings:" + scope,
-          JSON.stringify(drawings),
-        );
-      } catch {}
-      schedule();
-    },
+    restoreDrawings: drawingWorkspace.restoreDrawings,
     cancel: () => {
-      const locked: any = lockedTime;
+      const locked = lockedTime;
       lockedTime = null;
-      selectMode("cursor");
-      menu.close();
+      drawingWorkspace.cancel();
       if (locked) apply();
     },
+    openSettings: () => settings.open(),
+    resetView,
     get lockedTime() {
       return lockedTime;
     },

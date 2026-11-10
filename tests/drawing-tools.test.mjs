@@ -175,3 +175,11 @@ test("partial previews stay finite while multi-point tools are being placed", ()
     }
   }
 });
+
+test("drawing instrument tags survive validation and legacy drawings remain readable", () => {
+  const original = drawing({ id: "trend", points: 2 });
+  for (const symbol of ["NQ", "ES"])
+    assert.equal(sanitizeDrawing({ ...original, symbol }).symbol, symbol);
+  assert.equal(sanitizeDrawing({ ...original, symbol: "BTC" }), null);
+  assert.equal(Object.hasOwn(sanitizeDrawing(original), "symbol"), false);
+});

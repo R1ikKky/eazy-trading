@@ -1,4 +1,6 @@
 import { t as translate, locale } from "../i18n/language";
+import { createDrawingWorkspace } from "./drawing-workspace";
+import { installPaneInstrumentMenu } from "./pane-instruments";
 import { installChartSplitter } from "./chart-splitter";
 import { createFootprint } from "./footprint";
 import { ACCOUNT_DEPOSITS } from "./account-deposits";
@@ -53,6 +55,14 @@ let displayTime = nyTime,
   displayZone = "ET",
   product: any,
   comparison: any,
+  comparisonContext: any,
+  comparisonMarkers: any,
+  comparisonPriceLines: any[] = [],
+  drawingWorkspace: any,
+  paneSymbols: { primary: string; comparison: string } = {
+    primary: "NQ",
+    comparison: "ES",
+  },
   setupPrimarySymbol = "NQ",
   setupPreferredId = "",
   setupToken = 0,
@@ -170,7 +180,10 @@ function syncPlayback() {
   if (!replay) return;
   $("playIcon").textContent = timer ? "Ⅱ" : "▶";
   $("playLabel").textContent = timer ? translate("Пауза") : "Replay";
-  $("play").setAttribute("aria-label", timer ? translate("Пауза") : translate("Воспроизвести"));
+  $("play").setAttribute(
+    "aria-label",
+    timer ? translate("Пауза") : translate("Воспроизвести"),
+  );
   $("chartStatus").textContent = replay.ended
     ? translate("ЗАВЕРШЕНО")
     : timer
@@ -188,6 +201,55 @@ function togglePlay() {
   }
   timer = setInterval(step, Number($("speed").value));
   syncPlayback();
+}
+function primaryInstrument() {
+  return paneSymbols.primary;
+}
+function syncPaneToolbar() {
+  const interval =
+    drawingWorkspace?.activeId === "comparison"
+      ? comparison?.getTimeframe() || tf
+      : tf;
+  for (const button of document.querySelectorAll<HTMLElement>("[data-tf]")) {
+    const selected = Number(button.dataset.tf) === interval;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  }
+}
+function savePanePreferences() {
+  try {
+    localStorage.setItem(
+      "eazy-trading-chart-panels:" + product.active().id,
+      JSON.stringify(paneSymbols),
+    );
+  } catch {}
+}
+async function choosePaneInstrument(
+  pane: "primary" | "comparison",
+  next: string,
+) {
+  if (!["NQ", "ES"].includes(next) || paneSymbols[pane] === next) return;
+  const session = product.active(),
+    scope = session?.id,
+    rangeFrom = from,
+    rangeTo = to;
+  const id =
+    next === session?.symbol ? session.datasetId : session?.comparisonDatasetId;
+  const data = id
+    ? await loadHistoryById(id, rangeFrom, rangeTo)
+    : await loadHistory(next, rangeFrom, rangeTo);
+  assertDatasetSymbol(data, id || data.id, next);
+  if (product.active()?.id !== scope || from !== rangeFrom || to !== rangeTo)
+    return;
+  datasets[next] = data;
+  paneSymbols[pane] = next;
+  pause();
+  drawingWorkspace.cancel();
+  if (pane === "primary") rebuildChart();
+  else comparison.render();
+  render(false);
+  drawingWorkspace.refresh();
+  savePanePreferences();
 }
 function initChart() {
   const L = window.LightweightCharts;
@@ -242,12 +304,26 @@ function initChart() {
   });
   volume.priceScale().applyOptions({ scaleMargins: { top: 0.87, bottom: 0 } });
   markers = L.createSeriesMarkers(series, []);
+  drawingWorkspace = createDrawingWorkspace({
+    getPreferences: () => tools?.preferences || loadSettings(),
+    getNow: () => replay?.current.time || 0,
+    getScope: () => product?.active()?.id || "loading",
+    getSessionSymbol: () => symbol,
+    onDrawingsChange: (value: any) => product?.saveDrawings(value),
+    onChange: chartPreferenceChanged,
+    pause,
+    toast,
+    onActiveChange: () => syncPaneToolbar(),
+  });
   tools = createChartTools({
     chart,
     series,
     volume,
     container: $("chart"),
     getBars: () => chartBars,
+    drawingWorkspace,
+    getSymbol: primaryInstrument,
+    getTimeframe: () => tf,
     getNow: () => replay?.current.time || 0,
     getScope: () => product?.active()?.id || "loading",
     onDrawingsChange: (drawings) => product?.saveDrawings(drawings),
@@ -334,10 +410,17 @@ function volBar(b: any) {
     color: b.close >= b.open ? "#2c967c28" : "#db747128",
   };
 }
-function rebuildChart(leftTime: any = null) {
+function rebuildChart(leftTime: any = null, preserve = false) {
+  const prior = preserve ? chart?.timeScale().getVisibleLogicalRange() : null;
+  const previousCount = chartBars.length;
   if (!chart) return;
   chartBars = aggregate(
-    [...context, ...replay.bars.slice(0, replay.index + 1)].filter(
+    (primaryInstrument() === symbol
+      ? [...context, ...replay.bars.slice(0, replay.index + 1)]
+      : (datasets[primaryInstrument()]?.bars || [])
+          .filter((b) => b.time <= replay.current.time)
+          .slice(-30000)
+    ).filter(
       (b) => tools?.preferences.session !== "rth" || isRegularSession(b.time),
     ),
     tf,
@@ -347,6 +430,15 @@ function rebuildChart(leftTime: any = null) {
   volume.setData(chartBars.map(volBar));
   tools?.refresh();
   const right: any = tools?.preferences.marginRight ?? 10;
+  if (prior) {
+    const shift =
+      prior.to >= previousCount - 1 ? chartBars.length - previousCount : 0;
+    chart.timeScale().setVisibleLogicalRange({
+      from: prior.from + shift,
+      to: prior.to + shift,
+    });
+    return;
+  }
   if (leftTime !== null && tools?.preferences.saveLeftEdge) {
     const index = chartBars.findIndex((b) => b.time >= leftTime);
     if (index >= 0) {
@@ -366,6 +458,10 @@ function rebuildChart(leftTime: any = null) {
   });
 }
 function appendBar(b: any) {
+  if (primaryInstrument() !== symbol) {
+    rebuildChart(null, true);
+    return;
+  }
   if (tools?.preferences.session === "rth" && !isRegularSession(b.time)) return;
   const t: any = barTime(
     b.time,
@@ -429,6 +525,7 @@ function startSession(
   pause();
   tools?.cancel();
   symbol = s;
+  paneSymbols = { primary: s, comparison: s === "NQ" ? "ES" : "NQ" };
   from = a;
   to = b;
   context = selected.context;
@@ -447,10 +544,21 @@ function startSession(
       snapshot: replay.snapshot(),
       name:
         options.name ||
-        (options.record ? options.record.name + translate(" · повтор") : s + " · " + a),
+        (options.record
+          ? options.record.name + translate(" · повтор")
+          : s + " · " + a),
       capital: options.capital || options.record?.capital || 50000,
       strategyId: options.strategyId || options.record?.strategyId || "",
     });
+  try {
+    const saved = JSON.parse(
+      localStorage.getItem(
+        "eazy-trading-chart-panels:" + product.active().id,
+      ) || "null",
+    );
+    for (const pane of ["primary", "comparison"] as const)
+      if (["NQ", "ES"].includes(saved?.[pane])) paneSymbols[pane] = saved[pane];
+  } catch {}
   $("symbol").value = symbol;
   $("contractName").textContent = contracts[symbol].name;
   $("rangeLabel").textContent = dateText(from) + " — " + dateText(to);
@@ -483,16 +591,31 @@ async function activateRecord(
     d.isDemo = false;
     datasetMap.set(record.datasetId, d);
   }
-  const other = record.symbol === "NQ" ? "ES" : "NQ",
-    otherData = record.comparisonDatasetId
-      ? await loadHistoryById(
-          record.comparisonDatasetId,
-          record.from,
-          record.to,
-        )
-      : null;
+  const other = record.symbol === "NQ" ? "ES" : "NQ";
+  let otherData = record.comparisonDatasetId
+    ? await loadHistoryById(record.comparisonDatasetId, record.from, record.to)
+    : null;
+  if (!otherData) {
+    try {
+      const savedViews = JSON.parse(
+        localStorage.getItem("eazy-trading-chart-panels:" + record.id) ||
+          "null",
+      );
+      if (
+        savedViews?.primary === other ||
+        savedViews?.comparison === record.symbol
+      )
+        otherData = await loadHistory(other, record.from, record.to);
+    } catch (error) {
+      toast(error.message);
+    }
+  }
   if (otherData) {
-    assertDatasetSymbol(otherData, record.comparisonDatasetId, other);
+    assertDatasetSymbol(
+      otherData,
+      record.comparisonDatasetId || otherData.id,
+      other,
+    );
     selectReplayBars(otherData, record.from, record.to, record.session);
   }
   const old = datasets[record.symbol],
@@ -515,7 +638,9 @@ function assertDatasetSymbol(data: any, id: any, expected: any) {
   const actual =
     data.symbol || product.store.value.settings.datasets?.[id]?.symbol;
   if (actual !== expected)
-    throw Error(translate("История второго инструмента не соответствует ") + expected);
+    throw Error(
+      translate("История второго инструмента не соответствует ") + expected,
+    );
 }
 async function loadHistoryById(id: any, a: any, b: any) {
   let d = datasetMap.get(id);
@@ -648,7 +773,9 @@ function openSetup(next = symbol, preferredId = "") {
   $("sessionName").setCustomValidity("");
   const previousCapital = product?.active()?.capital;
   $("sessionCapital").value = String(
-    ACCOUNT_DEPOSITS.some((amount) => amount === previousCapital) ? previousCapital : 50000,
+    ACCOUNT_DEPOSITS.some((amount) => amount === previousCapital)
+      ? previousCapital
+      : 50000,
   );
   $("sessionStrategy").innerHTML = product.options(
     product.active()?.strategyId || "",
@@ -681,7 +808,9 @@ function openSource() {
       meta.retrievedAt +
       ". " +
       (meta.contracts?.length
-        ? translate("Контракты / идентификаторы: ") + meta.contracts.join(", ") + ". "
+        ? translate("Контракты / идентификаторы: ") +
+          meta.contracts.join(", ") +
+          ". "
         : translate("Контрактные коды не указаны. ")) +
       (meta.adjusted
         ? translate("Цены скорректированы источником. ")
@@ -777,7 +906,9 @@ function step() {
     pause();
     toast(
       replay.position
-        ? translate("Период завершён. Позиция остаётся открытой; её P&L не включён в статистику.")
+        ? translate(
+            "Период завершён. Позиция остаётся открытой; её P&L не включён в статистику.",
+          )
         : translate("Период завершён. Выберите новую сессию."),
     );
   }
@@ -786,58 +917,88 @@ function step() {
 }
 function renderLines() {
   if (!series) return;
-  for (const l of priceLines) series.removePriceLine(l);
+  for (const line of priceLines) series.removePriceLine(line);
   priceLines = [];
+  if (comparisonContext)
+    for (const line of comparisonPriceLines)
+      comparisonContext.series.removePriceLine(line);
+  comparisonPriceLines = [];
   const p = replay.position;
-  if (p) {
-    for (const [title, v, color] of [
-      [translate("ВХОД"), p.entry, "#748b59"],
-      ["SL", p.sl, "#cf6c66"],
-      ["TP", p.tp, "#2a967a"],
-    ])
-      priceLines.push(
-        series.createPriceLine({
-          price: v,
-          color,
-          lineWidth: 1,
-          lineStyle: 2,
-          axisLabelVisible: true,
-          title,
-        }),
-      );
-  }
-  const out = [];
-  const add: any = (t: any, side: any, exit = false) =>
-    out.push({
-      time: barTime(t, tf, activeSession),
-      position: side === 1 ? "belowBar" : "aboveBar",
-      color: exit ? "#718156" : side === 1 ? "#259176" : "#d57470",
-      shape: exit ? "circle" : side === 1 ? "arrowUp" : "arrowDown",
-      text: exit ? "" : side === 1 ? "L" : "S",
-    });
-  for (const t of replay.trades) {
-    add(t.time, t.side);
-    add(t.exitTime, -t.side, true);
-  }
-  if (p) add(p.time, p.side);
-  out.sort((a, b) => a.time - b.time);
-  markers.setMarkers(tools?.preferences.hideMarks ? [] : out);
+  const targets = [
+    ...(primaryInstrument() === symbol ? [{ series, lines: priceLines }] : []),
+    ...(comparisonContext &&
+    comparison?.getVisible() &&
+    paneSymbols.comparison === symbol
+      ? [{ series: comparisonContext.series, lines: comparisonPriceLines }]
+      : []),
+  ];
+  if (p)
+    for (const target of targets)
+      for (const [title, value, color] of [
+        [translate("ВХОД"), p.entry, "#748b59"],
+        ["SL", p.sl, "#cf6c66"],
+        ["TP", p.tp, "#2a967a"],
+      ])
+        target.lines.push(
+          target.series.createPriceLine({
+            price: value,
+            color,
+            lineWidth: 1,
+            lineStyle: 2,
+            axisLabelVisible: true,
+            title,
+          }),
+        );
+  const makeMarkers = (interval: number) => {
+    const result: any[] = [];
+    const add = (time: number, side: number, exit = false) =>
+      result.push({
+        time: barTime(time, interval, activeSession),
+        position: side === 1 ? "belowBar" : "aboveBar",
+        color: exit ? "#718156" : side === 1 ? "#259176" : "#d57470",
+        shape: exit ? "circle" : side === 1 ? "arrowUp" : "arrowDown",
+        text: exit ? "" : side === 1 ? "L" : "S",
+      });
+    for (const trade of replay.trades) {
+      add(trade.time, trade.side);
+      add(trade.exitTime, -trade.side, true);
+    }
+    if (p) add(p.time, p.side);
+    return result.sort((a, b) => a.time - b.time);
+  };
+  markers.setMarkers(
+    primaryInstrument() === symbol && !tools?.preferences.hideMarks
+      ? makeMarkers(tf)
+      : [],
+  );
+  comparisonMarkers?.setMarkers(
+    paneSymbols.comparison === symbol && !tools?.preferences.hideMarks
+      ? makeMarkers(comparison?.getTimeframe() || tf)
+      : [],
+  );
 }
-function render() {
-  $("primaryChartTitle").textContent = symbol + " · " + tf + "m";
+function render(save = true) {
+  $("primaryChartTitle").textContent = primaryInstrument() + " · " + tf + "m";
+  $("orderInstrument").textContent = symbol;
+  syncPaneToolbar();
   $("mainChartNotice").textContent =
     translate("Заявки по ") + symbol + translate(" · общий шаг replay 1 мин");
   const b: any = replay.current,
     s = replay.stats();
   $("contractName").textContent = b.contract || contracts[symbol].name;
-  $("lastPrice").textContent = price(b.close);
+  $("lastPrice").textContent = chartBars.length
+    ? price(chartBars.at(-1).close)
+    : "—";
   showOhlc(chartBars.at(-1));
   $("netStat").textContent = money(s.net);
   $("netStat").className = s.net > 0 ? "positive" : s.net < 0 ? "negative" : "";
   $("replayTime").textContent =
     displayTime.format(new Date(b.time * 1000)) + " " + displayZone;
   $("progressLabel").textContent =
-    translate("Свеча ") + (replay.index + 1) + translate(" из ") + replay.bars.length;
+    translate("Свеча ") +
+    (replay.index + 1) +
+    translate(" из ") +
+    replay.bars.length;
   $("progressBar").style.width =
     ((replay.index + 1) / replay.bars.length) * 100 + "%";
   $("baseInterval").textContent =
@@ -866,7 +1027,7 @@ function render() {
   ])
     $(id).disabled = !!(replay.position || replay.pending);
   renderPosition($("positionBox"), replay, symbol);
-  product?.saveReplay(replay.snapshot());
+  if (save) product?.saveReplay(replay.snapshot());
   comparison?.render();
   riskPreview();
   renderLines();
@@ -967,7 +1128,9 @@ $("setupForm").onsubmit = async (e) => {
       a !== $("fromDate").value ||
       b !== $("toDate").value
     )
-      throw Error(translate("Параметры изменены. Нажмите «Начать сессию» ещё раз."));
+      throw Error(
+        translate("Параметры изменены. Нажмите «Начать сессию» ещё раз."),
+      );
     for (let i = 0; i < selected.length; i++) {
       assertDatasetSymbol(loaded[i], entries[i].id, selected[i]);
       selectReplayBars(loaded[i], a, b, activeSession);
@@ -1077,7 +1240,11 @@ $("positionBox").onclick = (e) => {
     }
     if (action === "be" || action === "be-costs") {
       replay.breakEven(action === "be-costs");
-      toast(action === "be-costs" ? translate("BE с издержками") : translate("Стоп на цене входа"));
+      toast(
+        action === "be-costs"
+          ? translate("BE с издержками")
+          : translate("Стоп на цене входа"),
+      );
     }
     if (action === "close" || action === "partial") {
       replay.requestClose(
@@ -1124,8 +1291,12 @@ $("orderKind").onchange = () => {
     kind === "market"
       ? translate("Вход на следующем открытии. Одна позиция за раз.")
       : kind === "limit"
-        ? translate("Limit исполняется по указанной цене или лучше на последующих свечах.")
-        : translate("Stop активируется на последующих свечах с учётом гэпа и проскальзывания.");
+        ? translate(
+            "Limit исполняется по указанной цене или лучше на последующих свечах.",
+          )
+        : translate(
+            "Stop активируется на последующих свечах с учётом гэпа и проскальзывания.",
+          );
   if (replay) $("entryPrice").value = replay.current.close;
 };
 $("sizeByRisk").onclick = () =>
@@ -1146,16 +1317,29 @@ $("sizeByRisk").onclick = () =>
     const qty = Math.min(100, Math.floor(budget / per));
     if (qty < 1)
       throw Error(
-        translate("Один контракт превышает заданный риск. Уменьшите стоп или увеличьте лимит."),
+        translate(
+          "Один контракт превышает заданный риск. Уменьшите стоп или увеличьте лимит.",
+        ),
       );
     $("qty").value = String(qty);
     riskPreview();
-    toast(translate("Объём ") + qty + translate(" контр. · риск не больше ") + money(budget));
+    toast(
+      translate("Объём ") +
+        qty +
+        translate(" контр. · риск не больше ") +
+        money(budget),
+    );
   });
 
 document.querySelectorAll<HTMLElement>("[data-tf]").forEach(
   (b) =>
     (b.onclick = () => {
+      if (drawingWorkspace?.activeId === "comparison") {
+        comparison.setTimeframe(Number(b.dataset.tf));
+        syncPaneToolbar();
+        drawingWorkspace.refresh();
+        return;
+      }
       const left = chart.timeScale().getVisibleRange?.()?.from ?? null;
       tf = Number(b.dataset.tf);
       document.querySelectorAll<HTMLElement>("[data-tf]").forEach((x) => {
@@ -1224,7 +1408,10 @@ $("csvFile").onchange = async () => {
       onPart: async (bars, index) =>
         product.store.uploadDataset({
           symbol: next,
-          name: (file.name + translate(" · часть ") + (index + 1)).slice(0, 180),
+          name: (file.name + translate(" · часть ") + (index + 1)).slice(
+            0,
+            180,
+          ),
           source: "user_csv",
           bars,
         }),
@@ -1363,8 +1550,50 @@ async function bootstrap() {
       getTime: () => replay?.current.time || 0,
       getPreferences: () => tools?.preferences || loadSettings(),
       onShow: loadComparisonData,
+      getDisplaySymbol: () => paneSymbols.comparison,
+      onChartReady: (ctx: any) => {
+        comparisonContext = ctx;
+        comparisonMarkers = window.LightweightCharts.createSeriesMarkers(
+          ctx.series,
+          [],
+        );
+        drawingWorkspace.addPane({
+          ...ctx,
+          applySettings: (value: any) => tools.updatePreferences(value),
+          openSettings: () => tools.openSettings(),
+          resetView: () => {
+            ctx.chart.timeScale().setVisibleLogicalRange({
+              from: Math.max(-3, ctx.getBars().length - 90),
+              to: ctx.getBars().length + 10,
+            });
+          },
+        });
+      },
+      onChartRender: () => {
+        drawingWorkspace.refresh();
+        syncPaneToolbar();
+        if (replay) renderLines();
+      },
+      onVisibilityChange: (visible: boolean) => {
+        if (!visible && drawingWorkspace.activeId === "comparison")
+          drawingWorkspace.activate("primary");
+      },
     });
     installChartSplitter();
+    installPaneInstrumentMenu({
+      trigger: $("primaryChartTitle"),
+      getSymbol: primaryInstrument,
+      choose: (next: string) => choosePaneInstrument("primary", next),
+      activate: () => drawingWorkspace.activate("primary"),
+      toast,
+    });
+    installPaneInstrumentMenu({
+      trigger: $("comparisonTitle"),
+      getSymbol: () => paneSymbols.comparison,
+      choose: (next: string) => choosePaneInstrument("comparison", next),
+      activate: () => drawingWorkspace.activate("comparison"),
+      toast,
+    });
   } catch (e) {
     $("chartError").hidden = false;
     console.error(e);
@@ -1378,10 +1607,12 @@ async function bootstrap() {
     }
   }
 }
-bootstrap().then(() => product.ready()).catch((error) => {
-  toast(error.message);
-  $("chartError").hidden = false;
-});
+bootstrap()
+  .then(() => product.ready())
+  .catch((error) => {
+    toast(error.message);
+    $("chartError").hidden = false;
+  });
 function readState() {
   if (!replay) return { loading: !product?.store.ready, hasSession: false };
   return {
@@ -1442,7 +1673,8 @@ if (document.modelContext?.registerTool) {
         Object.keys(input).some((k) => k !== "count")
       )
         throw Error("count must be an integer from 1 to 100");
-      if (!replay) throw Error(translate("Сначала создайте или продолжите сессию"));
+      if (!replay)
+        throw Error(translate("Сначала создайте или продолжите сессию"));
       pause();
       const before = replay.trades.length;
       for (let i = 0; i < input.count; i++) {

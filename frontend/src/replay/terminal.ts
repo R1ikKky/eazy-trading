@@ -32,9 +32,13 @@ export function renderPosition(box: any, replay: any, symbol: any) {
       (pnl >= 0 ? "positive" : "negative") +
       '">' +
       money(pnl) +
-      translate("</strong><p>Открытый результат с комиссией · частично реализовано ") +
+      translate(
+        "</strong><p>Открытый результат с комиссией · частично реализовано ",
+      ) +
       money(p.realizedNet) +
-      translate('</p><div class="pos-row"><span>Вход</span><span class="mono">') +
+      translate(
+        '</p><div class="pos-row"><span>Вход</span><span class="mono">',
+      ) +
       p.entry.toFixed(2) +
       '</span></div><div class="protection-fields"><label>SL<input type="number" data-position-sl step="0.25" value="' +
       p.sl +
@@ -42,23 +46,33 @@ export function renderPosition(box: any, replay: any, symbol: any) {
       p.tp +
       '"></label><button class="button secondary compact" data-action="protect" ' +
       (replay.ended ? "disabled" : "") +
-      translate('>Применить уровни</button></div><div class="pos-actions"><button data-action="be" ') +
+      translate(
+        '>Применить уровни</button></div><div class="pos-actions"><button data-action="be" ',
+      ) +
       (replay.ended ? "disabled" : "") +
       '>BE</button><button data-action="be-costs" ' +
       (replay.ended ? "disabled" : "") +
-      translate('>BE + издержки</button></div><div class="partial-controls"><label>Закрыть контрактов<input type="number" data-close-qty min="1" max="') +
+      translate(
+        '>BE + издержки</button></div><div class="partial-controls"><label>Закрыть контрактов<input type="number" data-close-qty min="1" max="',
+      ) +
       p.qty +
       '" step="1" value="' +
       Math.max(1, Math.floor(p.qty / 2)) +
       '"></label><button class="button secondary compact" data-action="partial" ' +
       (replay.ended || replay.closePending ? "disabled" : "") +
-      translate('>Часть</button></div><div class="pos-actions"><button data-action="close" ') +
+      translate(
+        '>Часть</button></div><div class="pos-actions"><button data-action="close" ',
+      ) +
       (replay.ended || replay.closePending ? "disabled" : "") +
       ">" +
-      (replay.closePending ? translate("Выход ожидается") : translate("Закрыть всё")) +
+      (replay.closePending
+        ? translate("Выход ожидается")
+        : translate("Закрыть всё")) +
       "</button></div>" +
       (replay.ended
-        ? translate("<p>Период завершён · выход возможен только в новой свече.</p>")
+        ? translate(
+            "<p>Период завершён · выход возможен только в новой свече.</p>",
+          )
         : "");
   } else if (replay.pending) {
     const q = replay.pending;
@@ -78,7 +92,9 @@ export function renderPosition(box: any, replay: any, symbol: any) {
       q.stop +
       " / " +
       q.target +
-      translate(' пт</span></div><div class="pos-actions"><button data-action="cancel">Отменить заявку</button></div>');
+      translate(
+        ' пт</span></div><div class="pos-actions"><button data-action="cancel">Отменить заявку</button></div>',
+      );
   } else {
     box.classList.remove("active");
     box.innerHTML = translate("<strong>Вне позиции</strong>");
@@ -94,6 +110,10 @@ export function createComparison({
   getTime,
   getPreferences,
   onShow,
+  getDisplaySymbol,
+  onChartReady,
+  onChartRender,
+  onVisibilityChange,
 }: any) {
   let chart: any,
     series: any,
@@ -112,8 +132,9 @@ export function createComparison({
   host.className = "comparison-card chart-pane";
   host.hidden = true;
   host.setAttribute("aria-label", translate("Второй инструмент"));
-  host.innerHTML =
-    translate('<div class="comparison-header"><div><h3 id="comparisonTitle">ES</h3></div><label class="sr-only" for="compareInterval">Таймфрейм второго графика</label><select id="compareInterval"><option value="sync" selected>Как основной</option><option value="1">1m</option><option value="3">3m</option><option value="5">5m</option><option value="15">15m</option><option value="30">30m</option><option value="60">1h</option></select></div><div id="compareChart" class="comparison-chart"></div><p id="compareNotice" class="pane-notice muted"></p>');
+  host.innerHTML = translate(
+    '<div class="comparison-header"><button type="button" class="pane-instrument-trigger" id="comparisonTitle">ES</button><strong class="comparison-price" id="comparisonPrice"></strong><label class="sr-only" for="compareInterval">Таймфрейм второго графика</label><select id="compareInterval"><option value="sync" selected>Как основной</option><option value="1">1m</option><option value="3">3m</option><option value="5">5m</option><option value="15">15m</option><option value="30">30m</option><option value="60">1h</option></select></div><div id="compareChart" class="comparison-chart"></div><p id="compareNotice" class="pane-notice muted"></p>',
+  );
   panes.append(host);
   const title = document.getElementById("comparisonTitle"),
     notice = document.getElementById("compareNotice"),
@@ -157,12 +178,15 @@ export function createComparison({
     if (!visible) return;
     const L = window.LightweightCharts,
       p = getPreferences(),
-      symbol = getSymbol() === "NQ" ? "ES" : "NQ",
+      symbol = getDisplaySymbol?.() || (getSymbol() === "NQ" ? "ES" : "NQ"),
       d = getDatasets()[symbol],
       now = getTime(),
       tf = interval();
     title.textContent = symbol + " · " + tf + "m";
     host.setAttribute("aria-label", translate("График ") + symbol);
+    const priceLabel = document.getElementById("comparisonPrice");
+    if (priceLabel)
+      priceLabel.textContent = rows.at(-1)?.close?.toFixed(2) || "";
     if (!chart) {
       chart = L.createChart(container, {
         autoSize: true,
@@ -173,6 +197,16 @@ export function createComparison({
       series = chart.addSeries(L.CandlestickSeries, {
         priceFormat: { type: "price", precision: 2, minMove: 0.25 },
         priceLineVisible: false,
+      });
+      onChartReady?.({
+        id: "comparison",
+        chart,
+        series,
+        container,
+        getBars: () => rows,
+        getSymbol: () =>
+          getDisplaySymbol?.() || (getSymbol() === "NQ" ? "ES" : "NQ"),
+        getTimeframe: interval,
       });
       chart.subscribeCrosshairMove((param) =>
         moveCrosshair(
@@ -244,7 +278,9 @@ export function createComparison({
         notice.textContent =
           translate("Последняя свеча: ") +
           chartDate(revealed.at(-1).time, p) +
-          (now - revealed.at(-1).time > 300 ? translate(" · есть разрыв в данных") : "");
+          (now - revealed.at(-1).time > 300
+            ? translate(" · есть разрыв в данных")
+            : "");
       } else
         notice.textContent =
           translate("Для ") +
@@ -253,6 +289,13 @@ export function createComparison({
     }
     viewScope = scope;
     renderedTime = now;
+    if (priceLabel)
+      priceLabel.textContent =
+        rows.at(-1)?.close?.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }) || "—";
+    onChartRender?.();
   }
   async function reload() {
     if (!visible) return;
@@ -274,8 +317,11 @@ export function createComparison({
     if (!visible) loadVersion++;
     host.hidden = !visible;
     panes.classList.toggle("is-dual", visible);
+    onVisibilityChange?.(visible);
     button.setAttribute("aria-pressed", String(visible));
-    button.title = visible ? translate("Оставить один график") : translate("Показать NQ и ES рядом");
+    button.title = visible
+      ? translate("Оставить один график")
+      : translate("Показать NQ и ES рядом");
     reload();
     window.dispatchEvent(new Event("resize"));
   }
@@ -288,7 +334,9 @@ export function createComparison({
       "aria-label",
       next ? translate("Свернуть графики") : translate("Развернуть графики"),
     );
-    expand.title = next ? translate("Свернуть графики · Esc") : translate("Развернуть графики");
+    expand.title = next
+      ? translate("Свернуть графики · Esc")
+      : translate("Развернуть графики");
     window.dispatchEvent(new Event("resize"));
   }
   button.onclick = () => setVisible(!visible);
@@ -309,5 +357,18 @@ export function createComparison({
     )
       setExpanded(false);
   });
-  return { render, reload, setVisible, setExpanded };
+  return {
+    render,
+    reload,
+    setVisible,
+    setExpanded,
+    getTimeframe: interval,
+    setTimeframe(value: any) {
+      minutes = value;
+      (document.getElementById("compareInterval") as HTMLSelectElement).value =
+        value === null ? "sync" : String(value);
+      render();
+    },
+    getVisible: () => visible,
+  };
 }

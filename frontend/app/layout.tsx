@@ -13,6 +13,7 @@ import "./replay-island.css";
 import "./appearance.css";
 import "./drawing-tools.css";
 import "./chart-splitter.css";
+import "./active-charts.css";
 export const metadata: Metadata = {
   title: "eazy trading · NQ / ES",
   description:

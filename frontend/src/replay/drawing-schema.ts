@@ -27,6 +27,7 @@ export function sanitizeDrawing(d: any): any | null {
     d.opacity > 100
   )
     return null;
+  if (d.symbol !== undefined && !["NQ", "ES"].includes(d.symbol)) return null;
   const points =
     d.points === undefined ? [d.a, ...(d.b ? [d.b] : [])] : d.points;
   if (
@@ -49,6 +50,7 @@ export function sanitizeDrawing(d: any): any | null {
   return {
     id: d.id,
     type: d.type,
+    ...(d.symbol !== undefined ? { symbol: d.symbol } : {}),
     createdAt: d.createdAt,
     a: clean[0],
     b: clean[1] || null,
