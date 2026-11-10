@@ -34,7 +34,6 @@ export interface Elements {
   chart: HTMLElement;
   chartError: HTMLElement;
   mainChartNotice: HTMLElement;
-  reset: HTMLButtonElement;
   play: HTMLButtonElement;
   playIcon: HTMLElement;
   playLabel: HTMLElement;

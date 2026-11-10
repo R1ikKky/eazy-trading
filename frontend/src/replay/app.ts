@@ -1208,9 +1208,6 @@ $("speed").onchange = () => {
     togglePlay();
   }
 };
-$("reset").onclick = () => {
-  if (canReset()) startSession(symbol, from, to);
-};
 $("long").onclick = () => guard(() => order(1));
 $("short").onclick = () => guard(() => order(-1));
 $("qtyDown").onclick = () => {

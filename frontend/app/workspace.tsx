@@ -351,14 +351,6 @@ export function ReplayWorkspace() {
                 <div className="replay-panel">
                   <div className="replay-controls">
                     <button
-                      id="reset"
-                      className="icon-button"
-                      aria-label={translate("Начать сессию заново")}
-                      title={translate("Начать заново")}
-                    >
-                      ↺
-                    </button>
-                    <button
                       id="play"
                       className="play-button"
                       aria-label={translate("Воспроизвести")}
