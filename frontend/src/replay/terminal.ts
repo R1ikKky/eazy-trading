@@ -321,7 +321,8 @@ export function createComparison({
     button.setAttribute("aria-pressed", String(visible));
     button.title = visible
       ? translate("Оставить один график")
-      : translate("Показать NQ и ES рядом");
+      : translate("Два графика");
+    button.setAttribute("aria-label", button.title);
     reload();
     window.dispatchEvent(new Event("resize"));
   }

@@ -260,12 +260,24 @@ export function ReplayWorkspace() {
                     </div>
                     <button
                       id="compareToggle"
-                      className="settings-button compare-button"
+                      className="icon-button compare-button"
+                      type="button"
                       aria-pressed="false"
-                      aria-label={translate("Показать NQ и ES рядом")}
-                      title={translate("Показать NQ и ES рядом")}
+                      aria-label={translate("Два графика")}
+                      title={translate("Два графика")}
                     >
-                      ▥ <span>{translate("Два графика")}</span>
+                      <svg
+                        width="22"
+                        height="22"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        aria-hidden="true"
+                      >
+                        <rect x="3" y="5" width="18" height="14" rx="3" />
+                        <path className="compare-icon-divider" d="M12 5v14" />
+                      </svg>
                     </button>
                     <button
                       id="chartExpand"

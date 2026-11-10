@@ -4,6 +4,9 @@ body.product-app .chart-toolbar > .chart-tools {
 body.product-app .comparison-chart {
   position: relative;
 }
+body.product-app #compareToggle[aria-pressed="true"] .compare-icon-divider {
+  display: none;
+}
 body.product-app .chart-toolbar .timeframes {
   margin-right: auto;
 }
