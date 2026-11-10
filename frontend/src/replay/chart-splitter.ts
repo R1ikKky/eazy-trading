@@ -39,7 +39,10 @@ export function installChartSplitter() {
   const mode = (): keyof Shares => (narrow.matches ? "stacked" : "sideBySide");
   function bounds() {
     const rect = panes!.getBoundingClientRect();
-    const available = (narrow.matches ? rect.height : rect.width) - 10;
+    const dividerRect = divider.getBoundingClientRect();
+    const available = narrow.matches
+      ? rect.height - dividerRect.height
+      : rect.width - dividerRect.width;
     const minimum =
       available > 0
         ? Math.min(0.4, (narrow.matches ? 140 : 220) / available)
