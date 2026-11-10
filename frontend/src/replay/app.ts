@@ -1001,10 +1001,6 @@ function render(save = true) {
     replay.bars.length;
   $("progressBar").style.width =
     ((replay.index + 1) / replay.bars.length) * 100 + "%";
-  $("baseInterval").textContent =
-    translate("Шаг: 1 мин · ") +
-    displayZone +
-    (tf > 1 ? " · " + tf + translate("m формируется") : "");
   const unavailable: any = !!(
     replay.position ||
     replay.pending ||

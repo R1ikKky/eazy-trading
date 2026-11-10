@@ -43,7 +43,6 @@ export interface Elements {
   replayTime: HTMLElement;
   progressLabel: HTMLElement;
   progressBar: HTMLElement;
-  baseInterval: HTMLElement;
   orderTypeBadge: HTMLElement;
   orderHint: HTMLElement;
   orderKind: HTMLSelectElement;

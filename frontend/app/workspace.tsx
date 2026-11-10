@@ -381,15 +381,6 @@ export function ReplayWorkspace() {
                 <div className="progress-track">
                   <div id="progressBar" />
                 </div>
-                <div className="chart-footer">
-                  <span>
-                    {translate("Пробел — пауза")}{" "}
-                    <span className="kbd-gap">
-                      {translate("→ — следующая свеча")}
-                    </span>
-                  </span>
-                  <span id="baseInterval">{translate("Шаг: 1 мин · ET")}</span>
-                </div>
               </section>
               <aside
                 className="order-card"
