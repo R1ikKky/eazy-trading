@@ -6,6 +6,8 @@ import zipfile
 import sys
 from unittest.mock import patch
 import urllib.error
+import tempfile
+import json
 
 spec = importlib.util.spec_from_file_location('windows_connector', Path(__file__).parent / 'windows/windows_connector.py')
 connector = importlib.util.module_from_spec(spec)
@@ -94,9 +96,18 @@ class WindowsConnectorTests(unittest.TestCase):
     def test_download_contains_current_source_and_no_environment_or_cached_keys(self):
         root = Path(__file__).resolve().parents[2]
         with zipfile.ZipFile(root / 'frontend/public/downloads/eazy-trading-windows-connector.zip') as archive:
-            self.assertEqual(len(archive.namelist()), 5)
+            self.assertEqual(len(archive.namelist()), 6)
             self.assertEqual(archive.read('eazy-trading-connector/windows_connector.py'), (Path(__file__).parent / 'windows/windows_connector.py').read_bytes())
             self.assertFalse(any('.env' in name or 'connector.json' in name or '.venv' in name for name in archive.namelist()))
             self.assertIn(b'\r\n', archive.read('eazy-trading-connector/Start Connector.cmd'))
+
+    def test_diagnostic_configuration_does_not_disclose_pairing_material(self):
+        with tempfile.TemporaryDirectory() as folder:
+            p = Path(folder) / 'connector.json'
+            p.write_text(json.dumps({'protectedToken': 'sensitive', 'token': 'secret', 'origin': 'https://private.example.test', 'terminal': 'C:\\MT5\\terminal64.exe'}))
+            report = connector.diagnostic_configuration(p)
+            self.assertEqual(set(report), {'configured_terminal', 'terminal_file_exists'})
+            self.assertNotIn('secret', json.dumps(report))
+            self.assertNotIn('sensitive', json.dumps(report))
 
 if __name__ == '__main__': unittest.main()

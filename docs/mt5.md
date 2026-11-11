@@ -21,6 +21,8 @@ Windows connector 1.1 checks the terminal's actual broker connection before read
 
 For already paired accounts, the website calls the pairing action **Replace Windows key** to distinguish key rotation from syncing. Clicking it intentionally disconnects the previous connector; download upgrades directly from `/downloads/eazy-trading-windows-connector.zip` without rotating the key.
 
+For persistent native IPC error `-10005` even with an explicit terminal path, connector 1.2 provides **Diagnose MT5.cmd**. It reports Python/package versions, configured executable existence/version, running MT5 paths and Windows sessions, and available process elevation information. It makes no MT5/broker connection, performs no history/account queries, does not decrypt or print pairing material, and does not change permissions/settings. The output is saved to `%LOCALAPPDATA%\eazy-trading\diagnostic.txt`; it contains local filesystem paths which may include a Windows username. This narrows permission/session/version issues without guessing that the broker password is wrong. Native diagnostic APIs still require validation on the Windows PC; non-Windows tests cover package completeness and credential exclusion.
+
 ## Optional VPS worker (legacy alternative)
 
 The website can save an encrypted investor connection and request an on-demand history sync. A separate, optional Wine/MT5 worker connects only during a sync, imports broker history and open positions, then destroys the temporary terminal, Wine prefix and credentials. No trading commands are present. Your laptop does not need to run MT5.

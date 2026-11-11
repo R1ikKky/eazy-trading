@@ -38,3 +38,10 @@ two minutes. It checks the broker connection before reading history.
 Safe diagnostic messages are saved in
 %LOCALAPPDATA%\eazy-trading\connector.log (no pairing keys or broker passwords).
 If a read times out, the connector stops only its child Python reader, not MT5.
+
+Connector 1.2 includes Diagnose MT5.cmd. For persistent -10005 errors, run it
+to report Python/package versions, the configured terminal path, running MT5
+processes and available elevation information. It does not connect to MT5 or
+the broker, decrypt the pairing key, or modify settings. The report is saved
+as %LOCALAPPDATA%\eazy-trading\diagnostic.txt. Local usernames may appear in
+file paths; redact those before sharing if desired.

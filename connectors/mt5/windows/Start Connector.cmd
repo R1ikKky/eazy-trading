@@ -22,7 +22,11 @@ if errorlevel 1 goto failed
 if "%~1"=="--setup" (
   ".venv\Scripts\python.exe" windows_connector.py --setup
 ) else (
-  ".venv\Scripts\python.exe" windows_connector.py
+  if "%~1"=="--diagnose" (
+    ".venv\Scripts\python.exe" windows_connector.py --diagnose
+  ) else (
+    ".venv\Scripts\python.exe" windows_connector.py
+  )
 )
 pause
 exit /b

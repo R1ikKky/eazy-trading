@@ -7,7 +7,7 @@ source = root / "connectors" / "mt5" / "windows"
 output = root / "frontend" / "public" / "downloads" / "eazy-trading-windows-connector.zip"
 output.parent.mkdir(parents=True, exist_ok=True)
 with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-    for name in ["windows_connector.py", "requirements.txt", "Start Connector.cmd", "Pair again.cmd", "README.txt"]:
+    for name in ["windows_connector.py", "requirements.txt", "Start Connector.cmd", "Pair again.cmd", "Diagnose MT5.cmd", "README.txt"]:
         item = zipfile.ZipInfo("eazy-trading-connector/" + name, (2026, 1, 1, 0, 0, 0))
         item.compress_type = zipfile.ZIP_DEFLATED
         item.external_attr = 0o644 << 16

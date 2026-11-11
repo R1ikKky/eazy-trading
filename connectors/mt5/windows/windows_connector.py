@@ -17,7 +17,7 @@ import urllib.parse
 import urllib.request
 
 ERRORS = {"ACCOUNT_MISMATCH", "HISTORY_FAILED", "HISTORY_TOO_LARGE", "TERMINAL_UNAVAILABLE", "MT5_NOT_CONNECTED", "MT5_TIMEOUT"}
-VERSION = "1.1"
+VERSION = "1.2"
 
 
 def progress(message):
@@ -162,6 +162,75 @@ def dpapi(data, encrypt):
         kernel.LocalFree(outgoing.data)
 
 
+def process_elevation(pid):
+    """Read token elevation without requesting extra privileges."""
+    from ctypes import wintypes
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    advapi = ctypes.WinDLL('advapi32', use_last_error=True)
+    kernel.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    kernel.OpenProcess.restype = wintypes.HANDLE
+    kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    advapi.OpenProcessToken.argtypes = [wintypes.HANDLE, wintypes.DWORD, ctypes.POINTER(wintypes.HANDLE)]
+    advapi.GetTokenInformation.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD, ctypes.POINTER(wintypes.DWORD)]
+    process = kernel.OpenProcess(0x1000, False, pid)
+    if not process: return 'unknown (Windows denied inspection)'
+    token = wintypes.HANDLE()
+    try:
+        if not advapi.OpenProcessToken(process, 8, ctypes.byref(token)): return 'unknown (Windows denied inspection)'
+        elevated, size = wintypes.DWORD(), wintypes.DWORD()
+        if not advapi.GetTokenInformation(token, 20, ctypes.byref(elevated), ctypes.sizeof(elevated), ctypes.byref(size)): return 'unknown'
+        return bool(elevated.value)
+    finally:
+        if token: kernel.CloseHandle(token)
+        kernel.CloseHandle(process)
+
+
+def diagnostic_configuration(path):
+    # Deliberately do not decrypt/read out the key or dump the configuration.
+    data = json.loads(path.read_text(encoding='utf-8')) if path.exists() else {}
+    terminal = data.get('terminal', '')
+    return {'configured_terminal': terminal, 'terminal_file_exists': bool(terminal and Path(terminal).is_file())}
+
+
+def diagnose():
+    import importlib.metadata
+    import platform
+    report = {'connector': VERSION, 'python': platform.python_version(), 'python_bits': ctypes.sizeof(ctypes.c_void_p) * 8}
+    for package in ['MetaTrader5', 'numpy']:
+        try: report[package] = importlib.metadata.version(package)
+        except importlib.metadata.PackageNotFoundError: report[package] = 'not installed'
+    folder = Path(os.environ['LOCALAPPDATA']) / 'eazy-trading'
+    report.update(diagnostic_configuration(folder / 'connector.json'))
+    report['connector_elevated'] = process_elevation(os.getpid())
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.ProcessIdToSessionId.argtypes = [ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32)]
+    session = ctypes.c_uint32()
+    report['connector_session'] = session.value if kernel.ProcessIdToSessionId(os.getpid(), ctypes.byref(session)) else 'unknown'
+    # Paths/PIDs/versions only. No account details, command lines, broker access or keys.
+    script = "@(Get-Process -Name terminal64 -ErrorAction SilentlyContinue | ForEach-Object { [pscustomobject]@{ pid=$_.Id; session=$_.SessionId; responding=$_.Responding; path=$_.Path } }) | ConvertTo-Json -Compress"
+    try:
+        prefix = '[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false); '
+        result = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', prefix + script], capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=15)
+        processes = json.loads(result.stdout.strip() or '[]')
+        if isinstance(processes, dict): processes = [processes]
+        for p in processes: p['elevated'] = process_elevation(int(p['pid']))
+        report['running_MT5'] = processes
+    except Exception:
+        report['running_MT5'] = 'Process inspection unavailable'
+    try:
+        env = {**os.environ, 'EAZY_DIAG_TERMINAL': report['configured_terminal']}
+        command = "if(Test-Path -LiteralPath $env:EAZY_DIAG_TERMINAL){(Get-Item -LiteralPath $env:EAZY_DIAG_TERMINAL).VersionInfo | Select-Object FileVersion,ProductVersion | ConvertTo-Json -Compress}"
+        result = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', '[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false); ' + command], capture_output=True, text=True, encoding='utf-8', errors='replace', env=env, timeout=15)
+        report['terminal_version'] = json.loads(result.stdout.strip() or 'null')
+    except Exception:
+        report['terminal_version'] = 'Inspection unavailable'
+    text = json.dumps(report, ensure_ascii=False, indent=2)
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / 'diagnostic.txt').write_text(text, encoding='utf-8')
+    print(text, flush=True)
+    print('Report saved to %LOCALAPPDATA%\\eazy-trading\\diagnostic.txt. It contains local file paths, but no pairing key/password. No broker connection was attempted.', flush=True)
+
+
 def configuration(reset=False):
     folder = Path(os.environ["LOCALAPPDATA"]) / "eazy-trading"
     path = folder / "connector.json"
@@ -269,6 +338,9 @@ def main():
     if os.name != "nt":
         raise SystemExit("Run this connector on the Windows PC with MT5, not the VPS.")
     try:
+        if '--diagnose' in sys.argv:
+            diagnose()
+            return
         if len(sys.argv) == 3 and sys.argv[1] == "--collect-local":
             collect_local_entry(sys.argv[2])
             return
