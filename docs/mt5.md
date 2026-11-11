@@ -17,6 +17,10 @@ New connections default to **Windows PC** and do not ask for a broker password. 
 
 The download includes reviewed source and launchers, not a signed executable or broker software. Build it after editing the connector with `python3 scripts/package-mt5-windows.py`. Tests verify that the ZIP contains the current source and no tokens/configuration. Linux unit tests simulate the terminal API; an actual Windows terminal/DPAPI round trip and real FundingPips account sync still require validation on the user's PC. No real broker account was accessed during development.
 
+Windows connector 1.1 checks the terminal's actual broker connection before reading history, prints/logs each stage, and places native MT5 reads in a child Python process with a two-minute deadline. A hung native read no longer freezes the uploader; only its reader process is stopped, never the user's MT5 terminal. Diagnostic stage/error messages (no tokens or passwords) are stored at `%LOCALAPPDATA%\eazy-trading\connector.log`. HTTP 401 identifies a rejected pairing key; HTTP 403 identifies website access rejection and must not automatically be treated as key revocation. Existing Windows configuration/pairing remains compatible when upgrading the ZIP; a new pairing key is unnecessary unless the previous one was rejected/replaced.
+
+For already paired accounts, the website calls the pairing action **Replace Windows key** to distinguish key rotation from syncing. Clicking it intentionally disconnects the previous connector; download upgrades directly from `/downloads/eazy-trading-windows-connector.zip` without rotating the key.
+
 ## Optional VPS worker (legacy alternative)
 
 The website can save an encrypted investor connection and request an on-demand history sync. A separate, optional Wine/MT5 worker connects only during a sync, imports broker history and open positions, then destroys the temporary terminal, Wine prefix and credentials. No trading commands are present. Your laptop does not need to run MT5.

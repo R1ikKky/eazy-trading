@@ -3,6 +3,9 @@ from pathlib import Path
 from types import SimpleNamespace as NS
 import unittest
 import zipfile
+import sys
+from unittest.mock import patch
+import urllib.error
 
 spec = importlib.util.spec_from_file_location('windows_connector', Path(__file__).parent / 'windows/windows_connector.py')
 connector = importlib.util.module_from_spec(spec)
@@ -22,6 +25,7 @@ class Terminal:
         return self.ready
 
     def account_info(self): return self.account
+    def terminal_info(self): return NS(connected=True)
     def history_deals_total(self, start, end): return len(self.deals)
     def history_deals_get(self, start, end): return self.deals
     def positions_get(self): return [NS(ticket=9007199254740992, symbol='EURUSD.a', type=0, volume=0.03, price_open=1.1, profit=4.2, swap=-0.1, sl=1.09, tp=1.12)]
@@ -59,6 +63,33 @@ class WindowsConnectorTests(unittest.TestCase):
         self.assertEqual(connector.site_origin('https://journal.example.test/'), 'https://journal.example.test')
         for value in ['http://journal.example.test', 'https://name:secret@journal.example.test', 'https://journal.example.test/path', 'https://journal.example.test?token=key', 'https://journal.example.test:1234']:
             with self.assertRaises(ValueError): connector.site_origin(value)
+
+    def test_offline_terminal_is_rejected_before_history_read(self):
+        terminal = Terminal()
+        terminal.terminal_info = lambda: NS(connected=False)
+        terminal.history_deals_total = lambda *args: self.fail('Offline terminal must not start downloading history')
+        with self.assertRaisesRegex(ValueError, 'MT5_NOT_CONNECTED'): connector.collect(terminal, self.job)
+        self.assertTrue(terminal.disconnected)
+
+    def test_subprocess_gets_no_key_lease_or_password(self):
+        code = "import json,sys; from pathlib import Path; v=json.load(sys.stdin); assert set(v)=={'login','server','terminal'}; Path(sys.argv[1]).write_text(json.dumps({'snapshot':{'account':v}}))"
+        result = connector.collect_process({**self.job, 'lease': 'private', 'password': 'never-forward'}, command=[sys.executable, '-c', code])
+        self.assertEqual(result['snapshot']['account'], {**self.job, 'terminal': ''})
+
+    def test_blocked_native_reader_times_out_without_stopping_the_uploader(self):
+        result = connector.collect_process(self.job, timeout=0.15, command=[sys.executable, '-c', 'import time; time.sleep(30)'])
+        self.assertEqual(result, {'error': 'MT5_TIMEOUT'})
+
+    def test_upload_access_errors_do_not_confuse_firewall_denial_with_revoked_key(self):
+        for status, message in [(401, 'Pairing key not accepted'), (403, 'Website blocked')]:
+            class Client:
+                def request(self, path, body):
+                    if path == 'heartbeat': return {'login': '12345678', 'server': 'FundingPips-SIM1'}
+                    if path == 'claim': return {'job': {'id': 'test-job', 'lease': 'private', **self_job}}
+                    raise urllib.error.HTTPError('https://journal.example.test', status, 'denied', {}, None)
+            self_job = self.job
+            with patch.object(connector, 'Client', return_value=Client()), patch.object(connector, 'collect_process', return_value={'error': 'MT5_NOT_CONNECTED'}):
+                with self.assertRaisesRegex(RuntimeError, message): connector.run({})
 
     def test_download_contains_current_source_and_no_environment_or_cached_keys(self):
         root = Path(__file__).resolve().parents[2]

@@ -381,6 +381,8 @@ export class Mt5Service {
           "HISTORY_FAILED",
           "HISTORY_TOO_LARGE",
           "TERMINAL_UNAVAILABLE",
+          "MT5_NOT_CONNECTED",
+          "MT5_TIMEOUT",
           "COLLECTOR_FAILED",
         ];
         const error = known.includes(body.error)

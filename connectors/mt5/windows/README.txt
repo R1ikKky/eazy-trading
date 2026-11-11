@@ -32,3 +32,9 @@ security controls. Never send your pairing key or broker password in chat.
 Results are broker history in account currency. Open positions are snapshots,
 not live quotes. The Python deal API does not expose historical SL/TP values.
 There is no automatic R calculation without your planned initial risk.
+
+Connector 1.1 prints each read/upload stage and fails a blocked MT5 read after
+two minutes. It checks the broker connection before reading history.
+Safe diagnostic messages are saved in
+%LOCALAPPDATA%\eazy-trading\connector.log (no pairing keys or broker passwords).
+If a read times out, the connector stops only its child Python reader, not MT5.

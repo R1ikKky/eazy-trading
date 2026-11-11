@@ -389,7 +389,7 @@ test("MT5: encrypted storage, authenticated leases, isolated owners, idempotent 
       null,
       "VPS worker must never claim Windows-mode jobs",
     );
-    const localJob = (
+    let localJob = (
       (await (
         await call("mt5/local/claim", "POST", {}, "", local)
       ).json()) as any
@@ -459,6 +459,31 @@ test("MT5: encrypted storage, authenticated leases, isolated owners, idempotent 
       409,
       "VPS endpoint cannot finish a Windows-mode job",
     );
+    await call(
+      `mt5/local/jobs/${localJob.id}/finish`,
+      "POST",
+      { lease: localJob.lease, error: "MT5_NOT_CONNECTED" },
+      "",
+      local,
+    );
+    const failedLocal = (await (
+      await call("mt5/connections", "GET", undefined, alice)
+    ).json()) as any;
+    assert.equal(
+      failedLocal.accounts.find((a: any) => a.id === id).job.error,
+      "MT5_NOT_CONNECTED",
+      "The UI must receive the actual disconnected-terminal reason",
+    );
+    await db.query(
+      "UPDATE mt5_jobs SET created_at=now()-interval '2 minutes' WHERE connection_id=$1",
+      [id],
+    );
+    await call(`mt5/connections/${id}/sync`, "POST", {}, alice);
+    localJob = (
+      (await (
+        await call("mt5/local/claim", "POST", {}, "", local)
+      ).json()) as any
+    ).job;
     assert.equal(
       (
         await call(

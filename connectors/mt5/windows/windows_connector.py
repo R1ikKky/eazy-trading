@@ -8,13 +8,30 @@ import json
 import os
 from pathlib import Path
 import sys
+import subprocess
+import tempfile
 import threading
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 
-ERRORS = {"ACCOUNT_MISMATCH", "HISTORY_FAILED", "HISTORY_TOO_LARGE", "TERMINAL_UNAVAILABLE"}
+ERRORS = {"ACCOUNT_MISMATCH", "HISTORY_FAILED", "HISTORY_TOO_LARGE", "TERMINAL_UNAVAILABLE", "MT5_NOT_CONNECTED", "MT5_TIMEOUT"}
+VERSION = "1.1"
+
+
+def progress(message):
+    line = time.strftime("%H:%M:%S") + " " + message
+    print(line, flush=True)
+    # Only app-owned stage/error messages go here, never tokens or broker objects.
+    if os.name == "nt" and os.environ.get("LOCALAPPDATA"):
+        try:
+            folder = Path(os.environ["LOCALAPPDATA"]) / "eazy-trading"
+            folder.mkdir(parents=True, exist_ok=True)
+            with (folder / "connector.log").open("a", encoding="utf-8") as log:
+                log.write(line + "\n")
+        except OSError:
+            pass
 
 
 def site_origin(value):
@@ -26,20 +43,34 @@ def site_origin(value):
 
 def collect(mt5, job, terminal=""):
     try:
+        progress("Opening the local MT5 connection (up to 60 seconds)...")
         # No login parameters: read the user's active terminal, never switch its account.
         ready = mt5.initialize(terminal, timeout=60000) if terminal else mt5.initialize(timeout=60000)
         if not ready:
+            try:
+                code = mt5.last_error()[0]
+                if isinstance(code, int): progress("MT5 initialization failed with API code " + str(code))
+            except Exception:
+                pass
             raise ValueError("TERMINAL_UNAVAILABLE")
+        info = mt5.terminal_info()
+        if not info or not info.connected:
+            progress("MT5 is not connected to its broker. Finish updates and sign in inside MT5, then retry.")
+            raise ValueError("MT5_NOT_CONNECTED")
+        progress("MT5 is connected. Checking the active account...")
         account = mt5.account_info()
         if not account or str(account.login) != job["login"] or account.server != job["server"]:
             raise ValueError("ACCOUNT_MISMATCH")
         until = int(time.time()) + 86400
+        progress("Checking the broker history count...")
         count = mt5.history_deals_total(0, until)
         if count is None:
             raise ValueError("HISTORY_FAILED")
         if count > 50000:
             raise ValueError("HISTORY_TOO_LARGE")
+        progress("Downloading deal history from the local terminal...")
         history = mt5.history_deals_get(0, until)
+        progress("Reading open positions...")
         positions = mt5.positions_get()
         if history is None or positions is None or len(history) != count:
             raise ValueError("HISTORY_FAILED")
@@ -58,12 +89,54 @@ def collect(mt5, job, terminal=""):
             raise ValueError("ACCOUNT_MISMATCH")
         if mt5.history_deals_total(0, until) != count:
             raise ValueError("HISTORY_FAILED")
+        final_info = mt5.terminal_info()
+        if not final_info or not final_info.connected:
+            raise ValueError("MT5_NOT_CONNECTED")
+        progress("History read: " + str(len(deals)) + " deals, " + str(len(opened)) + " open positions.")
         return {"account": {"login": str(account.login), "server": account.server, "currency": account.currency,
                             "readOnly": not bool(account.trade_allowed), "collectorReadOnly": True},
                 "deals": deals, "positions": opened}
     finally:
         # Disconnect the Python API only. Do not close the user's trading terminal.
         mt5.shutdown()
+
+
+def collect_process(job, terminal="", timeout=120, command=None):
+    """A blocked native MT5 call cannot freeze the uploader or its heartbeat.
+    Kill only our child Python process on timeout; never terminate MT5.
+    """
+    with tempfile.TemporaryDirectory(prefix="eazy-mt5-") as folder:
+        output = Path(folder) / "result.json"
+        args = command or [sys.executable, str(Path(__file__).resolve()), "--collect-local"]
+        process = subprocess.Popen([*args, str(output)], stdin=subprocess.PIPE, text=True,
+                                   stderr=subprocess.DEVNULL)
+        try:
+            # No pairing key, job lease, broker password or website URL enters the child.
+            process.communicate(json.dumps({"login": job["login"], "server": job["server"], "terminal": terminal}), timeout=timeout)
+            if not output.is_file():
+                return {"error": "COLLECTOR_FAILED"}
+            if output.stat().st_size > 18 * 1024 * 1024:
+                return {"error": "HISTORY_TOO_LARGE"}
+            return json.loads(output.read_text(encoding="utf-8"))
+        except subprocess.TimeoutExpired:
+            progress("MT5 did not respond within " + str(timeout) + " seconds. Check updates, login, and the selected terminal path.")
+            return {"error": "MT5_TIMEOUT"}
+        finally:
+            if process.poll() is None:
+                process.kill()
+            process.wait(timeout=10)
+
+
+def collect_local_entry(output):
+    try:
+        import MetaTrader5 as mt5
+        request = json.load(sys.stdin)
+        result = {"snapshot": collect(mt5, request, request.get("terminal", ""))}
+    except Exception as error:
+        code = str(error)
+        result = {"error": code if code in ERRORS else "COLLECTOR_FAILED"}
+        progress("Local MT5 read failed: " + result["error"])
+    Path(output).write_text(json.dumps(result, allow_nan=False), encoding="utf-8")
 
 
 def dpapi(data, encrypt):
@@ -130,10 +203,16 @@ class Client:
             return json.load(response)
 
 
-def run(config, mt5):
+def access_error(status):
+    if status == 401:
+        return RuntimeError("Pairing key not accepted (HTTP 401). Generate one new Windows key, run Pair again.cmd, then leave Use Windows PC alone while the connector runs.")
+    return RuntimeError("Website blocked the connector request (HTTP 403). Check the site's access rules or firewall; replacing the pairing key may not help.")
+
+
+def run(config):
     client = Client(config)
     identity = client.request("heartbeat", {})
-    print("Paired to MT5 account " + identity["login"] + " on " + identity["server"] + ".", flush=True)
+    print("Website paired for account " + identity["login"] + " on " + identity["server"] + ". MT5 connection will be checked on sync.", flush=True)
     print("Keep MT5 signed in. Open Journal > MT5 on your website and click Sync now.", flush=True)
     print("This window must stay open while you sync. Ctrl+C stops the connector.", flush=True)
     stop = threading.Event()
@@ -150,26 +229,32 @@ def run(config, mt5):
                 if not job:
                     time.sleep(5)
                     continue
-                print("Reading local MT5 history...", flush=True)
+                progress("Starting local MT5 read...")
                 try:
-                    result = {"snapshot": collect(mt5, job, config.get("terminal", ""))}
+                    result = collect_process(job, config.get("terminal", ""))
                 except Exception as error:
                     code = str(error)
                     result = {"error": code if code in ERRORS else "COLLECTOR_FAILED"}
                 for attempt in range(3):
                     try:
+                        progress("Sending sync result to the website...")
                         client.request("jobs/" + job["id"] + "/finish", {"lease": job["lease"], **result})
-                        print("Sync finished. Check your website journal." if "snapshot" in result else "Sync failed: " + result["error"] + ". Check MT5 and your website.", flush=True)
+                        progress("Sync finished. Check your website journal." if "snapshot" in result else "Sync failed: " + result["error"] + ". Check MT5 and your website.")
                         break
                     except urllib.error.HTTPError as error:
                         if error.code < 500: raise
                         time.sleep(2)
                     except (TimeoutError, urllib.error.URLError):
                         time.sleep(2)
+                else:
+                    progress("Could not deliver the sync result after 3 attempts. Check the website connection; this job will expire.")
                 result.clear()
             except urllib.error.HTTPError as error:
                 if error.code in (401, 403):
-                    raise RuntimeError("Pairing was revoked or the website rejected access. Generate a new Windows key and run Pair again.cmd.") from None
+                    raise access_error(error.code) from None
+                if error.code == 409:
+                    progress("This sync expired or was cancelled. Wait until MT5 is ready, then click Sync now again.")
+                    continue
                 print("Website returned HTTP " + str(error.code) + ". Retrying...", flush=True)
                 time.sleep(10)
             except (TimeoutError, urllib.error.URLError):
@@ -184,14 +269,20 @@ def main():
     if os.name != "nt":
         raise SystemExit("Run this connector on the Windows PC with MT5, not the VPS.")
     try:
-        import MetaTrader5 as mt5
-        run(configuration("--setup" in sys.argv), mt5)
+        if len(sys.argv) == 3 and sys.argv[1] == "--collect-local":
+            collect_local_entry(sys.argv[2])
+            return
+        progress("eazy trading Windows connector " + VERSION)
+        run(configuration("--setup" in sys.argv))
     except KeyboardInterrupt:
         print("Connector stopped. MT5 remains open.")
+    except urllib.error.HTTPError as error:
+        progress(str(access_error(error.code)) if error.code in (401, 403) else "Website returned HTTP " + str(error.code) + ". Check the website address and connection.")
+        raise SystemExit(1) from None
     except Exception as error:
         # Configuration errors are ours; never print broker/HTTP bodies or tokens.
         if isinstance(error, (ValueError, RuntimeError)):
-            print(str(error))
+            progress(str(error))
         else:
             print("Connector could not start. Check Python, MT5, and your pairing settings.")
         raise SystemExit(1) from None

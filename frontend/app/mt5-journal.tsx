@@ -96,7 +96,12 @@ const statusMessages: Record<string, string> = {
   HISTORY_TOO_LARGE:
     "This account exceeds the current import limit of 50,000 deals.",
   SYNC_TIMEOUT: "Sync timed out. Try again when the worker is available.",
-  TERMINAL_UNAVAILABLE: "MT5 is unavailable. Check that the terminal is installed and accessible to your connector.",
+  TERMINAL_UNAVAILABLE:
+    "MT5 is unavailable. Check that the terminal is installed and accessible to your connector.",
+  MT5_NOT_CONNECTED:
+    "MT5 is not connected to the broker. Complete any update, sign in inside MT5, and retry.",
+  MT5_TIMEOUT:
+    "The local MT5 terminal stopped responding. Check its update/login prompts and the terminal path, then retry.",
   CREDENTIALS_UNAVAILABLE: "Reconnect your investor password, then sync again.",
   COLLECTOR_FAILED:
     "The MT5 collector could not finish. Your previous journal is preserved.",
@@ -410,7 +415,9 @@ export function Mt5Journal({ active }: { active: boolean }) {
                   })
                 }
               >
-                {tr("Use Windows PC", "Использовать ПК Windows")}
+                {account.syncLocation === "local" && account.connected
+                  ? tr("Replace Windows key", "Заменить ключ Windows")
+                  : tr("Use Windows PC", "Использовать ПК Windows")}
               </button>
               <button
                 className="button secondary compact"
