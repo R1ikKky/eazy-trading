@@ -53,7 +53,6 @@ test("last clicked chart receives drawings and instrument switches preserve the 
     for (const axis of ["x", "y", "width", "height"] as const)
       expect(drawingBounds[axis]).toBeCloseTo(chartBounds[axis], 0);
   }
-  await page.getByRole("button", { name: "Trade panel", exact: true }).click();
   await page.locator("#stop").fill("1000");
   await page.locator("#target").fill("1000");
   await page.locator("#long").click();

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { authenticateTestPage } from "./auth-helper";
 
 test.beforeEach(async ({ page }) => authenticateTestPage(page));
-test("replay dock frees chart width and holds the floating trade ticket", async ({ page }) => {
+test("replay dock stays separate from inline trade settings", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
@@ -15,7 +15,7 @@ test("replay dock frees chart width and holds the floating trade ticket", async 
   await expect(page.locator(".orderflow-controls")).not.toBeVisible();
   expect((await page.locator("#chartCard").boundingBox())!.y).toBeLessThan(150);
   const dock = page.locator(".app-sidebar");
-  const trade = page.getByRole("button", { name: "Панель сделки", exact: true });
+  const trade = page.getByRole("button", { name: "Параметры сделки", exact: true });
   const ticket = page.locator("#orderTicket");
   const dockBounds = (await dock.boundingBox())!;
   expect(dockBounds.y).toBeLessThan(40);

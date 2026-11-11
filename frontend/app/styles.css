@@ -1485,9 +1485,6 @@ pre {
   .heading-actions {
     flex-wrap: wrap;
   }
-  .heading-actions #historyOpen {
-    flex-basis: 100%;
-  }
   .chart-toolbar {
     flex-wrap: wrap;
     gap: 12px;

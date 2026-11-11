@@ -650,7 +650,6 @@ export function createProduct({
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>("button");
       if (!b) return;
       if (b.dataset.product === "new-session") $("setupOpen").click();
-      if (b.dataset.product === "history") $("historyOpen").click();
       if (b.dataset.product === "import") $("importOpen").click();
       if (b.dataset.openDataset) await openDataset(b.dataset.openDataset);
       if (b.dataset.resume) {

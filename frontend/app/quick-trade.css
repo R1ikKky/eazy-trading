@@ -1,0 +1,223 @@
+body.product-app .replay-panel {
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+body.product-app .replay-controls {
+  flex-wrap: wrap;
+  align-items: flex-end;
+  min-width: 0;
+}
+body.product-app .quick-order {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+body.product-app .quick-order-instrument {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+  padding-bottom: 6px;
+}
+body.product-app .quick-order-instrument small {
+  font-size: 9px;
+  color: var(--text-muted);
+}
+body.product-app .quick-order .order-fields {
+  display: grid;
+  grid-template-columns: 84px 126px;
+  grid-template-rows: 12px 32px;
+  gap: 3px 6px;
+  margin: 0;
+}
+body.product-app .quick-order label {
+  font-size: 9px;
+  line-height: 12px;
+  margin: 0;
+  color: var(--text-muted);
+}
+body.product-app .quick-order #tickInfo {
+  display: none;
+}
+body.product-app .quick-order .stepper {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  width: 84px;
+  height: 32px;
+  margin: 0;
+  border-radius: 9px;
+}
+body.product-app .quick-order .stepper button {
+  flex: 0 0 20px;
+  width: 20px;
+  min-width: 0;
+  height: 32px;
+  padding: 0;
+  font-size: 13px;
+}
+body.product-app .quick-order .stepper input {
+  width: 44px;
+  min-width: 0;
+  height: 32px;
+  padding: 4px 2px;
+  font-size: 12px;
+}
+body.product-app .quick-order .field-pair {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 0;
+}
+body.product-app .quick-order .field-pair label {
+  display: block;
+  height: 15px;
+}
+body.product-app .quick-order .field-pair input {
+  width: 60px;
+  height: 32px;
+  padding: 5px 6px;
+  border-radius: 9px;
+  font-size: 12px;
+}
+body.product-app .quick-order .trade-buttons {
+  display: flex;
+  gap: 5px;
+  margin: 0;
+}
+body.product-app .quick-order .trade {
+  min-width: 50px;
+  height: 34px;
+  min-height: 34px;
+  padding: 6px 9px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+body.product-app .quick-order .trade span {
+  display: none;
+}
+body.product-app #quickOrderSettings {
+  width: 30px;
+  height: 34px;
+  min-width: 30px;
+  padding: 5px;
+}
+body.product-app .quick-position {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 15px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+}
+body.product-app .quick-position[hidden] {
+  display: none;
+}
+body.product-app .quick-position .text-button {
+  margin-left: auto;
+}
+body.product-app #quickClose {
+  min-height: 28px;
+  padding: 4px 9px;
+  font-size: 10px;
+}
+@media (max-width: 700px) {
+  body.product-app .replay-controls {
+    width: 100%;
+  }
+  body.product-app .quick-order {
+    order: 5;
+    flex-wrap: wrap;
+    flex-basis: 100%;
+  }
+  body.product-app .quick-order .quick-order-instrument {
+    width: 32px;
+  }
+  body.product-app .quick-order .order-fields {
+    grid-template-columns: 76px 114px;
+  }
+  body.product-app .quick-order .stepper {
+    width: 76px;
+  }
+  body.product-app .quick-order .stepper input {
+    width: 36px;
+  }
+  body.product-app .quick-order .field-pair input {
+    width: 54px;
+  }
+  body.product-app .quick-order .trade-buttons {
+    margin-left: 38px;
+  }
+  body.product-app .replay-time {
+    margin-left: auto;
+    flex: 1 0 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  body.product-app .replay-controls .play-button {
+    min-width: 72px;
+  }
+  body.product-app .replay-controls .replay-select {
+    width: 72px;
+    min-width: 72px;
+  }
+  body.product-app .quick-position {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+  body.product-app .quick-position .text-button {
+    display: none;
+  }
+  body.product-app .quick-position {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  body.product-app #quickPositionText {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  body.product-app :is(#quickPositionPnl, #quickClose) {
+    flex: none;
+  }
+}
+@media (max-width: 400px) {
+  body.product-app .quick-order .order-fields {
+    grid-template-columns: 68px 102px;
+  }
+  body.product-app .quick-order .stepper {
+    width: 68px;
+  }
+  body.product-app .quick-order .stepper button {
+    flex-basis: 18px;
+    width: 18px;
+  }
+  body.product-app .quick-order .stepper input {
+    width: 32px;
+  }
+  body.product-app .quick-order .field-pair {
+    gap: 4px;
+  }
+  body.product-app .quick-order .field-pair input {
+    width: 49px;
+  }
+  body.product-app .replay-controls .play-button {
+    min-width: 68px;
+    padding: 8px;
+    gap: 5px;
+    font-size: 11px;
+  }
+  body.product-app #sessionSkip {
+    padding: 7px 6px;
+  }
+  body.product-app .replay-controls .replay-select {
+    width: 60px;
+    min-width: 60px;
+  }
+}

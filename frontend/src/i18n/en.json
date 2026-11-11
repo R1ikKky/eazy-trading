@@ -926,5 +926,11 @@
   "Нью-Йорк": "New York",
   "Нет открытия в оставшихся данных": "No opening in the remaining data",
   "Скрыть панель рисования": "Hide drawing toolbar",
-  "Показать панель рисования": "Show drawing toolbar"
+  "Показать панель рисования": "Show drawing toolbar",
+  "Стоп, пт": "SL, pts",
+  "Тейк, пт": "TP, pts",
+  "Быстрая сделка": "Quick trade",
+  "Параметры сделки": "Order settings",
+  "Управление позицией": "Manage position",
+  "Market исполняется по текущей цене с учётом издержек": "Market fills at the current price with configured trading costs"
 }

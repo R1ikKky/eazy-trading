@@ -122,18 +122,6 @@ export function ReplayWorkspace() {
             <span>{translate("Аналитика")}</span>
           </Link>
         </nav>
-        <button
-          className="island-trade-toggle"
-          type="button"
-          popoverTarget="orderTicket"
-          aria-haspopup="dialog"
-          aria-label={translate("Панель сделки")}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M5 7h14M5 17h14M9 3v8M15 13v8" />
-          </svg>
-          <span>{translate("Сделка")}</span>
-        </button>
         <div className="sidebar-account">
           <AccountMenu />
           <span id="saveStatus" className="save-status" role="status">
@@ -348,6 +336,101 @@ export function ReplayWorkspace() {
                       <span id="playIcon">▶</span>
                       <span id="playLabel">Replay</span>
                     </button>
+                    <div
+                      className="quick-order"
+                      role="group"
+                      aria-label={translate("Быстрая сделка")}
+                    >
+                      <div className="quick-order-instrument">
+                        <strong id="orderInstrument">NQ</strong>
+                        <small id="quickOrderType">Market</small>
+                      </div>
+                      <div className="order-fields">
+                        <label htmlFor="qty">
+                          {translate("Контракты")}
+                          <span id="tickInfo">
+                            {translate("1 тик = $5.00")}
+                          </span>
+                        </label>
+                        <div className="stepper">
+                          <button
+                            id="qtyDown"
+                            aria-label={translate("Меньше контрактов")}
+                          >
+                            −
+                          </button>
+                          <input
+                            id="qty"
+                            type="number"
+                            min={1}
+                            max={100}
+                            step={1}
+                            defaultValue={1}
+                          />
+                          <button
+                            id="qtyUp"
+                            aria-label={translate("Больше контрактов")}
+                          >
+                            +
+                          </button>
+                        </div>
+                        <div className="field-pair">
+                          <div>
+                            <label htmlFor="stop">
+                              {translate("Стоп, пт")}
+                            </label>
+                            <input
+                              id="stop"
+                              type="number"
+                              min="0.25"
+                              step="0.25"
+                              defaultValue={12}
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="target">
+                              {translate("Тейк, пт")}
+                            </label>
+                            <input
+                              id="target"
+                              type="number"
+                              min="0.25"
+                              step="0.25"
+                              defaultValue={24}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="trade-buttons">
+                        <button id="long" className="trade long">
+                          Long <span>{translate("Купить")}</span>
+                        </button>
+                        <button id="short" className="trade short">
+                          Short <span>{translate("Продать")}</span>
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        id="quickOrderSettings"
+                        className="icon-button"
+                        popoverTarget="orderTicket"
+                        aria-haspopup="dialog"
+                        aria-label={translate("Параметры сделки")}
+                        title={translate("Параметры сделки")}
+                      >
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          aria-hidden="true"
+                        >
+                          <path d="M4 7h16M4 17h16M8 3v8M16 13v8" />
+                        </svg>
+                      </button>
+                    </div>
                     <button
                       id="step"
                       className="icon-button step-button"
@@ -374,7 +457,10 @@ export function ReplayWorkspace() {
                         strokeWidth="1.5"
                         aria-hidden="true"
                       >
-                        <path d="m4 6 7 6-7 6V6Zm8 0 7 6-7 6V6ZM21 5v14" strokeLinejoin="round" />
+                        <path
+                          d="m4 6 7 6-7 6V6Zm8 0 7 6-7 6V6ZM21 5v14"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                       <span>{translate("К открытию")}</span>
                     </button>
@@ -394,6 +480,24 @@ export function ReplayWorkspace() {
                     <span id="progressLabel">{translate("Свеча 1 из —")}</span>
                   </div>
                 </div>
+                <div className="quick-position" id="quickPosition" hidden>
+                  <strong id="quickPositionText" />
+                  <span id="quickPositionPnl" className="mono" />
+                  <button
+                    type="button"
+                    className="text-button"
+                    popoverTarget="orderTicket"
+                  >
+                    {translate("Управление позицией")}
+                  </button>
+                  <button
+                    type="button"
+                    id="quickClose"
+                    className="button secondary compact"
+                  >
+                    {translate("Закрыть всё")}
+                  </button>
+                </div>
                 <div className="progress-track">
                   <div id="progressBar" />
                 </div>
@@ -406,10 +510,7 @@ export function ReplayWorkspace() {
                 aria-labelledby="orderTicketTitle"
               >
                 <div className="panel-title">
-                  <h2 id="orderTicketTitle">
-                    {translate("Новая сделка")}{" "}
-                    <span id="orderInstrument">NQ</span>
-                  </h2>
+                  <h2 id="orderTicketTitle">{translate("Параметры сделки")}</h2>
                   <span className="market-label" id="orderTypeBadge">
                     MARKET
                   </span>
@@ -424,7 +525,9 @@ export function ReplayWorkspace() {
                   </button>
                 </div>
                 <p className="entry-note" id="orderHint">
-                  {translate("Вход на открытии следующей свечи")}
+                  {translate(
+                    "Market исполняется по текущей цене с учётом издержек",
+                  )}
                 </p>
                 <label htmlFor="orderKind">{translate("Тип заявки")}</label>
                 <select id="orderKind" className="full">
@@ -446,56 +549,6 @@ export function ReplayWorkspace() {
                     inputMode="decimal"
                     placeholder={translate("Цена заявки")}
                   />
-                </div>
-                <div className="order-fields">
-                  <label htmlFor="qty">
-                    {translate("Контракты")}
-                    <span id="tickInfo">{translate("1 тик = $5.00")}</span>
-                  </label>
-                  <div className="stepper">
-                    <button
-                      id="qtyDown"
-                      aria-label={translate("Меньше контрактов")}
-                    >
-                      −
-                    </button>
-                    <input
-                      id="qty"
-                      type="number"
-                      min={1}
-                      max={100}
-                      step={1}
-                      defaultValue={1}
-                    />
-                    <button
-                      id="qtyUp"
-                      aria-label={translate("Больше контрактов")}
-                    >
-                      +
-                    </button>
-                  </div>
-                  <div className="field-pair">
-                    <div>
-                      <label htmlFor="stop">{translate("Стоп, пт")}</label>
-                      <input
-                        id="stop"
-                        type="number"
-                        min="0.25"
-                        step="0.25"
-                        defaultValue={12}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="target">{translate("Тейк, пт")}</label>
-                      <input
-                        id="target"
-                        type="number"
-                        min="0.25"
-                        step="0.25"
-                        defaultValue={24}
-                      />
-                    </div>
-                  </div>
                 </div>
                 <details className="risk-sizing">
                   <summary>{translate("Рассчитать объём по риску")}</summary>
@@ -533,14 +586,6 @@ export function ReplayWorkspace() {
                     <span>{translate("Соотношение R:R")}</span>
                     <strong id="rrValue">1 : 2.0</strong>
                   </div>
-                </div>
-                <div className="trade-buttons">
-                  <button id="long" className="trade long">
-                    Long <span>{translate("Купить")}</span>
-                  </button>
-                  <button id="short" className="trade short">
-                    Short <span>{translate("Продать")}</span>
-                  </button>
                 </div>
                 <details className="costs">
                   <summary>{translate("Комиссия и проскальзывание")}</summary>
@@ -592,13 +637,6 @@ export function ReplayWorkspace() {
                 <h1>{translate("Сессии")}</h1>
               </div>
               <div className="heading-actions">
-                <button
-                  id="historyOpen"
-                  type="button"
-                  className="button secondary"
-                >
-                  {translate("История данных")}
-                </button>
                 <Link
                   href="/strategies"
                   scroll={false}
@@ -975,63 +1013,6 @@ export function ReplayWorkspace() {
             "Данные из загруженного вами CSV. Источник и качество этого файла не проверялись у поставщика.",
           )}
         </p>
-      </dialog>
-      <dialog id="historyDialog">
-        <div className="dialog-header">
-          <div>
-            <p className="eyebrow">2024 / 2025 / 2026 · NQ + ES</p>
-            <h2>{translate("Реальная история")}</h2>
-          </div>
-          <button
-            type="button"
-            className="icon-button"
-            data-close="historyDialog"
-            aria-label={translate("Закрыть")}
-          >
-            ×
-          </button>
-        </div>
-        <p className="dialog-intro">
-          {translate(
-            "Доступная история зависит от инструмента и выбранных дат. В форме новой сессии сайт подберёт подходящие архивы автоматически.",
-          )}
-        </p>
-        <div className="content-card">
-          <strong>{translate("Цена и время проверены")}</strong>
-          <p className="dialog-note">
-            {translate(
-              "Проверены порядок времени, шаг цены 0,25, OHLC и повторы. Свечи с временем закрытия переведены ко времени открытия минуты. Цены и объёмы не изменялись. Корректировку цены, частичное покрытие сессий и отсутствие контрактов показываем у соответствующего архива.",
-            )}
-          </p>
-        </div>
-        <p className="dialog-note">
-          {translate(
-            "Полные 2024–2025 и 2026 по текущую дату пока доступны не для каждой серии. Наличие месяца означает наличие свечей, а не полный месяц без пропусков. HF Market Data отключён 2 октября 2026; сохранённый январь 2024 продолжает работать.",
-          )}
-        </p>
-        <div className="contract-specs">
-          <a href="https://firstratedata.com/" target="_blank" rel="noopener">
-            {translate("FirstRate Data · дополнительные архивы ↗")}
-          </a>
-          <a href="https://databento.com/" target="_blank" rel="noopener">
-            {translate("Databento · контрактные данные ↗")}
-          </a>
-        </div>
-        <p className="dialog-note">
-          {translate(
-            "Свой CSV: до 250 МБ / 3 млн свечей. Платные данные сайт автоматически не покупает.",
-          )}
-        </p>
-        <button type="button" className="button primary full" id="historyData">
-          {translate("Выбрать даты сессии")}
-        </button>
-        <button
-          type="button"
-          className="button secondary full"
-          id="historyImport"
-        >
-          {translate("Добавить свой CSV")}
-        </button>
       </dialog>
       <button id="importOpen" type="button" hidden>
         {translate("Импорт CSV")}

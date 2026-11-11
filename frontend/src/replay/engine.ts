@@ -8,8 +8,8 @@ import type {
   Trade,
   ReplaySnapshot,
 } from "./types";
-import {contracts} from "@eazy-trading/orderflow";
-export {contracts};
+import { contracts } from "@eazy-trading/orderflow";
+export { contracts };
 export const tickRound = (v: any) => Math.round(v * 4) / 4;
 const dateFormat = new Intl.DateTimeFormat("en-CA", {
   timeZone: "America/New_York",
@@ -412,6 +412,42 @@ export class Replay {
       throw Error("Уровни SL и TP должны быть положительными.");
     this.pending = q;
   }
+  openMarket(side: Side, options: OrderOptions) {
+    this.queue(side, { ...options, kind: "market", entryPrice: null });
+    const q = this.pending!;
+    const entry = tickRound(this.current.close + side * q.slip * 0.25);
+    const sl = tickRound(entry - side * q.stop),
+      tp = tickRound(entry + side * q.target);
+    if (
+      ![entry, sl, tp].every(price) ||
+      (this.current.close - sl) * side <= 0 ||
+      (tp - this.current.close) * side <= 0
+    ) {
+      this.pending = null;
+      throw Error("Проверьте цену, защитные уровни и проскальзывание.");
+    }
+    this.position = {
+      ...q,
+      contract: this.current.contract || null,
+      entry,
+      time: this.current.time,
+      entryAtOpen: false,
+      entryAtClose: true,
+      sl,
+      tp,
+      initialQty: q.qty,
+      initialRisk:
+        q.stop * contracts[this.symbol].point * q.qty +
+        2 * q.fee * q.qty +
+        q.slip * 0.25 * contracts[this.symbol].point * q.qty,
+      exits: [],
+      realizedNet: 0,
+      realizedGross: 0,
+      realizedFees: 0,
+    };
+    this.pending = null;
+    return this.position;
+  }
   cancelOrder() {
     if (!this.pending) return false;
     this.pending = null;
@@ -720,10 +756,14 @@ export class Replay {
     const checkPosition = (p: any, closed: any) => {
       checkQueued(p);
       const entryIndex = times.get(p.time);
+      const instant = p.entryAtClose === true;
       if (
         entryIndex === undefined ||
         entryIndex > state.index ||
-        entryIndex <= p.queuedIndex ||
+        (p.entryAtClose !== undefined && !instant) ||
+        (instant
+          ? p.kind !== "market" || entryIndex !== p.queuedIndex
+          : entryIndex <= p.queuedIndex) ||
         !price(p.entry) ||
         !price(p.sl) ||
         !price(p.tp) ||
@@ -739,7 +779,12 @@ export class Replay {
       seen.add(p.id);
       const originalOrder = { ...p, qty: p.initialQty };
       checkOrderHistory(originalOrder, entryIndex);
-      const fill = fillOrder(originalOrder, bars[entryIndex]);
+      const fill = instant
+        ? {
+            entry: tickRound(bars[entryIndex].close + p.side * p.slip * 0.25),
+            atOpen: false,
+          }
+        : fillOrder(originalOrder, bars[entryIndex]);
       if (
         !fill ||
         !near(fill.entry, p.entry) ||
@@ -771,6 +816,7 @@ export class Replay {
           i > state.index ||
           e.time < lastTime ||
           !validReason(e.reason) ||
+          (instant && i === entryIndex && e.reason !== "Ролловер") ||
           typeof e.ambiguous !== "boolean"
         )
           fail();
@@ -784,6 +830,7 @@ export class Replay {
         if ((b.contract || null) !== p.contract) fail();
         if (
           i === entryIndex &&
+          !instant &&
           (e.sl !== tickRound(p.entry - p.side * p.stop) ||
             e.tp !== tickRound(p.entry + p.side * p.target))
         )
@@ -911,6 +958,7 @@ export class Replay {
     }
     if (state.pending !== null) {
       if (!state.pending || state.position !== null) fail();
+      if (state.pending.entryAtClose !== undefined) fail();
       checkQueued(state.pending);
       checkOrderHistory(state.pending);
       if (seen.has(state.pending.id) || state.pending.queuedTime < previousExit)

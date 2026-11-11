@@ -212,6 +212,11 @@ function snapshot(value: any, symbol: any) {
     )
       fail("цена заявки");
     if (
+      q.entryAtClose !== undefined &&
+      (!open || q.entryAtClose !== true || q.kind !== "market")
+    )
+      fail("момент исполнения заявки");
+    if (
       open &&
       (!price(q.entry) ||
         !price(q.sl) ||
@@ -244,7 +249,9 @@ function snapshot(value: any, symbol: any) {
       (t.r !== undefined && t.r !== null && !number(t.r)) ||
       typeof t.reason !== "string" ||
       t.reason.length > 100 ||
-      (t.ambiguous !== undefined && typeof t.ambiguous !== "boolean")
+      (t.ambiguous !== undefined && typeof t.ambiguous !== "boolean") ||
+      (t.entryAtClose !== undefined &&
+        (t.entryAtClose !== true || t.kind !== "market"))
     )
       fail("закрытая сделка");
     if (

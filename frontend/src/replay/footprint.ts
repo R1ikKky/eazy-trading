@@ -8,6 +8,7 @@ import {
   type FootprintCandle,
 } from "@eazy-trading/orderflow";
 import { barTime, isRegularSession } from "./settings-model";
+import { includeTradeLevels } from "./trade-levels";
 interface Context {
   symbol: Instrument;
   minutes: number;
@@ -22,6 +23,7 @@ export function createFootprint({
   volume,
   container,
   getContext,
+  getPriceLevels = () => [],
   pause,
   restore,
   onClock,
@@ -55,7 +57,7 @@ export function createFootprint({
   let savedColors: any;
   series.applyOptions({
     autoscaleInfoProvider: (original: any) => {
-      const info = original();
+      const info = includeTradeLevels(original(), getPriceLevels());
       if (!info || mode !== "footprint") return info;
       const ctx = currentContext();
       if (!ctx) return info;
@@ -320,6 +322,10 @@ export function createFootprint({
     onSourceChange(source);
     const orderCard = document.querySelector(".order-card") as HTMLElement;
     if (orderCard) orderCard.inert = source !== "replay";
+    for (const selector of [".quick-order", ".quick-position"]) {
+      const controls = document.querySelector<HTMLElement>(selector);
+      if (controls) controls.inert = source !== "replay";
+    }
     tape = new TradeTape();
     cursor = 0;
     epoch = "";

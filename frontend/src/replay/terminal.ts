@@ -7,6 +7,7 @@ import {
   barTime,
 } from "./settings-model";
 import { escapeHTML as esc } from "./workspace-store";
+import { includeTradeLevels } from "./trade-levels";
 const money = (v: any) =>
   (v < 0 ? "−" : "") + "$" + Math.abs(Number(v) || 0).toFixed(2);
 export function renderPosition(box: any, replay: any, symbol: any) {
@@ -114,6 +115,7 @@ export function createComparison({
   onChartReady,
   onChartRender,
   onVisibilityChange,
+  getPriceLevels = () => [],
 }: any) {
   let chart: any,
     series: any,
@@ -193,6 +195,13 @@ export function createComparison({
         rightPriceScale: { scaleMargins: { top: 0.12, bottom: 0.12 } },
       });
       series = chart.addSeries(L.CandlestickSeries, {
+        autoscaleInfoProvider: (base: any) =>
+          includeTradeLevels(
+            base(),
+            getPriceLevels(
+              getDisplaySymbol?.() || (getSymbol() === "NQ" ? "ES" : "NQ"),
+            ),
+          ),
         priceFormat: { type: "price", precision: 2, minMove: 0.25 },
         priceLineVisible: false,
       });

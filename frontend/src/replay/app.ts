@@ -154,6 +154,7 @@ let symbol: any = "NQ",
   volume: any,
   markers: any,
   priceLines: any = [],
+  renderedLevelsSignature = "",
   chartBars = [],
   toastTimer,
   tools: any,
@@ -210,6 +211,10 @@ function togglePlay() {
 }
 function primaryInstrument() {
   return paneSymbols.primary;
+}
+function positionLevels(instrument: string) {
+  const p = replay?.position;
+  return p && instrument === symbol ? [p.entry, p.sl, p.tp] : [];
 }
 function syncPaneToolbar() {
   const interval =
@@ -329,6 +334,7 @@ function initChart() {
     getBars: () => chartBars,
     drawingWorkspace,
     getSymbol: primaryInstrument,
+    getPriceLevels: () => positionLevels(primaryInstrument()),
     getTimeframe: () => tf,
     getNow: () => replay?.current.time || 0,
     getScope: () => product?.active()?.id || "loading",
@@ -356,6 +362,7 @@ function initChart() {
     else if (replay) showOhlc(chartBars.at(-1));
   });
   orderflow = createFootprint({
+    getPriceLevels: () => positionLevels(primaryInstrument()),
     chart,
     series,
     volume,
@@ -879,7 +886,10 @@ function order(side: any) {
   if (orderflow?.isStreaming())
     throw Error("Switch to Replay to simulate orders");
   if (!chart) throw Error(translate("Сначала загрузите график."));
-  replay.queue(side, config());
+  pause();
+  const settings = config();
+  if (settings.kind === "market") replay.openMarket(side, settings);
+  else replay.queue(side, settings);
   render();
   toast(
     (side === 1 ? "Long" : "Short") +
@@ -934,7 +944,13 @@ function skipToOpening(session: SessionOpening) {
   advanceReplayToOpening(replay, target);
   rebuildChart();
   render();
-  toast(translate(session.name) + " · " + displayTime.format(new Date(replay.current.time * 1000)) + " " + displayZone);
+  toast(
+    translate(session.name) +
+      " · " +
+      displayTime.format(new Date(replay.current.time * 1000)) +
+      " " +
+      displayZone,
+  );
 }
 function renderLines() {
   if (!series) return;
@@ -964,12 +980,31 @@ function renderLines() {
           target.series.createPriceLine({
             price: value,
             color,
-            lineWidth: 1,
-            lineStyle: 2,
+            lineWidth: title === translate("ВХОД") ? 2 : 1,
+            lineStyle: title === translate("ВХОД") ? 0 : 2,
             axisLabelVisible: true,
             title,
           }),
         );
+  const levelsSignature = JSON.stringify([
+    symbol,
+    primaryInstrument(),
+    paneSymbols.comparison,
+    comparison?.getVisible(),
+    p?.id,
+    p?.entry,
+    p?.sl,
+    p?.tp,
+  ]);
+  if (levelsSignature !== renderedLevelsSignature) {
+    renderedLevelsSignature = levelsSignature;
+    // Price lines only repaint. Re-submit the unchanged, revealed last bar to
+    // invalidate the scale cache without advancing time or altering history.
+    if (chartBars.length) series.update(chartBars.at(-1));
+    const comparisonBar = comparisonContext?.getBars().at(-1);
+    if (comparisonBar && comparison?.getVisible())
+      comparisonContext.series.update(comparisonBar);
+  }
   const makeMarkers = (interval: number) => {
     const result: any[] = [];
     const add = (time: number, side: number, exit = false) =>
@@ -1028,6 +1063,15 @@ function render(save = true) {
     replay.ended ||
     !chart
   );
+  const configuredOrder = replay.position || replay.pending;
+  if (configuredOrder) {
+    for (const key of ["qty", "stop", "target", "fee", "slip"])
+      $(key).value = String(configuredOrder[key]);
+    $("orderKind").value = configuredOrder.kind;
+    if (configuredOrder.entryPrice !== null)
+      $("entryPrice").value = String(configuredOrder.entryPrice);
+  }
+  syncOrderKind();
   $("long").disabled = unavailable;
   $("short").disabled = unavailable;
   for (const id of [
@@ -1044,6 +1088,29 @@ function render(save = true) {
   ])
     $(id).disabled = !!(replay.position || replay.pending);
   renderPosition($("positionBox"), replay, symbol);
+  const open = replay.position,
+    pending = replay.pending;
+  $("quickPosition").hidden = !open && !pending;
+  $("quickPositionText").textContent = open
+    ? `${open.side === 1 ? "LONG" : "SHORT"} · ${symbol} · ${open.qty} @ ${price(open.entry)}`
+    : pending
+      ? `${pending.side === 1 ? "LONG" : "SHORT"} · ${pending.kind.toUpperCase()} · ${symbol}`
+      : "";
+  $("quickPositionPnl").textContent = open
+    ? money(
+        (replay.current.close - open.entry) *
+          open.side *
+          contracts[symbol].point *
+          open.qty -
+          2 * open.fee * open.qty,
+      )
+    : "";
+  $("quickClose").textContent = pending
+    ? translate("Отменить заявку")
+    : replay.closePending
+      ? translate("Выход ожидается")
+      : translate("Закрыть всё");
+  $("quickClose").disabled = !!(replay.closePending || (open && replay.ended));
   if (save) product?.saveReplay(replay.snapshot());
   comparison?.render();
   riskPreview();
@@ -1061,15 +1128,6 @@ function download(name: any, text: any) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 $("setupOpen").onclick = () => openSetup();
-function openHistory() {
-  pause();
-  $("historyDialog").showModal();
-}
-$("historyOpen").onclick = openHistory;
-$("historyImport").onclick = () => {
-  $("historyDialog").close();
-  $("importOpen").click();
-};
 $("importOpen").onclick = () => {
   pause();
   $("importSymbol").value = symbol;
@@ -1098,10 +1156,6 @@ $("setupYears").onclick = (e) => {
   $("fromDate").value = first > year + "-01-01" ? first : year + "-01-01";
   $("toDate").value = last < year + "-12-31" ? last : year + "-12-31";
   previewRange();
-};
-$("historyData").onclick = () => {
-  $("historyDialog").close();
-  $("setupOpen").click();
 };
 $("fromDate").onchange = previewRange;
 $("toDate").onchange = previewRange;
@@ -1219,6 +1273,13 @@ $("symbol").onchange = async () => {
   }
 };
 $("play").onclick = togglePlay;
+$("quickClose").onclick = () =>
+  guard(() => {
+    pause();
+    if (replay.pending) replay.cancelOrder();
+    else if (replay.position) replay.requestClose();
+    render();
+  });
 installSessionJump({
   getReplay: () => replay,
   pause,
@@ -1302,13 +1363,14 @@ $("positionBox").onclick = (e) => {
     render();
   });
 };
-$("orderKind").onchange = () => {
+function syncOrderKind() {
   const kind = $("orderKind").value;
   $("entryPriceWrap").hidden = kind === "market";
   $("orderTypeBadge").textContent = kind.toUpperCase();
+  $("quickOrderType").textContent = kind.toUpperCase();
   $("orderHint").textContent =
     kind === "market"
-      ? translate("Вход на следующем открытии. Одна позиция за раз.")
+      ? translate("Market исполняется по текущей цене с учётом издержек")
       : kind === "limit"
         ? translate(
             "Limit исполняется по указанной цене или лучше на последующих свечах.",
@@ -1316,6 +1378,9 @@ $("orderKind").onchange = () => {
         : translate(
             "Stop активируется на последующих свечах с учётом гэпа и проскальзывания.",
           );
+}
+$("orderKind").onchange = () => {
+  syncOrderKind();
   if (replay) $("entryPrice").value = replay.current.close;
 };
 $("sizeByRisk").onclick = () =>
@@ -1559,6 +1624,7 @@ async function bootstrap() {
   try {
     initChart();
     comparison = createComparison({
+      getPriceLevels: positionLevels,
       primary: chart,
       primarySeries: series,
       getPrimaryBars: () => chartBars,

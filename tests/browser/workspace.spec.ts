@@ -45,14 +45,13 @@ test("required session names, paired replay, orders, themes, and session restora
   await expect(page.locator("#chart canvas").first()).toBeVisible();
   await expect(page.locator("#compareChart canvas").first()).toBeVisible();
   await page.locator("#step").click();
-  await page.getByRole("button", { name: "Панель сделки", exact: true }).click();
   await page.locator("#stop").fill("100");
   await page.locator("#target").fill("100");
   await page.locator("#long").click();
-  await expect(page.locator("#positionBox")).toContainText("MARKET");
+  await expect(page.locator("#quickPositionText")).toContainText("LONG");
   await page.locator("#step").click();
   await expect(page.locator("#positionBox")).toContainText("LONG");
-  await page.getByRole("button", { name: "Панель сделки", exact: true }).click();
+  await page.getByRole("button", { name: "Параметры сделки", exact: true }).click();
   await page.locator('[data-action="close"]').click();
   await page.locator("#step").click();
   await expect(page.locator("#positionBox")).toContainText("Вне позиции");

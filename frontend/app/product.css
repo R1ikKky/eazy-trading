@@ -1889,9 +1889,6 @@ body.product-app {
     padding: 9px 7px;
     min-height: 36px;
   }
-  .product-app .heading-actions #historyOpen {
-    flex-basis: auto;
-  }
   .product-app .heading-actions .button > span {
     font-size: 12px;
   }
@@ -3142,9 +3139,6 @@ body.product-app {
     padding: 10px 12px;
     flex: 1 1 calc(50% - 4px);
     white-space: normal;
-  }
-  .product-app .heading-actions #historyOpen {
-    flex: 1 1 100%;
   }
   .product-app .heading-actions .button > span {
     font-size: 15px;

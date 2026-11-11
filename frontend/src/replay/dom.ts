@@ -1,7 +1,6 @@
 export interface Elements {
   saveStatus: HTMLElement;
   "view-replay": HTMLElement;
-  historyOpen: HTMLButtonElement;
   importOpen: HTMLButtonElement;
   setupOpen: HTMLButtonElement;
   rangeOpen: HTMLButtonElement;
@@ -43,6 +42,11 @@ export interface Elements {
   progressLabel: HTMLElement;
   progressBar: HTMLElement;
   orderTypeBadge: HTMLElement;
+  quickOrderType: HTMLElement;
+  quickPosition: HTMLElement;
+  quickPositionText: HTMLElement;
+  quickPositionPnl: HTMLElement;
+  quickClose: HTMLButtonElement;
   orderHint: HTMLElement;
   orderKind: HTMLSelectElement;
   entryPriceWrap: HTMLElement;
@@ -104,9 +108,6 @@ export interface Elements {
   curatedSourceDetails: HTMLElement;
   curatedSourceLink: HTMLAnchorElement;
   userSourceNote: HTMLElement;
-  historyDialog: HTMLDialogElement;
-  historyData: HTMLButtonElement;
-  historyImport: HTMLButtonElement;
   settingsDialog: HTMLDialogElement;
   tradeDetailDialog: HTMLDialogElement;
   toast: HTMLElement;

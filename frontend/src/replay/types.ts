@@ -48,6 +48,7 @@ export interface Exit {
   tp: number;
 }
 export interface Position extends PendingOrder {
+  entryAtClose?: true;
   contract: string | null;
   entry: number;
   time: number;

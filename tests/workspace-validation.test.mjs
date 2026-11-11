@@ -24,6 +24,13 @@ test('accepts blank and actual engine pending, partial and closed snapshots',()=
   out.sessions[0].notes='changed';assert.equal(w.sessions[0].notes,'test');
  }
 });
+test('immediate market positions survive workspace validation and engine restoration',()=>{
+ const replay=new Replay(bars,'NQ');
+ replay.openMarket(1,{qty:1,stop:10,target:20,fee:2,slip:1});
+ const w=workspace();w.sessions[0].snapshot=replay.snapshot();
+ const out=validateWorkspace(w);
+ assert.deepEqual(Replay.restore(bars,'NQ',out.sessions[0].snapshot).snapshot(),replay.snapshot());
+});
 test('paired session keeps its exact secondary dataset through JSON recovery without changing trades',()=>{
  const w=workspace('partial');w.sessions[0].comparisonDatasetId='curated-ES-history-2024-2026';
  const recovered=validateWorkspace(JSON.parse(JSON.stringify(w)));

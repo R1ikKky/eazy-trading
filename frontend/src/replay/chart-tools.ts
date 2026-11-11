@@ -12,6 +12,7 @@ import {
 } from "./settings-model";
 import { dayKey } from "./engine";
 import { createChartSettings } from "./chart-settings";
+import { includeTradeLevels } from "./trade-levels";
 export { presets, loadSettings };
 export function indicatorValues(bars: any, period: any, kind: any) {
   let window = [],
@@ -54,6 +55,7 @@ export function createChartTools({
   drawingWorkspace,
   getSymbol = () => $("symbol").value,
   getTimeframe = () => 1,
+  getPriceLevels = () => [],
 }: any) {
   const L = window.LightweightCharts,
     prefs = loadSettings();
@@ -340,7 +342,7 @@ export function createChartTools({
       lastValueVisible: hasValue && !customPrice,
       priceFormat: { type: "custom", minMove: 0.25, formatter: formatPrice },
       autoscaleInfoProvider: (base) => {
-        const info = base();
+        const info = includeTradeLevels(base(), getPriceLevels());
         if (!prefs.lockRatio || !info) return info;
         const range = info.priceRange,
           center = (range.minValue + range.maxValue) / 2,
@@ -352,13 +354,16 @@ export function createChartTools({
               prefs.marginTop / 100 -
               Math.max(prefs.marginBottom / 100, prefs.volume ? 0.22 : 0)),
           span = Math.max(0.5, (available * prefs.priceBarRatio) / spacing);
-        return {
-          ...info,
-          priceRange: {
-            minValue: Math.max(0.25, center - span / 2),
-            maxValue: center + span / 2,
+        return includeTradeLevels(
+          {
+            ...info,
+            priceRange: {
+              minValue: Math.max(0.25, center - span / 2),
+              maxValue: center + span / 2,
+            },
           },
-        };
+          getPriceLevels(),
+        );
       },
     });
     chart.applyOptions({
