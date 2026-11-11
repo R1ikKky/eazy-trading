@@ -35,6 +35,28 @@ export class Mt5Controller {
   ) {
     return this.service.sync(userId(r), id);
   }
+  @Post("connections/:id/windows") pair(
+    @Req() r: Request,
+    @Param("id") id: string,
+  ) {
+    return this.service.pairLocal(userId(r), id);
+  }
+  @Public() @Post("local/heartbeat") localHeartbeat(@Req() r: Request) {
+    return this.service.localHeartbeat(r.headers.authorization);
+  }
+  @Public() @Post("local/claim") localClaim(@Req() r: Request) {
+    return this.service.localClaim(r.headers.authorization);
+  }
+  @Public() @Post("local/jobs/:id/finish") localFinish(
+    @Req() r: Request,
+    @Param("id") id: string,
+  ) {
+    return this.service.localFinish(
+      r.headers.authorization,
+      id,
+      readJson(r, 18 * 1024 * 1024),
+    );
+  }
   @Get("connections/:id/journal") journal(
     @Req() r: Request,
     @Param("id") id: string,

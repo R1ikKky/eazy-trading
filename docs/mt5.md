@@ -1,5 +1,24 @@
 # MT5 journal (FundingPips-SIM1)
 
+## Windows PC connection (recommended for this deployment)
+
+The website stays on the VPS. The connector reads the MT5 terminal already signed in on the Windows PC and sends journal data over HTTPS. It does not call MT5 login/order APIs, change the active account, attach an EA, or close the trading terminal. Broker traffic originates from that PC's network, rather than a VPS login. Country matching alone is not a broker-policy approval; use the trader's normal connection and check any applicable rules.
+
+1. Stop the temporary VPS setup with Ctrl+C if it is still waiting for input. Keep `COMPOSE_PROFILES` empty in Dokploy. An optional VPS worker is not needed for local collection.
+2. Deploy the current code in the existing Dokploy application. Keep existing database/auth settings and the two MT5 server environment values; do not regenerate them.
+3. In **Journal → MT5**, select the saved account and click **Use Windows PC**. This changes the account to local-only sync, cancels in-flight sync jobs, invalidates any previous Windows pairing key, and removes its active encrypted investor password from the server. Existing backup copies follow their normal retention. Existing journal records and notes are preserved.
+4. Download the Windows connector ZIP from the displayed panel, extract it on the Windows PC, and install **Python 3.14, 64-bit**, including its launcher from python.org. Open MT5 and sign in normally to the exact account/server shown in the website. Do not change anything on the broker account just for this tool.
+5. Double-click **Start Connector.cmd** in the extracted folder. The first start installs the pinned official MetaTrader5 Python package and its dependencies into a local `.venv`. Enter the website's HTTPS origin and the one-time pairing key from the panel. The key is not the server's `MT5_WORKER_TOKEN` and not a broker password. Enter an MT5 `terminal64.exe` path only if automatic terminal detection picks the wrong instance.
+6. Leave the connector window open, with the PC awake and MT5 signed in. Once it reports it is paired, click **Sync now** on the website. Check the first results against MT5 history. The connector only needs to run when syncing; closing it marks the account offline after about 45 seconds. The MT5 trading terminal is left open.
+
+Pairing keys are random, stored only as hashes on the server, and limited to one journal account. They cannot retrieve broker passwords or claim other users' jobs. A Windows-mode job is excluded from VPS worker claims even if a VPS worker is accidentally running. Disconnect or pair again to revoke a key; cancelling/revoking an in-flight job prevents late import. The connector stores its key using Windows DPAPI bound to the Windows user in `%LOCALAPPDATA%\eazy-trading\connector.json`. Use **Pair again.cmd** to replace its website, key or terminal path.
+
+New connections default to **Windows PC** and do not ask for a broker password. The local collector may read a trading-enabled terminal, but performs read operations only; that is recorded separately from an investor-only broker login. The Python deal interface does not include historical SL/TP; these are unavailable rather than guessed. Current position SL/TP are imported. Normal history size limits and account-currency calculations below still apply.
+
+The download includes reviewed source and launchers, not a signed executable or broker software. Build it after editing the connector with `python3 scripts/package-mt5-windows.py`. Tests verify that the ZIP contains the current source and no tokens/configuration. Linux unit tests simulate the terminal API; an actual Windows terminal/DPAPI round trip and real FundingPips account sync still require validation on the user's PC. No real broker account was accessed during development.
+
+## Optional VPS worker (legacy alternative)
+
 The website can save an encrypted investor connection and request an on-demand history sync. A separate, optional Wine/MT5 worker connects only during a sync, imports broker history and open positions, then destroys the temporary terminal, Wine prefix and credentials. No trading commands are present. Your laptop does not need to run MT5.
 
 **Status:** the application, migration, collector and deployment files are implemented. The WineHQ container builds, API/import tests and browser checks pass. An automated attempt to install MT5 did not produce MetaEditor, so native MQL5 compilation and a real FundingPips login remain unverified. The interactive setup helper must compile the collector successfully before it saves a seed. Deployment requires that clean seed and an actual investor login from the website. Saving a connection does not mean it has authenticated. The UI reports missing setup, offline workers, queued/running jobs, successful sync times and failures separately.

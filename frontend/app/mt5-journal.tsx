@@ -8,6 +8,8 @@ type Account = {
   login: string;
   server: string;
   connected: boolean;
+  syncLocation?: "local" | "server";
+  workerOnline?: boolean;
   currency: string | null;
   lastSync: string | null;
   job: { status: string; error: string | null } | null;
@@ -94,7 +96,7 @@ const statusMessages: Record<string, string> = {
   HISTORY_TOO_LARGE:
     "This account exceeds the current import limit of 50,000 deals.",
   SYNC_TIMEOUT: "Sync timed out. Try again when the worker is available.",
-  TERMINAL_UNAVAILABLE: "The MT5 terminal needs server setup.",
+  TERMINAL_UNAVAILABLE: "MT5 is unavailable. Check that the terminal is installed and accessible to your connector.",
   CREDENTIALS_UNAVAILABLE: "Reconnect your investor password, then sync again.",
   COLLECTOR_FAILED:
     "The MT5 collector could not finish. Your previous journal is preserved.",
@@ -112,6 +114,10 @@ export function Mt5Journal({ active }: { active: boolean }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState(false);
+  const [mode, setMode] = useState<"local" | "server">("local");
+  const [pairing, setPairing] = useState<{ id: string; token: string } | null>(
+    null,
+  );
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [tick, setTick] = useState(0);
@@ -123,6 +129,9 @@ export function Mt5Journal({ active }: { active: boolean }) {
     plannedRisk: null,
   });
   const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    setPairing(null);
+  }, [active, id]);
   useEffect(() => {
     if (trade && active && dialog.current && !dialog.current.open)
       dialog.current.showModal();
@@ -184,6 +193,7 @@ export function Mt5Journal({ active }: { active: boolean }) {
     }
   }
   const account = state?.accounts.find((a) => a.id === id);
+  const online = account?.workerOnline ?? state?.workerOnline;
   const money = (n: number) =>
     `${n.toLocaleString(language === "ru" ? "ru-RU" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${journal?.currency || account?.currency || ""}`;
   // MT5 history uses broker time. Preserve its clock rather than relabeling it ET.
@@ -236,12 +246,17 @@ export function Mt5Journal({ active }: { active: boolean }) {
           )}
         </p>
       )}
-      {state?.configured && !state.workerOnline && (
+      {state?.configured && !online && (
         <p className="mt5-notice">
-          {tr(
-            "MT5 worker is offline. Saved trades remain available.",
-            "Сервис MT5 не в сети. Сохранённые сделки доступны.",
-          )}
+          {account?.syncLocation === "local"
+            ? tr(
+                "Your Windows connector is offline. Run it on your trading PC to sync.",
+                "Коннектор Windows не в сети. Запустите его на торговом ПК для синхронизации.",
+              )
+            : tr(
+                "MT5 worker is offline. Saved trades remain available.",
+                "Сервис MT5 не в сети. Сохранённые сделки доступны.",
+              )}
         </p>
       )}
       {form && (
@@ -256,7 +271,10 @@ export function Mt5Journal({ active }: { active: boolean }) {
                 label: values.get("label"),
                 login: values.get("login"),
                 server: "FundingPips-SIM1",
-                password: values.get("password"),
+                mode,
+                ...(mode === "server"
+                  ? { password: values.get("password") }
+                  : {}),
               });
               element.reset();
               setId(result.id);
@@ -272,11 +290,38 @@ export function Mt5Journal({ active }: { active: boolean }) {
             )}
           </h2>
           <p>
-            {tr(
-              "Enter your MT5 account number and investor password. Saving the connection does not import trades; use Sync now afterwards.",
-              "Введите номер счёта MT5 и пароль инвестора. После сохранения нажмите «Синхронизировать» для импорта сделок.",
-            )}
+            {mode === "local"
+              ? tr(
+                  "Read history from MT5 on your Windows PC. Your broker password stays on that PC. After saving, choose Use Windows PC to pair the connector.",
+                  "Импортируйте историю из MT5 на ПК Windows. Пароль брокера остаётся на ПК. После сохранения нажмите «Использовать ПК Windows».",
+                )
+              : tr(
+                  "Enter your MT5 account number and investor password. Saving the connection does not import trades; use Sync now afterwards.",
+                  "Введите номер счёта MT5 и пароль инвестора. После сохранения нажмите «Синхронизировать» для импорта сделок.",
+                )}
           </p>
+          <div
+            className="mt5-actions"
+            role="group"
+            aria-label={tr("Sync location", "Место синхронизации")}
+          >
+            <button
+              type="button"
+              className="button secondary compact"
+              aria-pressed={mode === "local"}
+              onClick={() => setMode("local")}
+            >
+              {tr("Windows PC", "ПК Windows")}
+            </button>
+            <button
+              type="button"
+              className="button secondary compact"
+              aria-pressed={mode === "server"}
+              onClick={() => setMode("server")}
+            >
+              {tr("VPS worker", "Сервис на VPS")}
+            </button>
+          </div>
           <div className="mt5-form-grid">
             <label>
               {tr("Account label", "Название счёта")}
@@ -302,16 +347,18 @@ export function Mt5Journal({ active }: { active: boolean }) {
               {tr("Server", "Сервер")}
               <input value="FundingPips-SIM1" readOnly />
             </label>
-            <label>
-              {tr("Investor password", "Пароль инвестора")}
-              <input
-                name="password"
-                type="password"
-                required
-                maxLength={256}
-                autoComplete="new-password"
-              />
-            </label>
+            {mode === "server" && (
+              <label>
+                {tr("Investor password", "Пароль инвестора")}
+                <input
+                  name="password"
+                  type="password"
+                  required
+                  maxLength={256}
+                  autoComplete="new-password"
+                />
+              </label>
+            )}
           </div>
           <button
             className="button primary compact"
@@ -341,9 +388,7 @@ export function Mt5Journal({ active }: { active: boolean }) {
             <div className="mt5-actions">
               <button
                 className="button primary compact"
-                disabled={
-                  busy || running || !account.connected || !state?.workerOnline
-                }
+                disabled={busy || running || !account.connected || !online}
                 onClick={() =>
                   void action(async () => {
                     await api(`connections/${id}/sync`, "POST");
@@ -351,6 +396,21 @@ export function Mt5Journal({ active }: { active: boolean }) {
                 }
               >
                 {tr("Sync now", "Синхронизировать")}
+              </button>
+              <button
+                className="button secondary compact"
+                disabled={busy}
+                onClick={() =>
+                  void action(async () => {
+                    const result = await api(
+                      `connections/${id}/windows`,
+                      "POST",
+                    );
+                    setPairing({ id, token: result.token });
+                  })
+                }
+              >
+                {tr("Use Windows PC", "Использовать ПК Windows")}
               </button>
               <button
                 className="button secondary compact"
@@ -365,6 +425,92 @@ export function Mt5Journal({ active }: { active: boolean }) {
               </button>
             </div>
           </div>
+          {pairing?.id === id && (
+            <section
+              className="mt5-connect"
+              aria-label={tr(
+                "Windows connector setup",
+                "Настройка коннектора Windows",
+              )}
+            >
+              <h2>{tr("Connect your Windows PC", "Подключите ПК Windows")}</h2>
+              <ol>
+                <li>
+                  {tr(
+                    "Download and extract the connector on the Windows PC where you use MT5.",
+                    "Скачайте и распакуйте коннектор на ПК Windows с MT5.",
+                  )}{" "}
+                  <a
+                    className="button secondary compact"
+                    href="/downloads/eazy-trading-windows-connector.zip"
+                    download
+                  >
+                    {tr(
+                      "Download Windows connector",
+                      "Скачать коннектор Windows",
+                    )}
+                  </a>
+                </li>
+                <li>
+                  {tr(
+                    "Install Python 3.14 (64-bit) with its launcher, then open MT5 and sign in normally.",
+                    "Установите Python 3.14 (64-бит) с launcher, откройте MT5 и войдите как обычно.",
+                  )}{" "}
+                  <a
+                    href="https://www.python.org/downloads/windows/"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Python
+                  </a>
+                </li>
+                <li>
+                  {tr(
+                    "Double-click Start Connector.cmd. Enter this website address and paste the pairing key below. Leave the connector window open, then click Sync now here.",
+                    "Запустите Start Connector.cmd, введите адрес сайта и ключ ниже. Оставьте окно коннектора открытым и нажмите «Синхронизировать» здесь.",
+                  )}
+                </li>
+              </ol>
+              <label>
+                {tr("Website address", "Адрес сайта")}
+                <input
+                  readOnly
+                  value={
+                    typeof window === "undefined" ? "" : window.location.origin
+                  }
+                />
+              </label>
+              <label>
+                {tr(
+                  "One-time pairing key",
+                  "Ключ сопряжения (показан один раз)",
+                )}
+                <input
+                  type="password"
+                  readOnly
+                  value={pairing.token}
+                  autoComplete="off"
+                />
+              </label>
+              <button
+                type="button"
+                className="button secondary compact"
+                onClick={() =>
+                  void action(async () => {
+                    await navigator.clipboard.writeText(pairing.token);
+                  })
+                }
+              >
+                {tr("Copy pairing key", "Скопировать ключ")}
+              </button>
+              <p>
+                {tr(
+                  "This key is limited to this account. It is shown only now; never send it in chat. Pairing again revokes the previous key. The server's saved investor password has been removed.",
+                  "Ключ действует только для этого счёта и показан один раз. Не отправляйте его в чат. Новый ключ отменяет предыдущий. Сохранённый на сервере пароль инвестора удалён.",
+                )}
+              </p>
+            </section>
+          )}
           {account.job?.status === "failed" && (
             <p role="status" className="mt5-error">
               {statusMessages[account.job.error || ""] ||

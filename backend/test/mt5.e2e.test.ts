@@ -324,6 +324,203 @@ test("MT5: encrypted storage, authenticated leases, isolated owners, idempotent 
       ).total,
       1,
     );
+    // Switch the existing account to a scoped Windows connector.
+    await call(
+      "mt5/connections",
+      "POST",
+      {
+        login: "12345678",
+        server: "FundingPips-SIM1",
+        label: "Local account",
+        password: "synthetic-investor-password",
+      },
+      alice,
+    );
+    assert.equal(
+      (await call(`mt5/connections/${id}/windows`, "POST", {}, bob)).status,
+      404,
+    );
+    const pairing = (await (
+      await call(`mt5/connections/${id}/windows`, "POST", {}, alice)
+    ).json()) as any;
+    const local = { authorization: `Bearer ${pairing.token}` };
+    const [localRecord] = await db.query(
+      "SELECT secret,sync_location,local_token_hash FROM mt5_connections WHERE id=$1",
+      [id],
+    );
+    assert.equal(
+      localRecord.secret,
+      null,
+      "Windows pairing removes the server investor password",
+    );
+    assert.equal(localRecord.sync_location, "local");
+    assert.ok(
+      !pairing.token.includes(localRecord.local_token_hash),
+      "Only the hash is stored",
+    );
+    assert.equal(
+      (await call("mt5/local/heartbeat", "POST", {}, "", worker)).status,
+      401,
+      "Deployment token cannot impersonate a local device",
+    );
+    assert.equal(
+      (await call("mt5/worker/claim", "POST", {}, "", local)).status,
+      401,
+      "Local device cannot use deployment worker endpoints",
+    );
+    const identity = (await (
+      await call("mt5/local/heartbeat", "POST", {}, "", local)
+    ).json()) as any;
+    assert.deepEqual(identity, {
+      login: "12345678",
+      server: "FundingPips-SIM1",
+    });
+    await db.query(
+      "UPDATE mt5_jobs SET created_at=now()-interval '2 minutes' WHERE connection_id=$1",
+      [id],
+    );
+    await call(`mt5/connections/${id}/sync`, "POST", {}, alice);
+    assert.equal(
+      (
+        (await (
+          await call("mt5/worker/claim", "POST", {}, "", worker)
+        ).json()) as any
+      ).job,
+      null,
+      "VPS worker must never claim Windows-mode jobs",
+    );
+    const localJob = (
+      (await (
+        await call("mt5/local/claim", "POST", {}, "", local)
+      ).json()) as any
+    ).job;
+    assert.ok(localJob?.lease);
+    assert.equal(
+      localJob.password,
+      undefined,
+      "No broker password goes to the local connector",
+    );
+    const otherConn = (await (
+      await call(
+        "mt5/connections",
+        "POST",
+        {
+          login: "87654321",
+          server: "FundingPips-SIM1",
+          label: "Bob local",
+          mode: "local",
+        },
+        bob,
+      )
+    ).json()) as any;
+    const otherPair = (await (
+      await call(`mt5/connections/${otherConn.id}/windows`, "POST", {}, bob)
+    ).json()) as any;
+    const otherLocal = { authorization: `Bearer ${otherPair.token}` };
+    assert.equal(
+      (
+        (await (
+          await call("mt5/local/claim", "POST", {}, "", otherLocal)
+        ).json()) as any
+      ).job,
+      null,
+    );
+    const localSnapshot = {
+      ...snapshot,
+      account: {
+        ...snapshot.account,
+        readOnly: false,
+        collectorReadOnly: true,
+      },
+    };
+    assert.equal(
+      (
+        await call(
+          `mt5/local/jobs/${localJob.id}/finish`,
+          "POST",
+          { lease: localJob.lease, snapshot: localSnapshot },
+          "",
+          otherLocal,
+        )
+      ).status,
+      404,
+      "Local tokens cannot import another account",
+    );
+    assert.equal(
+      (
+        await call(
+          `mt5/worker/jobs/${localJob.id}/finish`,
+          "POST",
+          { lease: localJob.lease, snapshot: localSnapshot },
+          "",
+          worker,
+        )
+      ).status,
+      409,
+      "VPS endpoint cannot finish a Windows-mode job",
+    );
+    assert.equal(
+      (
+        await call(
+          `mt5/local/jobs/${localJob.id}/finish`,
+          "POST",
+          { lease: localJob.lease, snapshot: localSnapshot },
+          "",
+          local,
+        )
+      ).status,
+      201,
+    );
+    const localJournal = (await (
+      await call(`mt5/connections/${id}/journal`, "GET", undefined, alice)
+    ).json()) as any;
+    assert.equal(localJournal.total, 1);
+    assert.equal(localJournal.trades[0].annotation.note, annotation.note);
+    const statusText = await (
+      await call("mt5/connections", "GET", undefined, alice)
+    ).text();
+    assert.ok(
+      !statusText.includes(pairing.token) &&
+        !statusText.includes(localRecord.local_token_hash),
+    );
+    await db.query(
+      "UPDATE mt5_jobs SET created_at=now()-interval '2 minutes' WHERE connection_id=$1",
+      [id],
+    );
+    await call(`mt5/connections/${id}/sync`, "POST", {}, alice);
+    const revokedJob = (
+      (await (
+        await call("mt5/local/claim", "POST", {}, "", local)
+      ).json()) as any
+    ).job;
+    const freshPair = (await (
+      await call(`mt5/connections/${id}/windows`, "POST", {}, alice)
+    ).json()) as any;
+    const fresh = { authorization: `Bearer ${freshPair.token}` };
+    assert.equal(
+      (await call("mt5/local/heartbeat", "POST", {}, "", local)).status,
+      401,
+      "Pair again revokes the old key",
+    );
+    assert.equal(
+      (
+        await call(
+          `mt5/local/jobs/${revokedJob.id}/finish`,
+          "POST",
+          { lease: revokedJob.lease, snapshot: localSnapshot },
+          "",
+          fresh,
+        )
+      ).status,
+      409,
+      "Re-pairing cancels in-flight jobs",
+    );
+    await call(`mt5/connections/${id}`, "DELETE", undefined, alice);
+    assert.equal(
+      (await call("mt5/local/heartbeat", "POST", {}, "", fresh)).status,
+      401,
+      "Disconnect revokes PC access",
+    );
     const workspace = (await (
       await call("workspace", "GET", undefined, alice)
     ).json()) as any;

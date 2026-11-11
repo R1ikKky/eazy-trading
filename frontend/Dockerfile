@@ -19,6 +19,7 @@ COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/packages/orderflow ./packages/orderflow
 COPY --from=build --chown=node:node /app/frontend/package.json ./frontend/package.json
 COPY --from=build --chown=node:node /app/frontend/.next ./frontend/.next
+COPY --from=build --chown=node:node /app/frontend/public ./frontend/public
 COPY --from=build --chown=node:node /app/frontend/next.config.ts ./frontend/next.config.ts
 USER node
 WORKDIR /app/frontend

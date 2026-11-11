@@ -56,7 +56,10 @@ export class Mt5Service {
       `SELECT seen_at>now()-interval '45 seconds' AS online FROM mt5_worker WHERE id=true`,
     );
     const accounts = await this.db.query(
-      `SELECT c.id,c.label,c.login,c.server,c.secret IS NOT NULL AS connected,c.last_sync AS "lastSync",
+      `SELECT c.id,c.label,c.login,c.server,(c.secret IS NOT NULL OR c.local_token_hash IS NOT NULL) AS connected,c.last_sync AS "lastSync",
+      c.sync_location AS "syncLocation",
+      CASE WHEN c.sync_location='local' THEN COALESCE(c.local_seen_at>now()-interval '45 seconds',false)
+      ELSE EXISTS(SELECT 1 FROM mt5_worker WHERE id=true AND seen_at>now()-interval '45 seconds') END AS "workerOnline",
       c.snapshot->'account'->>'currency' AS currency,
       (SELECT json_build_object('id',j.id,'status',j.status,'error',j.error) FROM mt5_jobs j WHERE j.connection_id=c.id ORDER BY created_at DESC LIMIT 1) AS job
       FROM mt5_connections c WHERE owner_id=$1 ORDER BY created_at`,
@@ -64,7 +67,8 @@ export class Mt5Service {
     );
     return {
       configured: this.configured(),
-      workerOnline: !!worker?.online,
+      workerOnline:
+        !!worker?.online || accounts.some((a: any) => a.workerOnline),
       servers: [SERVER],
       accounts,
     };
@@ -79,17 +83,18 @@ export class Mt5Service {
     const v = input(() => {
       const b = object(raw),
         login = identifier(b.login),
-        password = text(b.password, 256),
+        local = b.mode === "local",
+        password = local ? "" : text(b.password, 256),
         label = text(b.label || "FundingPips", 80).trim();
       if (
         login === "0" ||
-        !password ||
+        (!local && !password) ||
         password.includes("\n") ||
         b.server !== SERVER ||
         !label
       )
         throw new Error();
-      return { login, password, label };
+      return { login, password, label, local };
     });
     return this.db.transaction(async (tx) => {
       await tx.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
@@ -115,11 +120,21 @@ export class Mt5Service {
           [existing.id],
         );
       const id = existing?.id || randomUUID();
-      const secret = encrypt(v.password, `${owner}:${id}:${v.login}:${SERVER}`);
+      const secret = v.local
+        ? null
+        : encrypt(v.password, `${owner}:${id}:${v.login}:${SERVER}`);
       await tx.query(
-        `INSERT INTO mt5_connections(id,owner_id,login,server,label,secret) VALUES($1,$2,$3,$4,$5,$6)
-        ON CONFLICT(owner_id,login,server) DO UPDATE SET label=EXCLUDED.label,secret=EXCLUDED.secret`,
-        [id, owner, v.login, SERVER, v.label, secret],
+        `INSERT INTO mt5_connections(id,owner_id,login,server,label,secret,sync_location) VALUES($1,$2,$3,$4,$5,$6,$7)
+        ON CONFLICT(owner_id,login,server) DO UPDATE SET label=EXCLUDED.label,secret=EXCLUDED.secret,sync_location=EXCLUDED.sync_location,local_token_hash=NULL,local_seen_at=NULL`,
+        [
+          id,
+          owner,
+          v.login,
+          SERVER,
+          v.label,
+          secret,
+          v.local ? "local" : "server",
+        ],
       );
       return { id };
     });
@@ -131,9 +146,10 @@ export class Mt5Service {
         [owner, uuid(id)],
       );
       if (!c) fail(404, "NOT_FOUND", "MT5 account not found.");
-      await tx.query("UPDATE mt5_connections SET secret=NULL WHERE id=$1", [
-        id,
-      ]);
+      await tx.query(
+        "UPDATE mt5_connections SET secret=NULL,local_token_hash=NULL,local_seen_at=NULL WHERE id=$1",
+        [id],
+      );
       await tx.query(
         "UPDATE mt5_jobs SET status='cancelled',lease_hash=NULL,finished_at=now() WHERE connection_id=$1 AND status IN ('queued','running')",
         [id],
@@ -151,7 +167,7 @@ export class Mt5Service {
     await this.expire();
     return this.db.transaction(async (tx) => {
       const [c] = await tx.query(
-        "SELECT id,secret IS NOT NULL AS connected FROM mt5_connections WHERE owner_id=$1 AND id=$2 FOR UPDATE",
+        "SELECT id,sync_location,local_seen_at>now()-interval '45 seconds' AS online,(secret IS NOT NULL OR local_token_hash IS NOT NULL) AS connected FROM mt5_connections WHERE owner_id=$1 AND id=$2 FOR UPDATE",
         [owner, uuid(id)],
       );
       if (!c) fail(404, "NOT_FOUND", "MT5 account not found.");
@@ -159,7 +175,7 @@ export class Mt5Service {
         fail(
           409,
           "MT5_DISCONNECTED",
-          "Reconnect your investor password first.",
+          "Reconnect your Windows connector or investor password first.",
         );
       const [active] = await tx.query(
         "SELECT id,status FROM mt5_jobs WHERE connection_id=$1 AND status IN ('queued','running')",
@@ -169,11 +185,13 @@ export class Mt5Service {
       const [worker] = await tx.query(
         "SELECT id FROM mt5_worker WHERE id=true AND seen_at>now()-interval '45 seconds'",
       );
-      if (!worker)
+      if (c.sync_location === "local" ? !c.online : !worker)
         fail(
           503,
           "MT5_WORKER_OFFLINE",
-          "The MT5 sync worker is offline. Try again once it is running.",
+          c.sync_location === "local"
+            ? "Run the connector on your Windows PC, then try again."
+            : "The MT5 sync worker is offline. Try again once it is running.",
         );
       const [recent] = await tx.query(
         "SELECT id FROM mt5_jobs WHERE connection_id=$1 AND created_at>now()-interval '1 minute' LIMIT 1",
@@ -206,12 +224,12 @@ export class Mt5Service {
         "SELECT pg_advisory_xact_lock(hashtext('mt5-worker-claim'))",
       );
       const [busy] = await tx.query(
-        "SELECT id FROM mt5_jobs WHERE status='running' LIMIT 1",
+        "SELECT j.id FROM mt5_jobs j JOIN mt5_connections c ON c.id=j.connection_id WHERE j.status='running' AND c.sync_location='server' LIMIT 1",
       );
       if (busy) return { job: null };
       const [j] =
         await tx.query(`SELECT j.id,c.id AS connection_id,c.owner_id,c.login,c.server,c.secret
-        FROM mt5_jobs j JOIN mt5_connections c ON c.id=j.connection_id WHERE j.status='queued' AND c.secret IS NOT NULL
+        FROM mt5_jobs j JOIN mt5_connections c ON c.id=j.connection_id WHERE j.status='queued' AND c.secret IS NOT NULL AND c.sync_location='server'
         ORDER BY j.created_at LIMIT 1 FOR UPDATE OF j,c SKIP LOCKED`);
       if (!j) return { job: null };
       const lease = randomBytes(32).toString("base64url");
@@ -243,7 +261,94 @@ export class Mt5Service {
     );
     return { alive: true };
   }
-  async finish(id: string, raw: unknown) {
+  async pairLocal(owner: string, id: string) {
+    return this.db.transaction(async (tx) => {
+      const [c] = await tx.query(
+        "SELECT id,login,server FROM mt5_connections WHERE owner_id=$1 AND id=$2 FOR UPDATE",
+        [owner, uuid(id)],
+      );
+      if (!c) fail(404, "NOT_FOUND", "MT5 account not found.");
+      const key = randomBytes(32).toString("base64url");
+      await tx.query(
+        "UPDATE mt5_jobs SET status='cancelled',lease_hash=NULL,finished_at=now() WHERE connection_id=$1 AND status IN ('queued','running')",
+        [id],
+      );
+      // Switching to local collection also removes the server's investor password.
+      await tx.query(
+        "UPDATE mt5_connections SET sync_location='local',secret=NULL,local_token_hash=$2,local_seen_at=NULL WHERE id=$1",
+        [id, hash(key)],
+      );
+      return { token: `${id}.${key}`, login: c.login, server: c.server };
+    });
+  }
+  private async localIdentity(authorization?: string) {
+    const token = /^Bearer ([a-f\d-]{36})\.([A-Za-z0-9_-]{43})$/i.exec(
+      authorization || "",
+    );
+    if (!token)
+      fail(
+        401,
+        "LOCAL_AUTH_REQUIRED",
+        "Windows connector pairing is required.",
+      );
+    const [c] = await this.db.query(
+      "SELECT id,local_token_hash FROM mt5_connections WHERE id=$1 AND sync_location='local'",
+      [uuid(token[1])],
+    );
+    if (!c?.local_token_hash || !matches(hash(token[2]), c.local_token_hash))
+      fail(
+        401,
+        "LOCAL_AUTH_REQUIRED",
+        "Windows connector pairing has expired or was revoked.",
+      );
+    return { id: c.id as string, hash: c.local_token_hash as string };
+  }
+  async localHeartbeat(authorization?: string) {
+    const c = await this.localIdentity(authorization);
+    const [account] = await this.db.query(
+      "WITH seen AS (UPDATE mt5_connections SET local_seen_at=now() WHERE id=$1 AND local_token_hash=$2 RETURNING login,server) SELECT login,server FROM seen",
+      [c.id, c.hash],
+    );
+    if (!account)
+      fail(401, "LOCAL_AUTH_REQUIRED", "Pair the Windows connector again.");
+    return account;
+  }
+  async localClaim(authorization?: string) {
+    const identity = await this.localIdentity(authorization);
+    await this.expire();
+    return this.db.transaction(async (tx) => {
+      const [c] = await tx.query(
+        "SELECT * FROM mt5_connections WHERE id=$1 AND local_token_hash=$2 AND sync_location='local' FOR UPDATE",
+        [identity.id, identity.hash],
+      );
+      if (!c)
+        fail(401, "LOCAL_AUTH_REQUIRED", "Pair the Windows connector again.");
+      await tx.query(
+        "UPDATE mt5_connections SET local_seen_at=now() WHERE id=$1",
+        [c.id],
+      );
+      const [j] = await tx.query(
+        "SELECT id FROM mt5_jobs WHERE connection_id=$1 AND status='queued' ORDER BY created_at LIMIT 1 FOR UPDATE",
+        [c.id],
+      );
+      if (!j) return { job: null };
+      const lease = randomBytes(32).toString("base64url");
+      await tx.query(
+        "UPDATE mt5_jobs SET status='running',lease_hash=$2,expires_at=now()+interval '8 minutes' WHERE id=$1",
+        [j.id, hash(lease)],
+      );
+      return { job: { id: j.id, lease, login: c.login, server: c.server } };
+    });
+  }
+  async localFinish(
+    authorization: string | undefined,
+    id: string,
+    raw: unknown,
+  ) {
+    const c = await this.localIdentity(authorization);
+    return this.finish(id, raw, c.id);
+  }
+  async finish(id: string, raw: unknown, localScope?: string) {
     const body = input(() => object(raw));
     const lease = input(() => text(body.lease, 100));
     // Lock connection before job, matching disconnect/reconnect, to avoid deadlocks.
@@ -253,6 +358,8 @@ export class Mt5Service {
         [uuid(id)],
       );
       if (!identity) fail(404, "NOT_FOUND", "Sync job not found.");
+      if (localScope && identity.connection_id !== localScope)
+        fail(404, "NOT_FOUND", "Sync job not found.");
       const [c] = await tx.query(
         "SELECT * FROM mt5_connections WHERE id=$1 FOR UPDATE",
         [identity.connection_id],
@@ -261,7 +368,10 @@ export class Mt5Service {
         "SELECT * FROM mt5_jobs WHERE id=$1 AND status='running' AND expires_at>now() FOR UPDATE",
         [id],
       );
-      if (!j || !c.secret || !matches(hash(lease), j.lease_hash || ""))
+      const authorized = localScope
+        ? c.sync_location === "local" && c.local_token_hash
+        : c.sync_location === "server" && c.secret;
+      if (!j || !authorized || !matches(hash(lease), j.lease_hash || ""))
         fail(409, "STALE_MT5_JOB", "Sync job has expired or was cancelled.");
       if (body.error !== undefined) {
         const known = [
@@ -283,7 +393,7 @@ export class Mt5Service {
         return { imported: false };
       }
       const snapshot = input(() =>
-        validateSnapshot(body.snapshot, c.login, c.server),
+        validateSnapshot(body.snapshot, c.login, c.server, !!localScope),
       );
       // Retain previously imported deals if a broker later shortens its history window.
       const history = new Map<string, Snapshot["deals"][number]>(

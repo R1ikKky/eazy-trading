@@ -172,6 +172,20 @@ test("MT5 import rejects another account, master permission, duplicates, numbers
   ])
     assert.throws(() => validateSnapshot(bad, "12345678", "FundingPips-SIM1"));
 });
+test("Only scoped local imports accept a read-only collector on a trading-enabled terminal", () => {
+  const s = snapshot([deal(1)]);
+  s.account.readOnly = false;
+  s.account.collectorReadOnly = true;
+  assert.throws(() => validateSnapshot(s, "12345678", "FundingPips-SIM1"));
+  assert.equal(
+    validateSnapshot(s, "12345678", "FundingPips-SIM1", true).account.readOnly,
+    false,
+  );
+  delete s.account.collectorReadOnly;
+  assert.throws(() =>
+    validateSnapshot(s, "12345678", "FundingPips-SIM1", true),
+  );
+});
 test("MT5 credentials require a real key and authenticate the owner/account context", () => {
   const old = process.env.MT5_ENCRYPTION_KEY;
   try {

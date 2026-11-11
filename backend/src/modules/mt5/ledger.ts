@@ -27,7 +27,13 @@ export type BrokerPosition = {
   tp: number;
 };
 export type Snapshot = {
-  account: { login: string; server: string; currency: string; readOnly: true };
+  account: {
+    login: string;
+    server: string;
+    currency: string;
+    readOnly: boolean;
+    collectorReadOnly?: true;
+  };
   deals: Deal[];
   positions: BrokerPosition[];
 };
@@ -83,13 +89,14 @@ export function validateSnapshot(
   raw: unknown,
   login: string,
   server: string,
+  localCollector = false,
 ): Snapshot {
   const s = object(raw),
     a = object(s.account);
   if (
     identifier(a.login) !== login ||
     a.server !== server ||
-    a.readOnly !== true
+    (a.readOnly !== true && !(localCollector && a.collectorReadOnly === true))
   )
     throw new Error("Account identity or read-only check failed.");
   const currency = text(a.currency, 12);
@@ -152,7 +159,13 @@ export function validateSnapshot(
     };
   });
   return {
-    account: { login, server, currency, readOnly: true },
+    account: {
+      login,
+      server,
+      currency,
+      readOnly: a.readOnly === true,
+      ...(localCollector ? { collectorReadOnly: true as const } : {}),
+    },
     deals,
     positions,
   };
