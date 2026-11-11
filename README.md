@@ -22,6 +22,8 @@ Use a different PostgreSQL port if one is already occupied. Do not use `docker c
 
 Authentication is required. Before starting, configure `AUTH_OWNER_EMAIL`, `AUTH_OWNER_USERNAME` and `AUTH_BOOTSTRAP_PASSWORD` in `.env` or Dokploy Environment to create your account and claim existing data. Registration is disabled by default. See [authentication setup](docs/authentication.md) for Google/GitHub OAuth and token behavior.
 
+Optional FundingPips MT5 journal sync: see [MT5 setup](docs/mt5.md). This requires a separate Wine worker and one-time terminal setup; it is disabled until configured.
+
 Existing installations should keep their current Docker Compose project name and database volume when updating. The project rename does not require a new database.
 
 ## Development

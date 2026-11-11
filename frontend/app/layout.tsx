@@ -20,6 +20,7 @@ import "./route-transitions.css";
 import "./replay-layout.css";
 import "./quick-trade.css";
 import "./journal-filters.css";
+import "./mt5-journal.css";
 export const metadata: Metadata = {
   title: "eazy trading · NQ / ES",
   description:
@@ -30,7 +31,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" data-theme="dark" suppressHydrationWarning>
-      <body className="product-app"><ThemeInitializer />{children}</body>
+      <body className="product-app">
+        <ThemeInitializer />
+        {children}
+      </body>
     </html>
   );
 }

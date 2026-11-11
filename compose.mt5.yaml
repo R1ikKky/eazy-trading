@@ -1,0 +1,25 @@
+# Optional addition: docker compose -f compose.yaml -f compose.mt5.yaml ...
+services:
+  mt5-worker:
+    build:
+      context: .
+      dockerfile: connectors/mt5/Dockerfile
+    environment:
+      MT5_API_URL: http://api:3001/api/mt5
+      MT5_WORKER_TOKEN: ${MT5_WORKER_TOKEN:?Set MT5_WORKER_TOKEN}
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN}
+      MT5_BOOT_SYMBOL: ${MT5_BOOT_SYMBOL:-EURUSD}
+    volumes:
+      - ${MT5_TERMINAL_SEED:-./.local-data/mt5-seed}:/seed:ro
+    # A single terminal; no host ports, desktop access, or Docker socket.
+    mem_limit: 1536m
+    cpus: 1.0
+    pids_limit: 256
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

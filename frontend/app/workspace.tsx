@@ -1,7 +1,8 @@
 "use client";
 import { t as translate } from "../src/i18n/language";
 import { useLanguage } from "../src/i18n/use-language";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Mt5Journal } from "./mt5-journal";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -18,6 +19,9 @@ export function ReplayWorkspace() {
   const router = useRouter();
   const pathname = usePathname();
   const currentView = workspaceView(pathname);
+  const [journalSource, setJournalSource] = useState<"replay" | "mt5">(
+    "replay",
+  );
   useEffect(() => {
     const navigate = (event: Event) => {
       const path = (event as CustomEvent<string>).detail;
@@ -668,64 +672,91 @@ export function ReplayWorkspace() {
                 <h1>{translate("Журнал сделок")}</h1>
               </div>
             </div>
-            <div id="journalFilters" className="journal-filters" />
-            <div id="journalSummary" className="journal-summary" />
-            <section className="journal-card">
-              <div className="journal-header">
-                <div>
-                  <h2>
-                    {translate("Журнал сделок")}
-                    <span id="tradeCount">0</span>
-                  </h2>
-                  <p>
-                    {translate(
-                      "Закрытые сделки, сетапы и заметки в одном месте.",
-                    )}
-                  </p>
-                </div>
-                <button
-                  className="button secondary compact"
-                  id="export"
-                  disabled
-                >
-                  {translate("Экспорт CSV")}
-                </button>
-              </div>
-              <div className="table-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>
-                        {translate("Инструмент / вход")}
-                        <span id="journalZone">ET</span>
-                      </th>
-                      <th>{translate("Сторона")}</th>
-                      <th>{translate("Объём")}</th>
-                      <th>{translate("Вход")}</th>
-                      <th>{translate("Выход")}</th>
-                      <th>{translate("Результат")}</th>
-                      <th>R</th>
-                      <th>{translate("Стратегия / закрытие")}</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tradeRows" />
-                </table>
-                <div id="emptyJournal" className="empty-journal">
-                  <span className="empty-icon">≡</span>
+            <div
+              className="journal-source-tabs"
+              role="group"
+              aria-label="Journal source"
+            >
+              <button
+                type="button"
+                className={`button secondary compact${journalSource === "replay" ? " active" : ""}`}
+                aria-pressed={journalSource === "replay"}
+                onClick={() => setJournalSource("replay")}
+              >
+                Replay
+              </button>
+              <button
+                type="button"
+                className={`button secondary compact${journalSource === "mt5" ? " active" : ""}`}
+                aria-pressed={journalSource === "mt5"}
+                onClick={() => setJournalSource("mt5")}
+              >
+                MT5
+              </button>
+            </div>
+            <div hidden={journalSource !== "replay"}>
+              <div id="journalFilters" className="journal-filters" />
+              <div id="journalSummary" className="journal-summary" />
+              <section className="journal-card">
+                <div className="journal-header">
                   <div>
-                    <strong>{translate("Здесь появятся ваши сделки")}</strong>
+                    <h2>
+                      {translate("Журнал сделок")}
+                      <span id="tradeCount">0</span>
+                    </h2>
                     <p>
                       {translate(
-                        "Завершите сделку в replay. Она сохранится вместе с вашей сессией.",
+                        "Закрытые сделки, сетапы и заметки в одном месте.",
                       )}
                     </p>
                   </div>
-                  <span className="empty-hint">
-                    01 <span>/</span> {translate("Найдите свой сетап")}
-                  </span>
+                  <button
+                    className="button secondary compact"
+                    id="export"
+                    disabled
+                  >
+                    {translate("Экспорт CSV")}
+                  </button>
                 </div>
-              </div>
-            </section>
+                <div className="table-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>
+                          {translate("Инструмент / вход")}
+                          <span id="journalZone">ET</span>
+                        </th>
+                        <th>{translate("Сторона")}</th>
+                        <th>{translate("Объём")}</th>
+                        <th>{translate("Вход")}</th>
+                        <th>{translate("Выход")}</th>
+                        <th>{translate("Результат")}</th>
+                        <th>R</th>
+                        <th>{translate("Стратегия / закрытие")}</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tradeRows" />
+                  </table>
+                  <div id="emptyJournal" className="empty-journal">
+                    <span className="empty-icon">≡</span>
+                    <div>
+                      <strong>{translate("Здесь появятся ваши сделки")}</strong>
+                      <p>
+                        {translate(
+                          "Завершите сделку в replay. Она сохранится вместе с вашей сессией.",
+                        )}
+                      </p>
+                    </div>
+                    <span className="empty-hint">
+                      01 <span>/</span> {translate("Найдите свой сетап")}
+                    </span>
+                  </div>
+                </div>
+              </section>
+            </div>
+            <Mt5Journal
+              active={currentView === "journal" && journalSource === "mt5"}
+            />
           </section>
           <section
             id="view-analytics"

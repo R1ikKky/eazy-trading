@@ -15,6 +15,7 @@ import {
   AuthSecret,
 } from "../modules/auth/entities/auth.entity";
 import { Authentication1794100000000 } from "./migrations/1794100000000-authentication";
+import { Mt5Journal1794400000000 } from "./migrations/1794400000000-mt5-journal";
 export function databaseOptions(): DataSourceOptions {
   if (!process.env.DATABASE_URL)
     throw new Error("DATABASE_URL is required. See .env.example.");
@@ -32,7 +33,11 @@ export function databaseOptions(): DataSourceOptions {
       OAuthState,
       AuthSecret,
     ],
-    migrations: [InitialSchema1793500000000, Authentication1794100000000],
+    migrations: [
+      InitialSchema1793500000000,
+      Authentication1794100000000,
+      Mt5Journal1794400000000,
+    ],
     synchronize: false,
     migrationsRun: true,
   };

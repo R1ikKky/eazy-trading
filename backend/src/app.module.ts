@@ -9,6 +9,7 @@ import { MarketDataModule } from "./modules/market-data/market-data.module";
 import { OrderflowModule } from "./modules/orderflow/orderflow.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { AuthGuard } from "./modules/auth/auth.guard";
+import { Mt5Module } from "./modules/mt5/mt5.module";
 @Module({
   imports: [
     DatabaseModule,
@@ -18,6 +19,7 @@ import { AuthGuard } from "./modules/auth/auth.guard";
     DatasetModule,
     AttachmentModule,
     MarketDataModule,
+    Mt5Module,
   ],
   providers: [
     { provide: APP_GUARD, useClass: LocalGuard },
