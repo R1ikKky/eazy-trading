@@ -1,0 +1,60 @@
+body.product-app #journalFilters {
+  display: block;
+  margin-bottom: 20px;
+}
+body.product-app #journalFilters .filter-grid {
+  width: 100%;
+  margin: 0;
+  grid-template-columns: minmax(0, 2fr) repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+body.product-app #journalFilters .filter-control {
+  min-width: 0;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 18px;
+}
+body.product-app #journalFilters .filter-control > input,
+body.product-app #journalFilters .replay-select .ts-control {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 22px;
+  box-sizing: border-box;
+}
+body.product-app #journalFilters .replay-select {
+  height: 44px;
+  margin: 0;
+}
+body.product-app #journalFilters .replay-select .ts-control {
+  padding-right: 34px;
+}
+body.product-app #journalFilters input::placeholder {
+  color: var(--text-faint);
+  opacity: 1;
+}
+@media (max-width: 1279px) {
+  body.product-app #journalFilters .filter-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  body.product-app #journalFilters .filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  body.product-app #journalFilters .filter-control:is(:first-child, :last-child) {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 380px) {
+  body.product-app #journalFilters .filter-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

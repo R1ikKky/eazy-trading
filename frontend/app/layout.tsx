@@ -19,6 +19,7 @@ import "./button-motion.css";
 import "./route-transitions.css";
 import "./replay-layout.css";
 import "./quick-trade.css";
+import "./journal-filters.css";
 export const metadata: Metadata = {
   title: "eazy trading · NQ / ES",
   description:
