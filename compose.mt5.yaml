@@ -1,4 +1,4 @@
-# Optional addition: docker compose -f compose.yaml -f compose.mt5.yaml ...
+# Worker definition imported by compose.yaml. Enable with COMPOSE_PROFILES=mt5.
 services:
   mt5-worker:
     build:
@@ -6,8 +6,8 @@ services:
       dockerfile: connectors/mt5/Dockerfile
     environment:
       MT5_API_URL: http://api:3001/api/mt5
-      MT5_WORKER_TOKEN: ${MT5_WORKER_TOKEN:?Set MT5_WORKER_TOKEN}
-      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN}
+      MT5_WORKER_TOKEN: ${MT5_WORKER_TOKEN:-}
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://127.0.0.1:${PORT:-3000}}
       MT5_BOOT_SYMBOL: ${MT5_BOOT_SYMBOL:-EURUSD}
     volumes:
       - ${MT5_TERMINAL_SEED:-./.local-data/mt5-seed}:/seed:ro

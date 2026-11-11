@@ -52,6 +52,11 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
+  mt5-worker:
+    extends:
+      file: compose.mt5.yaml
+      service: mt5-worker
+    profiles: [mt5]
   web:
     build:
       context: .
