@@ -1436,7 +1436,7 @@ document.querySelectorAll<HTMLElement>("[data-tf]").forEach(
     }),
 );
 document.addEventListener("keydown", (e) => {
-  if ($("view-replay").hidden) return;
+  if ($("view-replay").hidden || document.querySelector<HTMLElement>(".product-main")?.inert) return;
   if (
     ["INPUT", "SELECT", "TEXTAREA", "BUTTON", "A"].includes(
       (e.target as HTMLElement).tagName,

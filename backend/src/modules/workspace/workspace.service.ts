@@ -9,7 +9,14 @@ import { workspaceValidation } from "./validation/workspace.validation";
 @Injectable()
 export class WorkspaceService {
   constructor(private readonly db: DataSource) {}
-  async get(ownerId: string) {
+  async get(ownerId: string, knownRevision?: number) {
+    if (knownRevision !== undefined) {
+      const current = await this.db.getRepository(Workspace).findOne({
+        where: { ownerId },
+        select: { revision: true },
+      });
+      if ((current?.revision ?? 0) === knownRevision) return null;
+    }
     const row = await this.db.getRepository(Workspace).findOneBy({ ownerId });
     return row
       ? { ...row.payload, revision: row.revision }

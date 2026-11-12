@@ -1,3 +1,4 @@
+import { mergeWorkspaces } from "./workspace-merge";
 import { validateWorkspace } from "./workspace-validation";
 import { readArchive } from "./archive";
 import { isCuratedDataset, readCuratedDataset } from "./curated-data";
@@ -63,12 +64,21 @@ export class WorkspaceStore {
     this.saving = false;
     this.generation = 0;
     this.timer = null;
+    this.base = null;
+    this.needsSync = false;
+    this.refreshing = false;
+    this.canSync = () => true;
+    this.onRemote = async () => {};
   }
   cache() {
     try {
       localStorage.setItem(
         cacheKey(),
-        JSON.stringify({ value: this.value, dirty: this.dirty }),
+        JSON.stringify({
+          value: this.value,
+          dirty: this.dirty,
+          base: this.base,
+        }),
       );
     } catch {
       this.onStatus(
@@ -86,6 +96,7 @@ export class WorkspaceStore {
       try {
         this.value = validateWorkspace(cached.value);
         this.dirty = !!cached.dirty;
+        if (cached.base) this.base = validateWorkspace(cached.base);
       } catch {
         this.onStatus(
           "error",
@@ -100,32 +111,71 @@ export class WorkspaceStore {
       });
       if (!response.ok) throw Error("HTTP " + response.status);
       const remote = validateWorkspace(await response.json());
-      if (
-        this.dirty &&
-        remote.revision !== this.value.revision &&
-        sameContent(this.value, remote)
-      ) {
-        this.value = remote;
-        this.dirty = false;
-        this.cache();
-        this.onStatus("saved", "Синхронизировано");
-      } else if (this.dirty && remote.revision !== this.value.revision) {
-        this.conflict = true;
-        this.onStatus(
-          "conflict",
-          "Есть изменения с другого устройства · нажмите для восстановления",
-        );
-      } else if (!this.dirty) {
-        this.value = remote;
-        this.cache();
-        this.onStatus("saved", "Синхронизировано");
-      } else this.onStatus("pending", "Сохраняю локальные изменения…");
+      await this.acceptRemote(remote, false);
     } catch {
       this.onStatus("offline", "Локально · нет соединения с сервером");
     }
     this.ready = true;
     if (this.dirty && !this.conflict) this.schedule();
     return this.value;
+  }
+  async acceptRemote(remote: any, notify = true) {
+    const previous = this.value;
+    if (this.dirty && !this.base && remote.revision === this.value.revision)
+      this.base = structuredClone(remote);
+    const next = this.dirty
+      ? mergeWorkspaces(this.base, this.value, remote)
+      : remote;
+    this.base = structuredClone(remote);
+    this.value = next;
+    this.dirty = !sameContent(next, remote);
+    this.conflict = false;
+    this.needsSync = false;
+    this.cache();
+    if (notify && !sameContent(previous, next)) await this.onRemote(previous);
+    this.onStatus(
+      this.dirty ? "pending" : "saved",
+      this.dirty ? "Сохранение…" : "Синхронизировано",
+    );
+    if (this.dirty && this.ready) this.schedule();
+  }
+  async refresh() {
+    if (!this.ready || this.saving || this.refreshing || !this.canSync())
+      return false;
+    this.refreshing = true;
+    const generation = this.generation;
+    try {
+      const response = await fetch(
+        `/api/workspace?revision=${this.value.revision}`,
+        {
+          cache: "no-store",
+          signal: AbortSignal.timeout(12000),
+        },
+      );
+      if (response.status === 204) {
+        this.needsSync = false;
+        this.onStatus(
+          this.dirty ? "pending" : "saved",
+          this.dirty ? "Сохранение…" : "Синхронизировано",
+        );
+        return true;
+      }
+      if (!response.ok) throw Error("HTTP " + response.status);
+      const remote = validateWorkspace(await response.json());
+      // A slow response must not replace edits made after this request started.
+      if (generation !== this.generation || !this.canSync()) return false;
+      if (remote.revision !== this.value.revision || this.needsSync)
+        await this.acceptRemote(remote);
+      return true;
+    } catch (error) {
+      this.onStatus(
+        "offline",
+        "Локально · " + (error.message || "нет соединения"),
+      );
+      return false;
+    } finally {
+      this.refreshing = false;
+    }
   }
   changed() {
     this.dirty = true;
@@ -138,11 +188,29 @@ export class WorkspaceStore {
   }
   schedule() {
     clearTimeout(this.timer);
-    this.timer = setTimeout(() => this.flush(), 900);
+    this.timer = setTimeout(
+      async () => {
+        if (this.needsSync) {
+          await this.refresh();
+          if (this.needsSync) {
+            this.schedule();
+            return;
+          }
+        }
+        await this.flush();
+      },
+      this.needsSync ? 5000 : 900,
+    );
   }
   async flush() {
     clearTimeout(this.timer);
-    if (!this.ready || !this.dirty || this.conflict || this.saving)
+    if (
+      !this.ready ||
+      !this.dirty ||
+      this.needsSync ||
+      this.saving ||
+      this.refreshing
+    )
       return false;
     this.saving = true;
     const generation = this.generation,
@@ -155,11 +223,8 @@ export class WorkspaceStore {
         signal: AbortSignal.timeout(20000),
       });
       if (response.status === 409) {
-        this.conflict = true;
-        this.onStatus(
-          "conflict",
-          "Есть изменения с другого устройства · нажмите для восстановления",
-        );
+        this.needsSync = true;
+        this.onStatus("pending", "Синхронизация…");
         return false;
       }
       if (!response.ok) {
@@ -172,6 +237,7 @@ export class WorkspaceStore {
       const result = await response.json();
       if (!Number.isInteger(result.revision))
         throw Error("Некорректное подтверждение сохранения");
+      this.base = { ...payload, revision: result.revision };
       this.value.revision = result.revision;
       this.dirty = this.generation !== generation;
       this.cache();
@@ -188,7 +254,7 @@ export class WorkspaceStore {
       return false;
     } finally {
       this.saving = false;
-      if (this.dirty && !this.conflict && this.generation !== generation)
+      if (this.dirty && (this.needsSync || this.generation !== generation))
         this.schedule();
     }
   }
@@ -202,6 +268,8 @@ export class WorkspaceStore {
     if (!response.ok) throw Error("Облачная копия пока недоступна");
     const remote = validateWorkspace(await response.json());
     this.value = remote;
+    this.base = structuredClone(remote);
+    this.needsSync = false;
     this.dirty = false;
     this.conflict = false;
     this.generation++;
@@ -275,6 +343,11 @@ export class WorkspaceStore {
     return result;
   }
 
+  base: any;
+  needsSync: boolean;
+  refreshing: boolean;
+  canSync: () => boolean;
+  onRemote: (previous: any) => Promise<void>;
   onStatus: any;
   value: any;
   dirty: any;

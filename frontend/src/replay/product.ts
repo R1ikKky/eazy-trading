@@ -74,6 +74,9 @@ export function createProduct({
     selectedTrade = null,
     loaded = false,
     navigationReady = false,
+    applyingRemote = false,
+    pendingRemote: any = null,
+    interacting = false,
     filter: Record<string, any> = {};
   const store = new WorkspaceStore((state: any, label: any) => {
     const status = $("saveStatus");
@@ -82,7 +85,6 @@ export function createProduct({
       status.textContent = translate(label);
       status.title = translate(label);
     }
-    if (state === "conflict") toast(label);
   });
   configureLanguagePersistence(async () => {
     store.cache();
@@ -222,7 +224,7 @@ export function createProduct({
     return s;
   }
   function saveReplay(snapshot: any) {
-    if (!loaded || !active()) return;
+    if (!loaded || applyingRemote || !active()) return;
     const s = active();
     s.snapshot = snapshot;
     s.updatedAt = new Date().toISOString();
@@ -558,7 +560,7 @@ export function createProduct({
   }
   function editStrategy(id?: any) {
     const existing = strategies().find((p: any) => p.id === id);
-    let dialog = $("playbookDialog");
+    let dialog: any = document.getElementById("playbookDialog");
     if (!dialog) {
       dialog = document.createElement("dialog");
       dialog.id = "playbookDialog";
@@ -717,38 +719,103 @@ export function createProduct({
       translate("Сессии и журнал экспортированы. Рыночные архивы хранятся отдельно в вашем аккаунте."),
     );
   }
-  $("saveStatus").tabIndex = 0;
-  $("saveStatus").setAttribute("role", "button");
-  async function resolveCloud() {
-    if (!store.conflict) {
-      if (store.dirty) await store.flush();
-      return;
-    }
-    exportBackup();
-    if (
-      !confirm(
-        translate("Локальная копия скачана. Загрузить облачную версию? Несохранённые изменения останутся в скачанном архиве."),
+  function canSync() {
+    return (
+      loaded &&
+      navigationReady &&
+      !applyingRemote &&
+      !interacting &&
+      !document.hidden &&
+      !document.querySelector("dialog[open]") &&
+      !document.activeElement?.matches(
+        "input, textarea, select, [contenteditable=true]",
       )
-    )
-      return;
-    await store.useRemote();
-    const s = active();
-    fillStrategies();
-    if (s) await activate(s, false, true);
-    else $("setupOpen").click();
-    if (ws().settings.chartPreferences)
-      setPreferences(ws().settings.chartPreferences);
-    renderView();
-    updateHeader();
+    );
   }
-  $("saveStatus").onclick = safe(resolveCloud);
-  $("saveStatus").onkeydown = (e) => {
-    if (["Enter", " "].includes(e.key)) {
-      e.preventDefault();
-      safe(resolveCloud)();
+  async function applyRemote() {
+    if (!pendingRemote || !canSync()) return;
+    const previous = pendingRemote;
+    const before = previous.sessions.find(
+      (s: any) => s.id === previous.settings.activeSessionId,
+    );
+    const next = active();
+    const replayState = (s: any) =>
+      s && [
+        s.id,
+        s.symbol,
+        s.datasetId,
+        s.comparisonDatasetId,
+        s.from,
+        s.to,
+        s.session,
+        s.capital,
+        s.snapshot,
+        s.drawings,
+      ];
+    applyingRemote = true;
+    const main = document.querySelector<HTMLElement>(".product-main");
+    if (main) main.inert = true;
+    try {
+      fillStrategies();
+      if (
+        next &&
+        JSON.stringify(replayState(before)) !==
+          JSON.stringify(replayState(next))
+      )
+        await activate(next, false, true);
+      else if (!next && before && view === "replay") navigate("sessions");
+      if (
+        ws().settings.chartPreferences &&
+        JSON.stringify(previous.settings.chartPreferences) !==
+          JSON.stringify(ws().settings.chartPreferences)
+      )
+        setPreferences(ws().settings.chartPreferences);
+      renderView();
+      updateHeader();
+      pendingRemote = null;
+    } finally {
+      applyingRemote = false;
+      if (main) main.inert = false;
     }
+  }
+  store.canSync = canSync;
+  store.onRemote = async (previous: any) => {
+    pendingRemote ||= previous;
+    await applyRemote();
   };
-  window.addEventListener("online", () => store.flush());
+  async function syncNow() {
+    if (!canSync()) return;
+    if (pendingRemote) {
+      await applyRemote();
+      return;
+    }
+    if (await store.refresh()) {
+      if (pendingRemote) await applyRemote();
+      if (store.dirty) await store.flush();
+    }
+  }
+  window.addEventListener("pointerdown", () => {
+    interacting = true;
+  });
+  window.addEventListener("pointerup", () => {
+    interacting = false;
+  });
+  window.addEventListener("pointercancel", () => {
+    interacting = false;
+  });
+  window.addEventListener("blur", () => {
+    interacting = false;
+  });
+  window.addEventListener("online", safe(syncNow));
+  window.addEventListener("focus", safe(syncNow));
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) void safe(syncNow)();
+  });
+  window.addEventListener("storage", (event) => {
+    if (event.key?.startsWith("eazy-trading-workspace-v1:"))
+      void safe(syncNow)();
+  });
+  setInterval(() => void safe(syncNow)(), 5000);
   window.addEventListener("pagehide", () => {
     store.cache();
     if (store.dirty && !store.conflict)
@@ -782,18 +849,21 @@ export function createProduct({
       return active();
     },
     resumed(id: any) {
-      ws().settings.activeSessionId = id;
-      changed();
+      if (ws().settings.activeSessionId !== id) {
+        ws().settings.activeSessionId = id;
+        if (!applyingRemote) changed();
+      }
       fillStrategies();
       updateHeader();
     },
     saveDrawings(drawings: any) {
-      if (!loaded || !active()) return;
+      if (!loaded || applyingRemote || !active()) return;
       active().drawings = drawings;
       store.changed();
     },
     preferencesChanged(p: any) {
-      if (!loaded) return;
+      if (!loaded || applyingRemote) return;
+      if (JSON.stringify(ws().settings.chartPreferences) === JSON.stringify(p)) return;
       ws().settings.chartPreferences = structuredClone(p);
       store.changed();
     },
