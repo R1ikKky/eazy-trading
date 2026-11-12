@@ -46,18 +46,6 @@
 .mt5-connect p {
   color: var(--text-muted, #a4adb7);
 }
-.mt5-connect ol {
-  display: grid;
-  gap: 14px;
-  padding-left: 22px;
-}
-.mt5-connect > label {
-  margin: 14px 0;
-}
-.mt5-connect li .button {
-  margin: 8px 0;
-  width: fit-content;
-}
 .mt5-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

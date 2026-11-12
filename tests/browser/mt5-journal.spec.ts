@@ -1,50 +1,44 @@
 import { test, expect } from "@playwright/test";
 import { authenticateTestPage } from "./auth-helper";
 
-test("Windows pairing uses no broker password and gates sync on this PC connection", async ({
+test("Legacy account reconnects online without desktop controls or stale errors", async ({
   page,
 }) => {
   await authenticateTestPage(page, "en");
   const id = "00000000-0000-4000-8000-000000000002";
-  let account: any = null;
+  let account: any = {
+    id,
+    label: "FundingPips",
+    login: "12345678",
+    server: "FundingPips-SIM1",
+    syncLocation: "local",
+    connected: false,
+    workerOnline: false,
+    currency: null,
+    lastSync: null,
+    job: { status: "failed", error: "TERMINAL_UNAVAILABLE" },
+  };
   let payload: any;
-  let online = false;
-  const pairingKey = id + "." + "x".repeat(43);
+  let synced = false;
   await page.route("**/api/mt5/**", async (route) => {
     const request = route.request(),
       path = new URL(request.url()).pathname;
-    let data: any;
+    let data: any = {};
     if (path.endsWith("/connections") && request.method() === "GET")
-      data = {
-        configured: true,
-        workerOnline: true,
-        accounts: account ? [{ ...account, workerOnline: online }] : [],
-      };
+      data = { configured: true, workerOnline: true, accounts: [account] };
     else if (path.endsWith("/connections") && request.method() === "POST") {
       payload = request.postDataJSON();
       account = {
-        id,
-        label: payload.label,
-        login: payload.login,
-        server: payload.server,
+        ...account,
         syncLocation: payload.mode,
-        workerOnline: false,
-        connected: false,
-        lastSync: null,
-        currency: null,
+        connected: true,
+        workerOnline: true,
         job: null,
       };
       data = { id };
-    } else if (path.endsWith("/windows")) {
-      account.connected = true;
-      data = {
-        token: pairingKey,
-        login: account.login,
-        server: account.server,
-      };
-    } else if (path.endsWith("/local/heartbeat")) {
-      online = true;
-      data = { login: account.login, server: account.server };
+    } else if (path.endsWith("/sync")) {
+      synced = true;
+      data = { status: "queued" };
     } else
       data = {
         trades: [],
@@ -67,58 +61,25 @@ test("Windows pairing uses no broker password and gates sync on this PC connecti
     { timeout: 30000 },
   );
   await page.getByRole("button", { name: "MT5", exact: true }).click();
-  await page.getByRole("button", { name: "Connect MT5", exact: true }).click();
-  await page.getByRole("button", { name: "Windows PC", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Windows PC", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
+    page.getByText("Reconnect this account", { exact: false }),
+  ).toBeVisible();
+  await expect(page.locator(".mt5-journal")).not.toContainText("Windows");
   await expect(
-    page.getByLabel("Investor password", { exact: true }),
+    page.getByText("MT5 sync is temporarily unavailable.", { exact: false }),
   ).toHaveCount(0);
-  await page.getByLabel("MT5 account number", { exact: true }).fill("12345678");
-  await page
-    .getByRole("button", { name: "Save connection", exact: true })
-    .click();
-  await expect(
-    page.getByRole("button", { name: "Use Windows PC", exact: true }),
-  ).toBeVisible();
-  expect(payload.mode).toBe("local");
-  expect(payload.password).toBeUndefined();
-  await page
-    .getByRole("button", { name: "Use Windows PC", exact: true })
-    .click();
-  await expect(
-    page.getByLabel("One-time pairing key", { exact: true }),
-  ).toHaveValue(pairingKey);
   await expect(
     page.getByRole("button", { name: "Sync now", exact: true }),
-  ).toBeDisabled();
-  await expect(
-    page.getByText("Your Windows connector is offline.", { exact: false }),
-  ).toBeVisible();
-  const download = page.waitForEvent("download");
+  ).toHaveCount(0);
   await page
-    .getByRole("link", { name: "Download Windows connector", exact: true })
+    .getByRole("button", { name: "Reconnect account", exact: true })
     .click();
-  expect((await download).suggestedFilename()).toBe(
-    "eazy-trading-windows-connector.zip",
-  );
-  const artifact = await page.request.get(
-    "/downloads/eazy-trading-windows-connector.zip",
-  );
-  expect(artifact.ok()).toBeTruthy();
-  expect((await artifact.body()).subarray(0, 2).toString()).toBe("PK");
-  await page.evaluate(() =>
-    fetch("/api/mt5/local/heartbeat", { method: "POST" }),
-  );
-  await expect(
-    page.getByRole("button", { name: "Sync now", exact: true }),
-  ).toBeEnabled({ timeout: 15000 });
-  await page.getByRole("button", { name: "Connect MT5", exact: true }).click();
   await expect(
     page.getByLabel("MT5 account number", { exact: true }),
   ).toHaveValue("12345678");
-  await page.getByRole("button", { name: "Online sync", exact: true }).click();
+  await expect(page.getByRole("group", { name: "Sync location" })).toHaveCount(
+    0,
+  );
   await page
     .getByLabel("Investor password", { exact: true })
     .fill("synthetic-investor-password");
@@ -126,15 +87,15 @@ test("Windows pairing uses no broker password and gates sync on this PC connecti
     .getByRole("button", { name: "Save connection", exact: true })
     .click();
   await expect(
-    page.getByLabel("One-time pairing key", { exact: true }),
-  ).toHaveCount(0);
+    page.getByRole("button", { name: "Sync now", exact: true }),
+  ).toBeEnabled();
   expect(payload.mode).toBe("server");
   expect(payload.login).toBe("12345678");
-  await page.getByRole("button", { name: "Replay", exact: true }).click();
-  await page.getByRole("button", { name: "MT5", exact: true }).click();
   await expect(
-    page.getByLabel("One-time pairing key", { exact: true }),
+    page.getByText("Reconnect this account", { exact: false }),
   ).toHaveCount(0);
+  await page.getByRole("button", { name: "Sync now", exact: true }).click();
+  await expect.poll(() => synced).toBe(true);
 });
 
 test("MT5 setup status is honest and replay journal remains accessible", async ({
@@ -266,8 +227,8 @@ test("MT5 investor connection, sync and notes UI use separate broker ledger at l
   await page.getByRole("button", { name: "Connect MT5", exact: true }).click();
   await page.getByLabel("MT5 account number", { exact: true }).fill("12345678");
   await expect(
-    page.getByRole("button", { name: "Online sync", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
+    page.getByRole("button", { name: "Windows PC", exact: true }),
+  ).toHaveCount(0);
   await page
     .getByLabel("Investor password", { exact: true })
     .fill("synthetic-investor-password");
