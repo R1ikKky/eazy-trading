@@ -63,6 +63,22 @@ test("Disconnected account uses the standard connect flow without legacy notices
   await page.getByRole("button", { name: "MT5", exact: true }).click();
   await expect(page.locator(".mt5-journal")).not.toContainText("Reconnect");
   await expect(
+    page.getByRole("button", { name: "Connect account", exact: true }),
+  ).toHaveCount(1);
+  const source = page.getByRole("group", {
+    name: "Journal source",
+    exact: true,
+  });
+  const alignment = await source.evaluate((element) => {
+    const bounds = element.getBoundingClientRect(),
+      parent = element.parentElement!.getBoundingClientRect();
+    return Math.abs(
+      (bounds.left + bounds.right) / 2 - (parent.left + parent.right) / 2,
+    );
+  });
+  expect(alignment).toBeLessThanOrEqual(1);
+
+  await expect(
     page.getByRole("button", { name: "Disconnect", exact: true }),
   ).toHaveCount(0);
   await expect(page.locator(".mt5-journal")).not.toContainText("Windows");
@@ -113,7 +129,9 @@ test("MT5 setup status is honest and replay journal remains accessible", async (
   await expect(
     page.getByText("MT5 sync is waiting for server setup.", { exact: false }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Connect MT5", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Connect account", exact: true })
+    .click();
   await expect(page.getByLabel("Server", { exact: true })).toHaveValue(
     "FundingPips-SIM1",
   );
@@ -225,7 +243,9 @@ test("MT5 investor connection, sync and notes UI use separate broker ledger at l
     { timeout: 30000 },
   );
   await page.getByRole("button", { name: "MT5", exact: true }).click();
-  await page.getByRole("button", { name: "Connect MT5", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Connect account", exact: true })
+    .click();
   await page.getByLabel("MT5 account number", { exact: true }).fill("12345678");
   await expect(
     page.getByRole("button", { name: "Windows PC", exact: true }),

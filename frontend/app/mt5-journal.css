@@ -9,7 +9,21 @@
   flex-wrap: wrap;
 }
 .journal-source-tabs {
-  margin-bottom: 24px;
+  width: fit-content;
+  margin: 0 auto 24px;
+  padding: 4px;
+  gap: 4px;
+  flex-wrap: nowrap;
+  border: 1px solid var(--border, #363a40);
+  border-radius: 14px;
+  background: var(--surface, #171a1e);
+}
+.journal-source-tabs .button {
+  min-width: 88px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
 }
 .journal-source-tabs .active,
 .mt5-accounts .active {

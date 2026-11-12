@@ -227,11 +227,12 @@ export function Mt5Journal({ active }: { active: boolean }) {
           ))}
         </div>
         <button
-          className="button secondary compact"
+          className="button primary compact"
           type="button"
+          aria-expanded={form}
           onClick={() => setForm((v) => !v)}
         >
-          {tr("Connect MT5", "Подключить MT5")}
+          {tr("Connect account", "Подключить счёт")}
         </button>
       </div>
       {error && (
@@ -353,15 +354,7 @@ export function Mt5Journal({ active }: { active: boolean }) {
                 </p>
               </div>
               <div className="mt5-actions">
-                {!connected ? (
-                  <button
-                    className="button primary compact"
-                    disabled={busy}
-                    onClick={() => setForm(true)}
-                  >
-                    {tr("Connect account", "Подключить счёт")}
-                  </button>
-                ) : (
+                {connected && (
                   <button
                     className="button primary compact"
                     disabled={busy || running || !online}
