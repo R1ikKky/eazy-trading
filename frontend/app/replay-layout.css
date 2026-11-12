@@ -40,7 +40,7 @@ body.product-app #chartCard > :not(.chart-panes) {
     padding-right: 0;
   }
   body.product-app #view-replay #chartCard {
-    height: calc(100dvh - 104px);
+    height: calc(100dvh - 154px);
   }
 }
 @media (max-height: 540px) {

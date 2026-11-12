@@ -19,6 +19,13 @@ export function ReplayWorkspace() {
   const router = useRouter();
   const pathname = usePathname();
   const currentView = workspaceView(pathname);
+  const pageLabel = {
+    replay: "Backtesting",
+    sessions: translate("Сессии"),
+    journal: translate("Журнал сделок"),
+    analytics: translate("Аналитика"),
+    playbooks: translate("Стратегии"),
+  }[currentView];
   const [journalSource, setJournalSource] = useState<"replay" | "mt5">(
     "replay",
   );
@@ -48,93 +55,103 @@ export function ReplayWorkspace() {
   }, []);
   return (
     <>
-      <aside className="app-sidebar">
-        <Link className="brand" href="/sessions" aria-label="eazy trading">
-          <span className="brand-mark">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="m8 5 11 7-11 7V5Z" />
-            </svg>
-          </span>
-          <span>
-            eazy<span className="brand-light"> trading</span>
-            <small>TRADING WORKSPACE</small>
-          </span>
-        </Link>
-        <div className="sidebar-caption">{translate("РАБОЧАЯ ОБЛАСТЬ")}</div>
-        <nav className="app-nav" aria-label={translate("Основная навигация")}>
+      <header className="workspace-header">
+        <div className="workspace-identity">
           <Link
-            href="/replay"
-            scroll={false}
-            className={
-              currentView === "replay" ? "nav-item active" : "nav-item"
-            }
-            data-view="replay"
-            aria-label="Replay"
-            aria-current={currentView === "replay" ? "page" : false}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="m9 5 10 7-10 7V5Z" />
-              <path d="M4 5v14" />
-            </svg>
-            <span>Replay</span>
-            <span className="nav-live-dot" aria-hidden="true" />
-          </Link>
-          <Link
+            className="brand workspace-brand"
             href="/sessions"
-            scroll={false}
-            className={
-              currentView === "sessions" ? "nav-item active" : "nav-item"
-            }
-            data-view="sessions"
-            aria-label={translate("Сессии")}
-            aria-current={currentView === "sessions" ? "page" : false}
+            aria-label="eazy trading"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x={4} y={5} width={16} height={15} rx={2} />
-              <path d="M8 3v4M16 3v4M4 11h16M8 15h3M14 15h2" />
-            </svg>
-            <span>{translate("Сессии")}</span>
+            <span className="brand-mark">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m8 5 11 7-11 7V5Z" />
+              </svg>
+            </span>
+            <span className="brand-text">
+              eazy<span className="brand-light">trading</span>
+            </span>
           </Link>
-          <Link
-            href="/journal"
-            scroll={false}
-            className={
-              currentView === "journal" ? "nav-item active" : "nav-item"
-            }
-            data-view="journal"
-            aria-label={translate("Журнал")}
-            aria-current={currentView === "journal" ? "page" : false}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2ZM8 8h7M8 12h7M8 16h4" />
-            </svg>
-            <span>{translate("Журнал")}</span>
-          </Link>
-          <Link
-            href="/analytics"
-            scroll={false}
-            className={
-              currentView === "analytics" ? "nav-item active" : "nav-item"
-            }
-            data-view="analytics"
-            aria-label={translate("Аналитика")}
-            aria-current={currentView === "analytics" ? "page" : false}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 20V5M4 20h17M8 16v-4M13 16V8M18 16V3" />
-            </svg>
-            <span>{translate("Аналитика")}</span>
-          </Link>
-        </nav>
-        <div className="sidebar-account">
-          <AccountMenu />
-          <span id="saveStatus" className="save-status" role="status">
-            <span className="status-dot" />
-            {translate("Сохранено локально")}
+          <span className="workspace-page-separator" aria-hidden="true">
+            /
           </span>
-          <AppearanceSettings />
+          <h1 className="workspace-page-title">{pageLabel}</h1>
         </div>
-      </aside>
+        <aside className="app-sidebar">
+          <nav className="app-nav" aria-label={translate("Основная навигация")}>
+            <Link
+              href="/replay"
+              scroll={false}
+              className={
+                currentView === "replay" ? "nav-item active" : "nav-item"
+              }
+              data-view="replay"
+              aria-label="Backtesting"
+              aria-current={currentView === "replay" ? "page" : false}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m9 5 10 7-10 7V5Z" />
+                <path d="M4 5v14" />
+              </svg>
+              <span>Backtesting</span>
+              <span className="nav-live-dot" aria-hidden="true" />
+            </Link>
+            <Link
+              href="/sessions"
+              scroll={false}
+              className={
+                currentView === "sessions" ? "nav-item active" : "nav-item"
+              }
+              data-view="sessions"
+              aria-label={translate("Сессии")}
+              aria-current={currentView === "sessions" ? "page" : false}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x={4} y={5} width={16} height={15} rx={2} />
+                <path d="M8 3v4M16 3v4M4 11h16M8 15h3M14 15h2" />
+              </svg>
+              <span>{translate("Сессии")}</span>
+            </Link>
+            <Link
+              href="/journal"
+              scroll={false}
+              className={
+                currentView === "journal" ? "nav-item active" : "nav-item"
+              }
+              data-view="journal"
+              aria-label={translate("Журнал")}
+              aria-current={currentView === "journal" ? "page" : false}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2ZM8 8h7M8 12h7M8 16h4" />
+              </svg>
+              <span>{translate("Журнал")}</span>
+            </Link>
+            <Link
+              href="/analytics"
+              scroll={false}
+              className={
+                currentView === "analytics" ? "nav-item active" : "nav-item"
+              }
+              data-view="analytics"
+              aria-label={translate("Аналитика")}
+              aria-current={currentView === "analytics" ? "page" : false}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 20V5M4 20h17M8 16v-4M13 16V8M18 16V3" />
+              </svg>
+              <span>{translate("Аналитика")}</span>
+            </Link>
+          </nav>
+          <div className="sidebar-account">
+            <AccountMenu />
+            <span id="saveStatus" className="save-status" role="status">
+              <span className="status-dot" />
+              {translate("Сохранено локально")}
+            </span>
+            <AppearanceSettings />
+          </div>
+        </aside>
+      </header>
       <div className="app-shell">
         <main className="product-main">
           <section
@@ -636,10 +653,7 @@ export function ReplayWorkspace() {
             data-app-view="sessions"
             hidden={currentView !== "sessions"}
           >
-            <div className="view-heading">
-              <div>
-                <h1>{translate("Сессии")}</h1>
-              </div>
+            <div className="view-heading workspace-page-actions">
               <div className="heading-actions">
                 <Link
                   href="/strategies"
@@ -666,12 +680,6 @@ export function ReplayWorkspace() {
             data-app-view="journal"
             hidden={currentView !== "journal"}
           >
-            <div className="view-heading">
-              <div>
-                <p className="eyebrow">TRADE JOURNAL</p>
-                <h1>{translate("Журнал сделок")}</h1>
-              </div>
-            </div>
             <div
               className="journal-source-tabs"
               role="group"
@@ -764,17 +772,6 @@ export function ReplayWorkspace() {
             data-app-view="analytics"
             hidden={currentView !== "analytics"}
           >
-            <div className="view-heading">
-              <div>
-                <p className="eyebrow">PERFORMANCE</p>
-                <h1>{translate("Аналитика торговли")}</h1>
-                <p className="heading-description">
-                  {translate(
-                    "Результаты, риски и закономерности по вашим закрытым сделкам.",
-                  )}
-                </p>
-              </div>
-            </div>
             <div id="analyticsContent" className="view-content" />
           </section>
           <section
@@ -783,15 +780,6 @@ export function ReplayWorkspace() {
             data-app-view="playbooks"
             hidden={currentView !== "playbooks"}
           >
-            <div className="view-heading">
-              <div>
-                <p className="eyebrow">YOUR EDGE</p>
-                <h1>{translate("Мои стратегии")}</h1>
-                <p className="heading-description">
-                  {translate("Правила сетапов и дисциплина исполнения.")}
-                </p>
-              </div>
-            </div>
             <div id="playbooksContent" className="view-content" />
           </section>
         </main>

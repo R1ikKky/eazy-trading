@@ -203,3 +203,65 @@ body.product-app:has(#view-replay:not([hidden])) .workspace-grid { grid-template
   body.product-app .product-main,
   body.product-app:has(#view-replay:not([hidden])) .product-main { padding-top: 82px; scroll-padding-top: 82px; }
 }
+
+/* Page identity stays separate from the centered navigation island. */
+body.product-app .workspace-header {
+  position: fixed;
+  inset: 26px 48px auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  z-index: 100;
+  pointer-events: none;
+}
+body.product-app .workspace-header > * { pointer-events: auto; }
+body.product-app .workspace-header .app-sidebar {
+  position: static;
+  inset: auto;
+  transform: none;
+  max-width: 100%;
+}
+body.product-app .workspace-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--text);
+}
+body.product-app .workspace-header .workspace-brand {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 9px;
+  padding: 0;
+  font-size: 20px;
+}
+body.product-app .workspace-header .workspace-brand > .brand-text {
+  display: flex;
+  flex-direction: row;
+  white-space: nowrap;
+}
+body.product-app .workspace-page-separator { color: var(--text-muted); font-size: 23px; font-weight: 300; }
+body.product-app .workspace-page-title {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 20px;
+  font-weight: 450;
+  letter-spacing: -.025em;
+}
+body.product-app .workspace-page-actions { justify-content: flex-end; }
+@media (max-width: 1180px) {
+  body.product-app .workspace-header { grid-template-columns: minmax(0, 1fr) auto; gap: 16px; }
+  body.product-app .workspace-header .workspace-brand,
+  body.product-app .workspace-page-title { font-size: 18px; }
+}
+@media (max-width: 640px) {
+  body.product-app .workspace-header { inset: 18px 22px auto; display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+  body.product-app .workspace-header .app-sidebar { align-self: center; }
+  body.product-app .product-main,
+  body.product-app:has(#view-replay:not([hidden])) .product-main { padding-top: 132px; scroll-padding-top: 132px; }
+}
