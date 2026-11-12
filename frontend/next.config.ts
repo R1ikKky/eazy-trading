@@ -4,7 +4,13 @@ import { resolve } from "node:path";
 loadEnv({ path: resolve(__dirname, "../.env"), quiet: true });
 const config: NextConfig = {
   reactStrictMode: true,
-  experimental: { proxyClientMaxBodySize: "21mb" },
+  output: "standalone",
+  outputFileTracingRoot: resolve(__dirname, ".."),
+  experimental: {
+    proxyClientMaxBodySize: "21mb",
+    cpus: 1,
+    webpackMemoryOptimizations: true,
+  },
   async rewrites() {
     return [
       {

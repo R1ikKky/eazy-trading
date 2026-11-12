@@ -1,5 +1,6 @@
 """One on-demand MT5 terminal per job. No passwords in argv, logs or persistent volumes."""
 import json
+import hashlib
 import os
 from pathlib import Path
 import shutil
@@ -16,6 +17,19 @@ API = os.environ.get("MT5_API_URL", "http://api:3001/api/mt5").rstrip("/")
 ORIGIN = os.environ.get("PUBLIC_ORIGIN", "")
 TOKEN = os.environ.get("MT5_WORKER_TOKEN", "")
 KNOWN_ERRORS = {"LOGIN_FAILED", "READ_ONLY_REQUIRED", "ACCOUNT_MISMATCH", "HISTORY_FAILED", "HISTORY_TOO_LARGE", "TERMINAL_UNAVAILABLE", "COLLECTOR_FAILED"}
+
+def validate_seed(seed=SEED):
+    for name in ('terminal64.exe', 'Config/servers.dat', 'EazyJournal.ex5', 'collector.json'):
+        if not (seed / name).is_file():
+            raise ValueError('MT5 seed is incomplete. Complete the current one-time setup first.')
+    if (seed / 'collector.json').stat().st_size > 4096 or not 0 < (seed / 'EazyJournal.ex5').stat().st_size <= 5 * 1024 * 1024:
+        raise ValueError('Invalid compiled collector metadata or size.')
+    manifest = json.loads((seed / 'collector.json').read_text(encoding='utf-8'))
+    if not isinstance(manifest, dict):
+        raise ValueError('Invalid compiled collector metadata.')
+    source = Path(__file__).with_name('EazyJournal.mq5')
+    if manifest.get('sourceSha256') != hashlib.sha256(source.read_bytes()).hexdigest() or manifest.get('binarySha256') != hashlib.sha256((seed / 'EazyJournal.ex5').read_bytes()).hexdigest():
+        raise ValueError('The compiled MT5 collector does not match this worker. Rebuild the terminal seed with the current setup.')
 
 def request(path, value):
     data = json.dumps(value, separators=(",", ":"), allow_nan=False).encode()
@@ -64,13 +78,13 @@ def execute(job):
         root = Path(directory)
         terminal = root / "terminal"
         terminal.mkdir()
-        for binary in ("terminal64.exe", "metaeditor64.exe"):
+        for binary in ("terminal64.exe",):
             shutil.copy2(SEED / binary, terminal / binary)
         (terminal / "Config").mkdir()
         shutil.copy2(SEED / "Config" / "servers.dat", terminal / "Config" / "servers.dat")
         scripts = terminal / "MQL5" / "Scripts"
         scripts.mkdir(parents=True)
-        shutil.copy2(Path(__file__).with_name("EazyJournal.mq5"), scripts / "EazyJournal.mq5")
+        shutil.copy2(SEED / 'EazyJournal.ex5', scripts / 'EazyJournal.ex5')
         env = {**os.environ, "WINEPREFIX": str(root / "wine"), "WINEDEBUG": "-all", "WINEDLLOVERRIDES": "mscoree,mshtml=", "DISPLAY": ":99"}
         # Do not expose the API token to Wine or the terminal process environment.
         env.pop("MT5_WORKER_TOKEN", None)
@@ -80,11 +94,10 @@ def execute(job):
         def windows(path):
             return "Z:" + str(path).replace("/", "\\")
         process = None
+        display = None
         try:
+            display = subprocess.Popen(['Xvfb', ':99', '-screen', '0', '1024x768x24', '-nolisten', 'tcp'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             wine("winecfg", "-v=win11", timeout=90)
-            wine(str(terminal / "metaeditor64.exe"), "/portable", "/compile:" + windows(scripts / "EazyJournal.mq5"), "/log:" + windows(root / "compile.log"), timeout=120)
-            if not (scripts / "EazyJournal.ex5").is_file():
-                raise ValueError("TERMINAL_UNAVAILABLE")
             config = root / "login.ini"
             symbol = os.environ.get("MT5_BOOT_SYMBOL", "EURUSD")
             if not symbol or len(symbol) > 64 or any(ord(c) < 32 or c in "=[]" for c in symbol):
@@ -106,16 +119,21 @@ def execute(job):
         finally:
             if process is not None and process.poll() is None:
                 process.terminate()
-            subprocess.run(["wineserver", "-k"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15, check=False)
-            subprocess.run(["wineserver", "-w"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15, check=False)
+            try:
+                subprocess.run(["wineserver", "-k"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15, check=False)
+                subprocess.run(["wineserver", "-w"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15, check=False)
+            finally:
+                if display is not None:
+                    display.terminate()
+                    display.wait(timeout=5)
 
 def main():
     if len(TOKEN) < 32 or not ORIGIN or not API.startswith(("http://api:3001/", "http://127.0.0.1:", "https://")):
         raise SystemExit("MT5 worker configuration is missing or invalid.")
-    for name in ("terminal64.exe", "metaeditor64.exe", "Config/servers.dat"):
-        if not (SEED / name).is_file():
-            raise SystemExit("MT5 terminal seed is missing. Follow docs/mt5.md before starting the worker.")
-    display = subprocess.Popen(["Xvfb", ":99", "-screen", "0", "1024x768x24", "-nolisten", "tcp"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        validate_seed()
+    except (ValueError, OSError, KeyError):
+        raise SystemExit('MT5 seed is missing, outdated or invalid. Follow docs/mt5.md before starting the worker.') from None
     stop = threading.Event()
     # Polls also act as a worker heartbeat while a Wine job is running.
     def heartbeat():
@@ -158,7 +176,6 @@ def main():
                 time.sleep(10)
     finally:
         stop.set()
-        display.terminate()
 
 if __name__ == "__main__":
     main()

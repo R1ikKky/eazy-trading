@@ -27,7 +27,7 @@ test("Windows pairing uses no broker password and gates sync on this PC connecti
         label: payload.label,
         login: payload.login,
         server: payload.server,
-        syncLocation: "local",
+        syncLocation: payload.mode,
         workerOnline: false,
         connected: false,
         lastSync: null,
@@ -68,6 +68,7 @@ test("Windows pairing uses no broker password and gates sync on this PC connecti
   );
   await page.getByRole("button", { name: "MT5", exact: true }).click();
   await page.getByRole("button", { name: "Connect MT5", exact: true }).click();
+  await page.getByRole("button", { name: "Windows PC", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Windows PC", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
@@ -113,6 +114,22 @@ test("Windows pairing uses no broker password and gates sync on this PC connecti
   await expect(
     page.getByRole("button", { name: "Sync now", exact: true }),
   ).toBeEnabled({ timeout: 15000 });
+  await page.getByRole("button", { name: "Connect MT5", exact: true }).click();
+  await expect(
+    page.getByLabel("MT5 account number", { exact: true }),
+  ).toHaveValue("12345678");
+  await page.getByRole("button", { name: "Online sync", exact: true }).click();
+  await page
+    .getByLabel("Investor password", { exact: true })
+    .fill("synthetic-investor-password");
+  await page
+    .getByRole("button", { name: "Save connection", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("One-time pairing key", { exact: true }),
+  ).toHaveCount(0);
+  expect(payload.mode).toBe("server");
+  expect(payload.login).toBe("12345678");
   await page.getByRole("button", { name: "Replay", exact: true }).click();
   await page.getByRole("button", { name: "MT5", exact: true }).click();
   await expect(
@@ -248,7 +265,9 @@ test("MT5 investor connection, sync and notes UI use separate broker ledger at l
   await page.getByRole("button", { name: "MT5", exact: true }).click();
   await page.getByRole("button", { name: "Connect MT5", exact: true }).click();
   await page.getByLabel("MT5 account number", { exact: true }).fill("12345678");
-  await page.getByRole("button", { name: "VPS worker", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Online sync", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
   await page
     .getByLabel("Investor password", { exact: true })
     .fill("synthetic-investor-password");

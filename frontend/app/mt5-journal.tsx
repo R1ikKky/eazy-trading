@@ -119,7 +119,7 @@ export function Mt5Journal({ active }: { active: boolean }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState(false);
-  const [mode, setMode] = useState<"local" | "server">("local");
+  const [mode, setMode] = useState<"local" | "server">("server");
   const [pairing, setPairing] = useState<{ id: string; token: string } | null>(
     null,
   );
@@ -283,6 +283,7 @@ export function Mt5Journal({ active }: { active: boolean }) {
               });
               element.reset();
               setId(result.id);
+              setPairing(null);
               setJournal(null);
               setForm(false);
             });
@@ -324,7 +325,7 @@ export function Mt5Journal({ active }: { active: boolean }) {
               aria-pressed={mode === "server"}
               onClick={() => setMode("server")}
             >
-              {tr("VPS worker", "Сервис на VPS")}
+              {tr("Online sync", "Онлайн-синхронизация")}
             </button>
           </div>
           <div className="mt5-form-grid">
@@ -332,7 +333,7 @@ export function Mt5Journal({ active }: { active: boolean }) {
               {tr("Account label", "Название счёта")}
               <input
                 name="label"
-                defaultValue="FundingPips"
+                defaultValue={account?.label || "FundingPips"}
                 required
                 maxLength={80}
                 autoComplete="off"
@@ -342,6 +343,7 @@ export function Mt5Journal({ active }: { active: boolean }) {
               {tr("MT5 account number", "Номер счёта MT5")}
               <input
                 name="login"
+                defaultValue={account?.login || ""}
                 inputMode="numeric"
                 pattern="[0-9]{1,20}"
                 required

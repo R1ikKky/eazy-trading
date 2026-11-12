@@ -7,7 +7,7 @@ services:
     command: ["python3", "/app/setup.py"]
     stdin_open: true
     tty: true
-    ports: ["127.0.0.1:5901:5900"]
+    ports: ["127.0.0.1:5901:5900", "127.0.0.1:6080:6080"]
     volumes:
       - ${MT5_TERMINAL_SEED:-./.local-data/mt5-seed}:/seed
     mem_limit: 1536m

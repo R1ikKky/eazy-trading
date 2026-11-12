@@ -9,19 +9,15 @@ COPY packages/orderflow ./packages/orderflow
 COPY frontend ./frontend
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV API_INTERNAL_URL=http://api:3001
-RUN npm run build:frontend
+RUN NODE_OPTIONS=--max-old-space-size=1024 npm run build:frontend
 
 FROM node:24-bookworm-slim
 WORKDIR /app
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
-COPY --from=build --chown=node:node /app/package*.json ./
-COPY --from=build --chown=node:node /app/node_modules ./node_modules
-COPY --from=build --chown=node:node /app/packages/orderflow ./packages/orderflow
-COPY --from=build --chown=node:node /app/frontend/package.json ./frontend/package.json
-COPY --from=build --chown=node:node /app/frontend/.next ./frontend/.next
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
+COPY --from=build --chown=node:node /app/frontend/.next/standalone ./
+COPY --from=build --chown=node:node /app/frontend/.next/static ./frontend/.next/static
 COPY --from=build --chown=node:node /app/frontend/public ./frontend/public
-COPY --from=build --chown=node:node /app/frontend/next.config.ts ./frontend/next.config.ts
 USER node
 WORKDIR /app/frontend
 EXPOSE 3000
-CMD ["node", "../node_modules/next/dist/bin/next", "start", "--hostname", "0.0.0.0"]
+CMD ["node", "server.js"]

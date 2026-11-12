@@ -8,6 +8,9 @@ RUN dpkg --add-architecture i386 \
     && apt-get install -y --no-install-recommends xvfb python3 fonts-liberation openbox x11vnc \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 10001 connector && mkdir /work && chown connector:connector /work
+# Setup-only browser access; keep the large Wine dependency layer reusable.
+RUN apt-get update && apt-get install -y --no-install-recommends novnc websockify \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY connectors/mt5/worker.py connectors/mt5/setup.py connectors/mt5/EazyJournal.mq5 ./
 USER connector
