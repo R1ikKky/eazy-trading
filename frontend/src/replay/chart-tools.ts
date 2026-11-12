@@ -6,6 +6,7 @@ import {
   loadSettings,
   settingsColor,
   chartDate,
+  chartTimeScale,
   isRegularSession,
   isExtendedSession,
   sanitizeSettings,
@@ -233,12 +234,6 @@ export function createChartTools({
             bottomColor: settingsColor(prefs, "backgroundBottom"),
           }
         : { type: "solid", color: settingsColor(prefs, "background") };
-    const clock = new Intl.DateTimeFormat("en-US", {
-      timeZone: prefs.timezone,
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: prefs.hoursFormat === "12",
-    });
     const priceScale = prefs.scalePlacement === "left" ? "left" : "right",
       line = settingsColor(prefs, "scaleLines");
     const scaleMode = {
@@ -298,10 +293,7 @@ export function createChartTools({
         rightOffset: prefs.marginRight,
         borderColor: line,
         borderVisible: (prefs.colorOpacity.scaleLines ?? 100) > 0,
-        tickMarkFormatter: (t, type) =>
-          type <= 2
-            ? chartDate(t, prefs, true)
-            : clock.format(new Date(t * 1000)),
+        ...chartTimeScale(prefs),
       },
       rightPriceScale: { ...scaleOptions, visible: priceScale === "right" },
       leftPriceScale: { ...scaleOptions, visible: priceScale === "left" },

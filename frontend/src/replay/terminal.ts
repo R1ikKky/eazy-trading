@@ -3,6 +3,7 @@ import { contracts, aggregate } from "./engine";
 import {
   settingsColor,
   chartDate,
+  chartTimeScale,
   isRegularSession,
   barTime,
 } from "./settings-model";
@@ -241,7 +242,7 @@ export function createComparison({
         },
         grid: { vertLines: { visible: false }, horzLines: { visible: false } },
         localization: { timeFormatter: (t) => chartDate(t, p) },
-        timeScale: { tickMarkFormatter: (t) => chartDate(t, p, true) },
+        timeScale: chartTimeScale(p),
       });
       const revealed = (d?.bars || [])
         .filter(

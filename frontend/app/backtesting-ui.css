@@ -1,0 +1,367 @@
+/* Chart-first workspace: quiet chart tools, distinct playback and execution. */
+body.product-app #view-replay #chartCard {
+  border-radius: 18px;
+  border-color: var(--border-strong);
+}
+body.product-app #view-replay .chart-toolbar {
+  padding: 8px 12px;
+  border-radius: 18px 18px 0 0;
+  background: var(--surface-soft);
+}
+body.product-app #view-replay .chart-tools {
+  min-width: 0;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+body.product-app #view-replay .timeframes {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--canvas);
+}
+body.product-app #view-replay .timeframes button {
+  flex: none;
+  min-width: 32px;
+  height: 30px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+body.product-app #view-replay .timeframes button.selected {
+  color: var(--text);
+  background: var(--surface-raised);
+  box-shadow: 0 1px 3px #0002;
+}
+body.product-app #view-replay .drawing-status {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex: 1;
+  gap: 10px;
+  min-width: 0;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+body.product-app #drawingHint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.product-app #drawingCount {
+  font-variant-numeric: tabular-nums;
+}
+body.product-app #view-replay :is(#compareToggle, #settingsOpen) {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  flex: none;
+  gap: 7px;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+body.product-app #view-replay #compareToggle[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--text);
+  background: var(--accent-soft);
+}
+body.product-app #view-replay .chart-legend,
+body.product-app #view-replay .comparison-header {
+  min-height: 42px;
+}
+body.product-app #view-replay .pane-notice {
+  margin: 0;
+  padding: 6px 12px;
+  font-size: 10px;
+}
+body.product-app #view-replay .replay-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 18px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--border-strong);
+  background: var(--surface-soft);
+}
+body.product-app #view-replay .replay-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px 18px;
+  min-width: 0;
+}
+body.product-app #view-replay .replay-transport {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 6px;
+}
+body.product-app #view-replay .replay-transport :is(button, .replay-select) {
+  height: 36px;
+  min-height: 36px;
+}
+body.product-app #view-replay .replay-transport #play {
+  min-width: 88px;
+  gap: 8px;
+  border-radius: 9px;
+  font-size: 12px;
+  box-shadow: none;
+}
+body.product-app #view-replay .replay-transport #step {
+  width: 34px;
+  min-width: 34px;
+  border-radius: 9px;
+}
+body.product-app #view-replay #sessionSkip {
+  border-radius: 9px;
+  font-size: 11px;
+}
+body.product-app #view-replay .replay-transport .replay-select {
+  width: 64px;
+  min-width: 64px;
+  border-radius: 9px;
+  font-size: 11px;
+}
+body.product-app #view-replay .quick-order {
+  align-items: flex-end;
+  gap: 8px;
+  padding-left: 18px;
+  border-left: 1px solid var(--border-strong);
+}
+body.product-app #view-replay .quick-order-instrument {
+  align-self: center;
+  padding: 0;
+  font-size: 12px;
+  gap: 3px;
+}
+body.product-app #view-replay .quick-order-instrument small {
+  font-size: 9px;
+}
+body.product-app #view-replay .quick-order .order-fields {
+  grid-template-columns: 88px 136px;
+  grid-template-rows: 14px 36px;
+  gap: 4px 8px;
+}
+body.product-app #view-replay .quick-order label {
+  height: 14px;
+  font-size: 10px;
+  line-height: 14px;
+}
+body.product-app #view-replay .quick-order .stepper {
+  width: 88px;
+  height: 36px;
+  border-radius: 8px;
+}
+body.product-app #view-replay .quick-order .stepper button {
+  height: 36px;
+  width: 22px;
+  flex-basis: 22px;
+}
+body.product-app #view-replay .quick-order .stepper input {
+  width: 44px;
+  height: 36px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+body.product-app #view-replay .quick-order .field-pair {
+  gap: 8px;
+}
+body.product-app #view-replay .quick-order .field-pair input {
+  width: 64px;
+  height: 36px;
+  margin-top: 4px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+body.product-app #view-replay .quick-order .trade-buttons {
+  gap: 6px;
+}
+body.product-app #view-replay .quick-order .trade {
+  min-width: 56px;
+  height: 36px;
+  min-height: 36px;
+  border: 1px solid;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+body.product-app #view-replay .quick-order .trade.long {
+  color: var(--green);
+  border-color: color-mix(in srgb, var(--green) 35%, transparent);
+  background: color-mix(in srgb, var(--green) 14%, var(--surface-soft));
+}
+body.product-app #view-replay .quick-order .trade.short {
+  color: var(--red);
+  border-color: color-mix(in srgb, var(--red) 35%, transparent);
+  background: color-mix(in srgb, var(--red) 14%, var(--surface-soft));
+}
+body.product-app #view-replay .quick-order #quickOrderSettings {
+  height: 36px;
+  width: 32px;
+  min-width: 32px;
+  border-radius: 8px;
+}
+body.product-app #view-replay .replay-time {
+  margin: 0;
+  gap: 4px;
+  min-width: 112px;
+}
+body.product-app #view-replay #replayTime {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+body.product-app #view-replay #progressLabel {
+  font-size: 10px;
+  color: var(--text-faint);
+}
+body.product-app #view-replay .quick-position {
+  padding: 9px 14px;
+  gap: 8px 12px;
+  background: var(--canvas);
+}
+body.product-app #view-replay #quickPositionText {
+  font-weight: 500;
+}
+body.product-app #view-replay #quickPositionPnl {
+  font-variant-numeric: tabular-nums;
+}
+body.product-app #view-replay #quickClose {
+  min-height: 30px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+@media (max-width: 1100px) {
+  body.product-app #view-replay .drawing-status {
+    display: none;
+  }
+  body.product-app #view-replay .quick-order {
+    padding-left: 0;
+    border: 0;
+  }
+}
+@media (max-width: 700px) {
+  body.product-app #view-replay .replay-panel {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  body.product-app #view-replay .replay-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  body.product-app #view-replay .replay-transport {
+    justify-content: space-between;
+    gap: 6px;
+    min-width: 0;
+  }
+  body.product-app #view-replay .replay-transport #play {
+    min-width: 74px;
+    padding: 7px;
+  }
+  body.product-app #view-replay #sessionSkip {
+    width: 32px;
+    min-width: 32px;
+    padding: 6px;
+  }
+  body.product-app #view-replay #sessionSkip > span {
+    display: none;
+  }
+  body.product-app #view-replay .quick-order {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) 32px;
+    gap: 8px 6px;
+    order: initial;
+  }
+  body.product-app #view-replay .quick-order-instrument {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 11px;
+  }
+  body.product-app #view-replay .quick-order .order-fields {
+    grid-column: 2 / -1;
+    grid-row: 1;
+    grid-template-columns: 64px minmax(0, 1fr);
+    width: 100%;
+    min-width: 0;
+  }
+  body.product-app #view-replay .quick-order .stepper {
+    width: 64px;
+  }
+  body.product-app #view-replay .quick-order .stepper button {
+    width: 18px;
+    flex-basis: 18px;
+  }
+  body.product-app #view-replay .quick-order .stepper input {
+    width: 28px;
+  }
+  body.product-app #view-replay .quick-order .field-pair {
+    gap: 6px;
+    min-width: 0;
+  }
+  body.product-app #view-replay .quick-order .field-pair > div {
+    min-width: 0;
+  }
+  body.product-app #view-replay .quick-order .field-pair input {
+    width: 100%;
+    min-width: 0;
+  }
+  body.product-app #view-replay .quick-order .trade-buttons {
+    grid-column: 1 / 3;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin: 0;
+  }
+  body.product-app #view-replay .quick-order #quickOrderSettings {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  body.product-app #view-replay .replay-time {
+    width: 100%;
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  body.product-app #view-replay .chart-toolbar {
+    padding: 6px 8px;
+  }
+  body.product-app #view-replay .timeframes {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  body.product-app #view-replay .timeframes button {
+    min-width: 30px;
+    padding: 0 5px;
+  }
+  body.product-app #view-replay #settingsOpen > span {
+    display: none;
+  }
+  body.product-app #view-replay .chart-tools {
+    gap: 5px;
+  }
+  body.product-app #view-replay :is(#compareToggle, #settingsOpen) {
+    width: 32px;
+    min-width: 32px;
+    padding: 6px;
+  }
+}

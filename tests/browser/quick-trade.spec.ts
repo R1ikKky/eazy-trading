@@ -136,6 +136,23 @@ test("inline market entry immediately displays and restores actual entry, SL, an
   await expect(page.locator("#qty")).toHaveValue("2");
   await assertLines("chart");
   await assertLines("compareChart");
+  for (const width of [1366, 1024]) {
+    await page.setViewportSize({ width, height: 768 });
+    for (const selector of [
+      "#play",
+      "#step",
+      "#sessionSkip",
+      ".quick-order",
+      "#quickClose",
+    ]) {
+      const bounds = (await page.locator(selector).boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(768);
+    }
+    await expect(page.locator("#settingsOpen svg")).toBeVisible();
+    await page.screenshot({ path: `/tmp/backtesting-laptop-${width}.png` });
+  }
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     await expect(page.locator("#long")).toBeVisible();

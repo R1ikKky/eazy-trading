@@ -19,6 +19,7 @@ import "./button-motion.css";
 import "./route-transitions.css";
 import "./replay-layout.css";
 import "./quick-trade.css";
+import "./backtesting-ui.css";
 import "./journal-filters.css";
 import "./mt5-journal.css";
 export const metadata: Metadata = {

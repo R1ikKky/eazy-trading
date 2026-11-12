@@ -267,6 +267,18 @@ export function ReplayWorkspace() {
                         1h
                       </button>
                     </div>
+                    <div className="drawing-status" aria-live="polite">
+                      <span id="drawingHint">
+                        {translate("Перемещение и масштаб")}
+                      </span>
+                      <span
+                        className="drawing-count"
+                        id="drawingCount"
+                        aria-label={translate("Количество объектов")}
+                      >
+                        0
+                      </span>
+                    </div>
                     <button
                       id="compareToggle"
                       className="icon-button compare-button"
@@ -293,21 +305,20 @@ export function ReplayWorkspace() {
                       className="settings-button"
                       aria-label={translate("Настройки графика")}
                     >
-                      ⚙ <span>{translate("Настройки")}</span>
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        aria-hidden="true"
+                      >
+                        <path d="M4 7h16M4 17h16M8 3v8M16 13v8" />
+                      </svg>
+                      <span>{translate("Настройки")}</span>
                     </button>
                   </div>
-                </div>
-                <div className="drawing-status" aria-live="polite">
-                  <span id="drawingHint">
-                    {translate("Перемещение и масштаб")}
-                  </span>
-                  <span
-                    className="drawing-count"
-                    id="drawingCount"
-                    aria-label={translate("Количество объектов")}
-                  >
-                    0
-                  </span>
                 </div>
                 <div className="chart-panes" id="chartPanes">
                   <section className="chart-pane primary-pane">
@@ -349,14 +360,61 @@ export function ReplayWorkspace() {
                 </div>
                 <div className="replay-panel">
                   <div className="replay-controls">
-                    <button
-                      id="play"
-                      className="play-button"
-                      aria-label={translate("Воспроизвести")}
+                    <div
+                      className="replay-transport"
+                      role="group"
+                      aria-label="Playback controls"
                     >
-                      <span id="playIcon">▶</span>
-                      <span id="playLabel">Replay</span>
-                    </button>
+                      <button
+                        id="play"
+                        className="play-button"
+                        aria-label={translate("Воспроизвести")}
+                      >
+                        <span id="playIcon">▶</span>
+                        <span id="playLabel">Replay</span>
+                      </button>
+                      <button
+                        id="step"
+                        className="icon-button step-button"
+                        aria-label={translate("Следующая свеча")}
+                        title={translate("Следующая свеча — клавиша вправо")}
+                      >
+                        ▸│
+                      </button>
+                      <button
+                        id="sessionSkip"
+                        type="button"
+                        className="icon-button"
+                        aria-label={translate("Перейти к открытию сессии")}
+                        title={translate("Перейти к открытию сессии")}
+                        aria-haspopup="menu"
+                        aria-expanded="false"
+                      >
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="m4 6 7 6-7 6V6Zm8 0 7 6-7 6V6ZM21 5v14"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span>{translate("К открытию")}</span>
+                      </button>
+                      <select
+                        id="speed"
+                        aria-label={translate("Скорость воспроизведения")}
+                      >
+                        <option value={1000}>1×</option>
+                        <option value={500}>2×</option>
+                        <option value={250}>4×</option>
+                      </select>
+                    </div>
                     <div
                       className="quick-order"
                       role="group"
@@ -452,47 +510,6 @@ export function ReplayWorkspace() {
                         </svg>
                       </button>
                     </div>
-                    <button
-                      id="step"
-                      className="icon-button step-button"
-                      aria-label={translate("Следующая свеча")}
-                      title={translate("Следующая свеча — клавиша вправо")}
-                    >
-                      ▸│
-                    </button>
-                    <button
-                      id="sessionSkip"
-                      type="button"
-                      className="icon-button"
-                      aria-label={translate("Перейти к открытию сессии")}
-                      title={translate("Перейти к открытию сессии")}
-                      aria-haspopup="menu"
-                      aria-expanded="false"
-                    >
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="m4 6 7 6-7 6V6Zm8 0 7 6-7 6V6ZM21 5v14"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span>{translate("К открытию")}</span>
-                    </button>
-                    <select
-                      id="speed"
-                      aria-label={translate("Скорость воспроизведения")}
-                    >
-                      <option value={1000}>1×</option>
-                      <option value={500}>2×</option>
-                      <option value={250}>4×</option>
-                    </select>
                   </div>
                   <div className="replay-time">
                     <strong id="replayTime" className="mono">

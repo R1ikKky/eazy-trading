@@ -274,6 +274,26 @@ export function barTime(time: any, minutes: any, session = "all") {
       Number(parts.find((p) => p.type === "minute").value);
   return time - ((minuteOfDay - 570) % minutes) * 60;
 }
+export function chartTimeScale(p: any) {
+  const clock = new Intl.DateTimeFormat("en-US", {
+    timeZone: p.timezone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: p.hoursFormat === "12",
+  });
+  return {
+    // The library otherwise budgets eight characters even for full date labels.
+    tickMarkMaxCharacterLength: Math.max(
+      8,
+      chartDate(Date.UTC(2026, 8, 30, 12) / 1000, p, true).length,
+    ),
+    tickMarkFormatter: (time: any, type: number) =>
+      type <= 2
+        ? chartDate(time, p, true)
+        : clock.format(new Date(time * 1000)),
+  };
+}
+
 export function chartDate(time: any, p: any, dateOnly = false) {
   const d = new Date(time * 1000),
     f = { timeZone: p.timezone };
