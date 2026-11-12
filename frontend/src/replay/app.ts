@@ -186,7 +186,8 @@ function pause() {
 function syncPlayback() {
   if (!replay) return;
   $("playIcon").textContent = timer ? "Ⅱ" : "▶";
-  $("playLabel").textContent = timer ? translate("Пауза") : "Replay";
+  $("playLabel").textContent = timer ? translate("Пауза") : translate("Пуск");
+  $("play").setAttribute("aria-pressed", String(Boolean(timer)));
   $("play").setAttribute(
     "aria-label",
     timer ? translate("Пауза") : translate("Воспроизвести"),

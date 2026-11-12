@@ -12,7 +12,7 @@ body.product-app:has(#view-replay:not([hidden])) .product-main {
 }
 body.product-app:has(#view-replay:not([hidden])):has(.drawing-rail.is-collapsed)
   .product-main {
-  padding-left: 36px;
+  padding-left: 12px;
 }
 .drawing-rail,
 .drawing-favorites,
@@ -55,7 +55,7 @@ body.product-app .drawing-rail > .drawing-rail-divider {
 }
 .drawing-rail-reveal {
   position: fixed;
-  left: 8px;
+  left: 26px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 110;
@@ -336,7 +336,7 @@ body.product-app .drawing-rail > .drawing-rail-divider {
       .drawing-rail.is-collapsed
     )
     .product-main {
-    padding-left: 32px;
+    padding-left: 12px;
   }
   .drawing-rail {
     left: 14px;
@@ -376,4 +376,9 @@ body.product-app .drawing-rail > .drawing-rail-divider {
   .drawing-rail {
     transition: none;
   }
+}
+
+@media (max-width: 640px) {
+  .drawing-rail-reveal { left: 11px; }
+  body.product-app:has(#view-replay:not([hidden])):has(.drawing-rail.is-collapsed) .product-main { padding-left: 0; }
 }

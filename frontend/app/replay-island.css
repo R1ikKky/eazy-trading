@@ -207,7 +207,7 @@ body.product-app:has(#view-replay:not([hidden])) .workspace-grid { grid-template
 /* Page identity stays separate from the centered navigation island. */
 body.product-app .workspace-header {
   position: fixed;
-  inset: 26px 48px auto;
+  inset: 18px 48px auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
@@ -221,7 +221,12 @@ body.product-app .workspace-header .app-sidebar {
   inset: auto;
   transform: none;
   max-width: 100%;
+  height: 52px;
+  padding: 6px 10px;
 }
+body.product-app .workspace-header .nav-item { height: 36px; min-height: 36px; padding-top: 8px; padding-bottom: 8px; }
+body.product-app .product-main,
+body.product-app:has(#view-replay:not([hidden])) .product-main { padding-top: 80px; scroll-padding-top: 80px; }
 body.product-app .workspace-identity {
   display: flex;
   align-items: center;
@@ -260,8 +265,8 @@ body.product-app .workspace-page-actions { justify-content: flex-end; }
   body.product-app .workspace-page-title { font-size: 18px; }
 }
 @media (max-width: 640px) {
-  body.product-app .workspace-header { inset: 18px 22px auto; display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
-  body.product-app .workspace-header .app-sidebar { align-self: center; }
+  body.product-app .workspace-header { inset: 14px 22px auto; display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+  body.product-app .workspace-header .app-sidebar { align-self: center; height: 48px; padding: 5px 6px; }
   body.product-app .product-main,
-  body.product-app:has(#view-replay:not([hidden])) .product-main { padding-top: 132px; scroll-padding-top: 132px; }
+  body.product-app:has(#view-replay:not([hidden])) .product-main { padding-top: 118px; scroll-padding-top: 118px; }
 }

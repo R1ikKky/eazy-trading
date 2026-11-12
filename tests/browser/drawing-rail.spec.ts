@@ -60,6 +60,32 @@ test("drawing toolbar stays centered, fits laptop heights, and slides away with 
   await expect(
     page.getByRole("button", { name: "Show drawing toolbar", exact: true }),
   ).toBeVisible();
+  for (const width of [1366, 680, 390]) {
+    await page.setViewportSize({ width, height: 768 });
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const main = document
+            .querySelector(".product-main")!
+            .getBoundingClientRect();
+          const chart = document
+            .querySelector("#chartCard")!
+            .getBoundingClientRect();
+          return Math.abs(chart.left - main.left - (main.right - chart.right));
+        }),
+      )
+      .toBeLessThanOrEqual(1);
+    const chart = (await page.locator("#chartCard").boundingBox())!;
+    const reveal = (await page.locator(".drawing-rail-reveal").boundingBox())!;
+    expect(Math.abs(reveal.x - chart.x)).toBeLessThanOrEqual(2);
+    const canvas = (await page.locator("#chart").boundingBox())!;
+    expect(reveal.y).toBeGreaterThanOrEqual(canvas.y);
+    expect(reveal.y + reveal.height).toBeLessThanOrEqual(
+      canvas.y + canvas.height,
+    );
+    await page.screenshot({ path: `/tmp/collapsed-chart-${width}.png` });
+  }
+  await page.setViewportSize({ width: 1366, height: 768 });
   await page.reload();
   await expect(
     page.getByRole("button", { name: "Show drawing toolbar", exact: true }),

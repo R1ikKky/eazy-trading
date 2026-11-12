@@ -54,12 +54,23 @@ export function createDrawingToolbar(callbacks: {
       );
     } catch {}
   };
+  function placeReveal() {
+    if (!railCollapsed) return;
+    const bounds = document.getElementById("chart")?.getBoundingClientRect();
+    if (bounds && bounds.width > 0 && bounds.height > 0) {
+      reveal.style.left = Math.round(bounds.left) + "px";
+      reveal.style.top = Math.round(bounds.top + bounds.height / 2) + "px";
+    }
+  }
+  const chartContainer = document.getElementById("chart");
+  if (chartContainer && typeof ResizeObserver !== "undefined") new ResizeObserver(placeReveal).observe(chartContainer);
   function setRailCollapsed(collapsed: boolean, save = true) {
     railCollapsed = collapsed;
     rail.classList.toggle("is-collapsed", collapsed);
     rail.inert = collapsed;
     rail.setAttribute("aria-hidden", String(collapsed));
     reveal.hidden = !collapsed;
+    if (collapsed) requestAnimationFrame(placeReveal);
     if (collapsed) {
       if (menu.matches(":popover-open")) menu.hidePopover();
       if (styleMenu.matches(":popover-open")) styleMenu.hidePopover();
@@ -303,12 +314,14 @@ export function createDrawingToolbar(callbacks: {
   grip.addEventListener("pointercancel", end);
   window.addEventListener("resize", () => {
     clampDock();
+    placeReveal();
     if (menu.matches(":popover-open")) menu.hidePopover();
     if (styleMenu.matches(":popover-open")) styleMenu.hidePopover();
   });
   document.addEventListener("fullscreenchange", () => {
     (document.fullscreenElement || document.body).append(root);
     clampDock();
+    requestAnimationFrame(placeReveal);
   });
   window.addEventListener("workspace-route", () => {
     if (location.pathname !== "/replay") {

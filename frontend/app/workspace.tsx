@@ -342,7 +342,7 @@ export function ReplayWorkspace() {
                       </span>
                       <span id="barChange" className="mono" />
                       <span id="statusVolume" className="mono" hidden />
-                      <span className="chart-status" id="chartStatus">
+                      <span className="chart-status" id="chartStatus" hidden>
                         {translate("ПАУЗА")}
                       </span>
                     </div>
@@ -371,7 +371,7 @@ export function ReplayWorkspace() {
                         aria-label={translate("Воспроизвести")}
                       >
                         <span id="playIcon">▶</span>
-                        <span id="playLabel">Replay</span>
+                        <span id="playLabel">{translate("Пуск")}</span>
                       </button>
                       <button
                         id="step"

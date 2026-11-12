@@ -129,6 +129,19 @@ test("inline market entry immediately displays and restores actual entry, SL, an
   await page.locator("#comparisonTitle").click();
   await page.getByRole("menuitemradio", { name: /^NQ / }).click();
   await assertLines("compareChart");
+  await expect(page.locator("#chartStatus")).not.toBeVisible();
+  const headerColors = await page.evaluate(() =>
+    [".primary-pane .chart-legend", ".comparison-header"].map((selector) => {
+      const style = getComputedStyle(document.querySelector(selector)!);
+      return { background: style.backgroundColor, color: style.color };
+    }),
+  );
+  expect(headerColors[0]).toEqual(headerColors[1]);
+  expect(
+    (await page.locator(".workspace-header .app-sidebar").boundingBox())!
+      .height,
+  ).toBeLessThanOrEqual(54);
+
   await page.reload();
   await expect(page.locator("#quickPositionText")).toContainText("LONG", {
     timeout: 30000,
@@ -201,5 +214,13 @@ test("inline market entry immediately displays and restores actual entry, SL, an
       )
       .toBe(true);
   }
+  await expect(page.locator("#playLabel")).toHaveText("Play");
+  const playWidth = (await page.locator("#play").boundingBox())!.width;
+  await page.locator("#play").click();
+  await expect(page.locator("#play")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#playLabel")).toHaveText("Pause");
+  expect((await page.locator("#play").boundingBox())!.width).toBe(playWidth);
+  await page.locator("#play").click();
+  await expect(page.locator("#play")).toHaveAttribute("aria-pressed", "false");
   expect(errors).toEqual([]);
 });

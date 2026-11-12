@@ -365,3 +365,63 @@ body.product-app #view-replay #quickClose {
     padding: 6px;
   }
 }
+
+body.product-app #view-replay .replay-transport #play {
+  width: 92px;
+  min-width: 92px;
+  justify-content: flex-start;
+  padding: 5px 10px 5px 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+}
+body.product-app #view-replay #playIcon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: var(--text);
+  color: var(--surface);
+  font-size: 10px;
+  line-height: 1;
+}
+body.product-app #view-replay #play[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+body.product-app #view-replay #chartStatus {
+  display: none;
+}
+body.product-app #view-replay :is(.chart-legend, .comparison-header) {
+  background: var(--surface);
+  color: var(--text);
+}
+@media (max-width: 700px) {
+  body.product-app #view-replay .replay-transport #play {
+    width: 82px;
+    min-width: 82px;
+    padding: 5px 6px;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 700px) {
+  body.product-app #view-replay #playIcon {
+    width: 22px;
+    height: 22px;
+  }
+  body.product-app #view-replay .replay-transport {
+    gap: 4px;
+  }
+  body.product-app #view-replay .replay-transport #step {
+    width: 32px;
+    min-width: 32px;
+  }
+  body.product-app #view-replay .replay-transport .replay-select {
+    width: 60px;
+    min-width: 60px;
+  }
+}

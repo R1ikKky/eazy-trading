@@ -450,19 +450,8 @@ export function createChartTools({
     $("statusVolume").textContent =
       "Vol " + (b.volume || 0).toLocaleString("en-US");
     const legend = document.querySelector<HTMLElement>(".chart-legend");
-    legend.style.background = prefs.statusBackground
-      ? settingsColor(
-          {
-            ...prefs,
-            colorOpacity: {
-              ...prefs.colorOpacity,
-              background: prefs.statusOpacity,
-            },
-          },
-          "background",
-        )
-      : "transparent";
-    legend.style.color = settingsColor(prefs, "text");
+    legend.style.background = "var(--surface)";
+    legend.style.color = "var(--text)";
     const tf =
         Number(
           document.querySelector<HTMLInputElement>("[data-tf].selected")
