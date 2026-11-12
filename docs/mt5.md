@@ -61,7 +61,7 @@ Disconnect destroys the active encrypted password and cancels queued/running lea
 
 ## Legacy Windows connections
 
-The journal now exposes online sync only. Windows pairing buttons, location selectors and desktop installation instructions have been removed from the page. Existing local accounts retain their history and notes, with a reconnect action that saves the same account/server using an investor password. Until reconnection, old local job errors are hidden and local heartbeat status does not determine server availability. Saving revokes the old pairing key through the existing API. Legacy API endpoints and connector files remain for compatibility; removing UI does not silently switch accounts or supply a missing investor password.
+The journal now exposes online sync only. Windows pairing buttons, location selectors and desktop installation instructions have been removed from the page. Existing local accounts retain their history and notes, with the standard Connect account action that saves the same account/server using an investor password. Disconnected accounts show no migration notice or disabled Disconnect action. Until connected, old local job errors are hidden and local heartbeat status does not determine server availability. Saving revokes the old pairing key through the existing API. Legacy API endpoints and connector files remain for compatibility; removing UI does not silently switch accounts or supply a missing investor password.
 
 ## Data and practical limits
 

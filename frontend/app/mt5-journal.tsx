@@ -101,7 +101,8 @@ const statusMessages: Record<string, string> = {
   MT5_NOT_CONNECTED:
     "MT5 could not connect to the broker. Check the account details and try again.",
   MT5_TIMEOUT: "MT5 did not respond in time. Please try syncing again.",
-  CREDENTIALS_UNAVAILABLE: "Reconnect your investor password, then sync again.",
+  CREDENTIALS_UNAVAILABLE:
+    "Enter your investor password to connect the account.",
   COLLECTOR_FAILED:
     "The MT5 collector could not finish. Your previous journal is preserved.",
 };
@@ -190,7 +191,8 @@ export function Mt5Journal({ active }: { active: boolean }) {
     }
   }
   const account = state?.accounts.find((a) => a.id === id);
-  const needsReconnect = account?.syncLocation === "local";
+  const serverAccount = account?.syncLocation !== "local";
+  const connected = serverAccount && account?.connected;
   const online = state?.workerOnline;
   const money = (n: number) =>
     `${n.toLocaleString(language === "ru" ? "ru-RU" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${journal?.currency || account?.currency || ""}`;
@@ -198,8 +200,7 @@ export function Mt5Journal({ active }: { active: boolean }) {
   const time = (n: number) =>
     new Date(n).toISOString().replace("T", " ").slice(0, 19);
   const running =
-    !needsReconnect &&
-    ["queued", "running"].includes(account?.job?.status || "");
+    serverAccount && ["queued", "running"].includes(account?.job?.status || "");
   return (
     <div className="mt5-journal" hidden={!active}>
       <div className="mt5-toolbar">
@@ -251,14 +252,6 @@ export function Mt5Journal({ active }: { active: boolean }) {
           {tr(
             "MT5 sync is temporarily offline. Saved trades remain available.",
             "Синхронизация MT5 временно недоступна. Сохранённые сделки доступны.",
-          )}
-        </p>
-      )}
-      {needsReconnect && !form && (
-        <p className="mt5-notice">
-          {tr(
-            "Reconnect this account with its investor password to enable online sync. Your saved trades and notes are preserved.",
-            "Подключите счёт заново с паролем инвестора для онлайн-синхронизации. Сделки и заметки сохранены.",
           )}
         </p>
       )}
@@ -356,18 +349,17 @@ export function Mt5Journal({ active }: { active: boolean }) {
                           "No trades imported yet",
                           "Сделки ещё не импортированы",
                         )}
-                  {!account.connected &&
-                    ` · ${tr("Disconnected", "Отключено")}`}
+                  {!connected && ` · ${tr("Not connected", "Не подключён")}`}
                 </p>
               </div>
               <div className="mt5-actions">
-                {needsReconnect || !account.connected ? (
+                {!connected ? (
                   <button
                     className="button primary compact"
                     disabled={busy}
                     onClick={() => setForm(true)}
                   >
-                    {tr("Reconnect account", "Подключить счёт заново")}
+                    {tr("Connect account", "Подключить счёт")}
                   </button>
                 ) : (
                   <button
@@ -382,21 +374,23 @@ export function Mt5Journal({ active }: { active: boolean }) {
                     {tr("Sync now", "Синхронизировать")}
                   </button>
                 )}
-                <button
-                  className="button secondary compact"
-                  disabled={busy || !account.connected}
-                  onClick={() =>
-                    void action(async () => {
-                      await api(`connections/${id}`, "DELETE");
-                    })
-                  }
-                >
-                  {tr("Disconnect", "Отключить")}
-                </button>
+                {connected && (
+                  <button
+                    className="button secondary compact"
+                    disabled={busy}
+                    onClick={() =>
+                      void action(async () => {
+                        await api(`connections/${id}`, "DELETE");
+                      })
+                    }
+                  >
+                    {tr("Disconnect", "Отключить")}
+                  </button>
+                )}
               </div>
             </div>
           )}
-          {!form && !needsReconnect && account.job?.status === "failed" && (
+          {!form && serverAccount && account.job?.status === "failed" && (
             <p role="status" className="mt5-error">
               {statusMessages[account.job.error || ""] ||
                 statusMessages.COLLECTOR_FAILED}

@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { authenticateTestPage } from "./auth-helper";
 
-test("Legacy account reconnects online without desktop controls or stale errors", async ({
+test("Disconnected account uses the standard connect flow without legacy notices", async ({
   page,
 }) => {
   await authenticateTestPage(page, "en");
@@ -61,9 +61,10 @@ test("Legacy account reconnects online without desktop controls or stale errors"
     { timeout: 30000 },
   );
   await page.getByRole("button", { name: "MT5", exact: true }).click();
+  await expect(page.locator(".mt5-journal")).not.toContainText("Reconnect");
   await expect(
-    page.getByText("Reconnect this account", { exact: false }),
-  ).toBeVisible();
+    page.getByRole("button", { name: "Disconnect", exact: true }),
+  ).toHaveCount(0);
   await expect(page.locator(".mt5-journal")).not.toContainText("Windows");
   await expect(
     page.getByText("MT5 sync is temporarily unavailable.", { exact: false }),
@@ -72,7 +73,7 @@ test("Legacy account reconnects online without desktop controls or stale errors"
     page.getByRole("button", { name: "Sync now", exact: true }),
   ).toHaveCount(0);
   await page
-    .getByRole("button", { name: "Reconnect account", exact: true })
+    .getByRole("button", { name: "Connect account", exact: true })
     .click();
   await expect(
     page.getByLabel("MT5 account number", { exact: true }),
