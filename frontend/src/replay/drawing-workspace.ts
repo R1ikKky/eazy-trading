@@ -52,6 +52,8 @@ export function createDrawingWorkspace({
     lastPointer: { x: number; y: number } | null = null;
   const histories = new Map<string, any[][]>();
   const symbolOf = (d: any) => d.symbol || getSessionSymbol();
+  const isPosition = (type: string) =>
+    type === "long-position" || type === "short-position";
   const belongs = (d: any, ctx = active) =>
     !!ctx && symbolOf(d) === ctx.getSymbol();
   const history = () => {
@@ -365,11 +367,14 @@ export function createDrawingWorkspace({
         }
       }
       if (ctx === target) {
-        const points = strokePoints.length
-          ? strokePoints
-          : pending.length && hover
-            ? [...pending, hover]
-            : [];
+        const points =
+          isPosition(mode) && hover
+            ? positionPoints(hover)
+            : strokePoints.length
+              ? strokePoints
+              : pending.length && hover
+                ? [...pending, hover]
+                : [];
         if (points.length)
           plot(
             {
@@ -441,16 +446,6 @@ export function createDrawingWorkspace({
   function pointInstruction(type: string, index: number) {
     const tool = drawingTool(type);
     const steps: Record<string, string[]> = {
-      "long-position": [
-        translate("Вход"),
-        translate("Стоп ниже входа"),
-        translate("Цель выше входа"),
-      ],
-      "short-position": [
-        translate("Вход"),
-        translate("Стоп выше входа"),
-        translate("Цель ниже входа"),
-      ],
       "bars-pattern": [
         translate("Начало копируемого участка"),
         translate("Конец участка"),
@@ -470,6 +465,29 @@ export function createDrawingWorkspace({
     };
     const name = steps[type]?.[index] || tool?.labels?.[index];
     return tr`${name ? name + " · " : ""}точка ${index + 1}${tool?.points > 0 ? translate(" из ") + tool.points : translate(" · Enter — завершить")}`;
+  }
+  function positionPoints(entry: any) {
+    // Size the initial 1:1 box for the current zoom, then store only time/price anchors.
+    const location = coordinates(entry),
+      plotWidth = container.clientWidth - (chart.priceScale("right").width?.() || 0),
+      plotHeight = container.clientHeight - chart.timeScale().height(),
+      distance = Math.min(80, Math.max(40, plotHeight * 0.12)),
+      offsetPrice = series.coordinateToPrice(location.y + distance),
+      risk = Math.min(
+        entry.price - 0.25,
+        Math.max(0.25, Math.round(Math.abs(entry.price - offsetPrice) * 4) / 4),
+      ),
+      width = Math.min(180, Math.max(80, plotWidth * 0.3)),
+      endX = location.x + width <= plotWidth - 8
+        ? location.x + width
+        : location.x - width,
+      endTime = point(endX, location.y)?.time || entry.time + getTimeframe() * 60 * 20,
+      direction = mode === "long-position" ? 1 : -1;
+    return [
+      entry,
+      { time: endTime, price: entry.price - direction * risk },
+      { time: endTime, price: entry.price + direction * risk },
+    ];
   }
   function selectMode(value: any) {
     mode = value;
@@ -541,7 +559,9 @@ export function createDrawingWorkspace({
                 ? translate(
                     "Расставьте точки · Enter или двойной клик — завершить · Esc — отмена",
                   )
-                : tr`${tool?.name || value} · ${pointInstruction(value, 0)} · Esc — отмена`;
+                : isPosition(value)
+                  ? `${tool.name} · ${translate("Вход")} · R:R 1:1 · Esc — ${translate("Отмена")}`
+                  : tr`${tool?.name || value} · ${pointInstruction(value, 0)} · Esc — отмена`;
     schedule();
   }
   function near(d: any, x: any, y: any) {
@@ -656,6 +676,11 @@ export function createDrawingWorkspace({
     anchor = null;
     hover = null;
     selectMode("cursor");
+    if (isPosition(type)) {
+      selectMode("select");
+      selected = d.id;
+      drawingUI.setStyle(d);
+    }
     schedule();
   }
   function recordPoint(p: any) {
@@ -716,7 +741,11 @@ export function createDrawingWorkspace({
     const best = navigating || mode === "select" ? hit(x, y) : null;
     if (navigating && best) selectMode("select");
     if (mode !== "select") {
-      if (!NAVIGATION_TOOLS.includes(mode)) recordPoint(p);
+      if (isPosition(mode)) {
+        pause();
+        e.preventDefault();
+        void finishDrawing(positionPoints(p));
+      } else if (!NAVIGATION_TOOLS.includes(mode)) recordPoint(p);
       return;
     }
     if (!best) {

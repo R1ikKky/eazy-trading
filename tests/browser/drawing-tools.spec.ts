@@ -74,8 +74,6 @@ test("grouped drawings, editing, favorites and account persistence", async ({
   await expect(count).toHaveText(String(baseline + 3));
   await choose("analysis", "long-position");
   await point(0.3, 0.5);
-  await point(0.5, 0.65);
-  await point(0.6, 0.3);
   await expect(count).toHaveText(String(baseline + 4));
   await choose("shapes", "brush");
   const rect = (await chart.boundingBox())!;
