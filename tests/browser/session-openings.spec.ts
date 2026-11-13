@@ -40,7 +40,7 @@ test("skip to market openings advances both charts and restores the saved clock"
       (s: any) => s.id === workspace.settings.activeSessionId,
     );
     expect(active.snapshot.currentTime).toBe(Date.parse(time) / 1000);
-    await expect(page.locator("#playLabel")).toHaveText("Replay");
+    await expect(page.locator("#playLabel")).toHaveText("Play");
     await expect(page.locator("#compareChart canvas").first()).toBeVisible();
   }
   const clock = await page.locator("#replayTime").textContent();

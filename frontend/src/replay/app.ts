@@ -207,6 +207,8 @@ function togglePlay() {
     pause();
     return;
   }
+  tools?.freezeViewport();
+  comparison?.freezeViewport();
   timer = setInterval(step, Number($("speed").value));
   syncPlayback();
 }
@@ -283,6 +285,7 @@ function initChart() {
     timeScale: {
       borderColor: "#eaf0e1",
       timeVisible: true,
+      shiftVisibleRangeOnNewBar: false,
       secondsVisible: false,
       rightOffset: 8,
       barSpacing: 8,
@@ -426,8 +429,9 @@ function volBar(b: any) {
 }
 function rebuildChart(leftTime: any = null, preserve = false) {
   const prior = preserve ? chart?.timeScale().getVisibleLogicalRange() : null;
-  const previousCount = chartBars.length;
+  const previousBars = chartBars;
   if (!chart) return;
+  if (!preserve) tools?.releaseViewport();
   chartBars = aggregate(
     (primaryInstrument() === symbol
       ? [...context, ...replay.bars.slice(0, replay.index + 1)]
@@ -445,8 +449,11 @@ function rebuildChart(leftTime: any = null, preserve = false) {
   tools?.refresh();
   const right: any = tools?.preferences.marginRight ?? 10;
   if (prior) {
-    const shift =
-      prior.to >= previousCount - 1 ? chartBars.length - previousCount : 0;
+    const dropped =
+      chartBars[0] && previousBars[0] && chartBars[0].time > previousBars[0].time
+        ? previousBars.findIndex((bar) => bar.time >= chartBars[0].time)
+        : 0;
+    const shift = -Math.max(0, dropped);
     chart.timeScale().setVisibleLogicalRange({
       from: prior.from + shift,
       to: prior.to + shift,
@@ -497,10 +504,11 @@ function appendBar(b: any) {
     chartBars.push(last);
   }
   if (chart) {
+    const viewport = chart.timeScale().getVisibleLogicalRange();
     series.update(last);
     volume.update(volBar(last));
-    chart.timeScale().scrollToRealTime();
     tools?.refresh();
+    if (viewport) chart.timeScale().setVisibleLogicalRange(viewport);
   }
 }
 function hasWork() {
@@ -537,6 +545,7 @@ function startSession(
   if (replay && !options.discardCurrent) product?.saveReplay(replay.snapshot());
   activeSession = session;
   pause();
+  comparison?.resetViewport();
   tools?.cancel();
   symbol = s;
   paneSymbols = { primary: s, comparison: s === "NQ" ? "ES" : "NQ" };
@@ -889,6 +898,8 @@ function order(side: any) {
   if (!chart) throw Error(translate("Сначала загрузите график."));
   pause();
   const settings = config();
+  tools?.releaseViewport();
+  comparison?.releaseViewport();
   if (settings.kind === "market") replay.openMarket(side, settings);
   else replay.queue(side, settings);
   render();
@@ -906,6 +917,8 @@ function step() {
     pause();
     return false;
   }
+  tools?.freezeViewport();
+  comparison?.freezeViewport();
   const oldCount = replay.trades.length;
   replay.step();
   appendBar(replay.current);
@@ -943,6 +956,7 @@ function skipToOpening(session: SessionOpening) {
   tools?.cancel();
   tradeOffset = 0;
   advanceReplayToOpening(replay, target);
+  comparison?.resetViewport();
   rebuildChart();
   render();
   toast(
@@ -1647,6 +1661,8 @@ async function bootstrap() {
           applySettings: (value: any) => tools.updatePreferences(value),
           openSettings: () => tools.openSettings(),
           resetView: () => {
+            comparison?.releaseViewport();
+            ctx.chart.priceScale("right").applyOptions({ autoScale: true });
             ctx.chart.timeScale().setVisibleLogicalRange({
               from: Math.max(-3, ctx.getBars().length - 90),
               to: ctx.getBars().length + 10,

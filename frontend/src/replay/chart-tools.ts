@@ -13,6 +13,10 @@ import {
 } from "./settings-model";
 import { dayKey } from "./engine";
 import { createChartSettings } from "./chart-settings";
+import {
+  createReplayScaleLock,
+  releaseOnPriceAxisReset,
+} from "./replay-scale-lock";
 import { includeTradeLevels } from "./trade-levels";
 export { presets, loadSettings };
 export function indicatorValues(bars: any, period: any, kind: any) {
@@ -225,7 +229,18 @@ export function createChartTools({
       minimumFractionDigits: decimal(),
       maximumFractionDigits: decimal(),
     });
+  const viewportScale = createReplayScaleLock();
+  const smaScale = createReplayScaleLock();
+  const emaScale = createReplayScaleLock();
+  const viewportScales = [viewportScale, smaScale, emaScale];
+  const releaseViewport = () =>
+    viewportScales.forEach((scale) => scale.release());
+  releaseOnPriceAxisReset(chart, container, releaseViewport, () => {
+    const last = getBars().at(-1);
+    if (last) series.update(last);
+  });
   function apply() {
+    releaseViewport();
     const background =
       prefs.backgroundType === "gradient"
         ? {
@@ -289,6 +304,7 @@ export function createChartTools({
         },
       },
       timeScale: {
+        shiftVisibleRangeOnNewBar: false,
         barSpacing: prefs.barSpacing,
         rightOffset: prefs.marginRight,
         borderColor: line,
@@ -333,30 +349,31 @@ export function createChartTools({
       priceLineVisible: hasLine,
       lastValueVisible: hasValue && !customPrice,
       priceFormat: { type: "custom", minMove: 0.25, formatter: formatPrice },
-      autoscaleInfoProvider: (base) => {
-        const info = includeTradeLevels(base(), getPriceLevels());
-        if (!prefs.lockRatio || !info) return info;
-        const range = info.priceRange,
-          center = (range.minValue + range.maxValue) / 2,
-          spacing =
-            chart.timeScale().options?.().barSpacing || prefs.barSpacing,
-          available =
-            (container.clientHeight - chart.timeScale().height()) *
-            (1 -
-              prefs.marginTop / 100 -
-              Math.max(prefs.marginBottom / 100, prefs.volume ? 0.22 : 0)),
-          span = Math.max(0.5, (available * prefs.priceBarRatio) / spacing);
-        return includeTradeLevels(
-          {
-            ...info,
-            priceRange: {
-              minValue: Math.max(0.25, center - span / 2),
-              maxValue: center + span / 2,
+      autoscaleInfoProvider: (base) =>
+        viewportScale.apply(() => {
+          const info = includeTradeLevels(base(), getPriceLevels());
+          if (!prefs.lockRatio || !info) return info;
+          const range = info.priceRange,
+            center = (range.minValue + range.maxValue) / 2,
+            spacing =
+              chart.timeScale().options?.().barSpacing || prefs.barSpacing,
+            available =
+              (container.clientHeight - chart.timeScale().height()) *
+              (1 -
+                prefs.marginTop / 100 -
+                Math.max(prefs.marginBottom / 100, prefs.volume ? 0.22 : 0)),
+            span = Math.max(0.5, (available * prefs.priceBarRatio) / spacing);
+          return includeTradeLevels(
+            {
+              ...info,
+              priceRange: {
+                minValue: Math.max(0.25, center - span / 2),
+                maxValue: center + span / 2,
+              },
             },
-          },
-          getPriceLevels(),
-        );
-      },
+            getPriceLevels(),
+          );
+        }),
     });
     chart.applyOptions({
       handleScale: drawingWorkspace.isNavigation("primary")
@@ -374,14 +391,16 @@ export function createChartTools({
       color: settingsColor(prefs, "smaColor"),
       priceScaleId: priceScale,
       title: "SMA " + prefs.smaPeriod,
-      autoscaleInfoProvider: (base) => (prefs.lockRatio ? null : base()),
+      autoscaleInfoProvider: (base) =>
+        prefs.lockRatio ? null : smaScale.apply(base),
     });
     ema.applyOptions({
       visible: prefs.ema,
       color: settingsColor(prefs, "emaColor"),
       priceScaleId: priceScale,
       title: "EMA " + prefs.emaPeriod,
-      autoscaleInfoProvider: (base) => (prefs.lockRatio ? null : base()),
+      autoscaleInfoProvider: (base) =>
+        prefs.lockRatio ? null : emaScale.apply(base),
     });
     $("chartWatermark").hidden = prefs.watermark === "hidden";
     $("chartWatermark").textContent =
@@ -697,6 +716,8 @@ export function createChartTools({
   apply();
   drawingWorkspace.cancel();
   return {
+    freezeViewport: () => viewportScales.forEach((scale) => scale.freeze()),
+    releaseViewport,
     refresh,
     preferences: prefs,
     updatePreferences: updateSettings,

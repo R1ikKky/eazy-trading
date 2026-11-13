@@ -8,6 +8,10 @@ import {
   barTime,
 } from "./settings-model";
 import { escapeHTML as esc } from "./workspace-store";
+import {
+  createReplayScaleLock,
+  releaseOnPriceAxisReset,
+} from "./replay-scale-lock";
 import { includeTradeLevels } from "./trade-levels";
 const money = (v: any) =>
   (v < 0 ? "−" : "") + "$" + Math.abs(Number(v) || 0).toFixed(2);
@@ -118,6 +122,7 @@ export function createComparison({
   onVisibilityChange,
   getPriceLevels = () => [],
 }: any) {
+  const viewportScale = createReplayScaleLock();
   let chart: any,
     series: any,
     visible: any = false,
@@ -192,20 +197,35 @@ export function createComparison({
       chart = L.createChart(container, {
         autoSize: true,
         layout: { attributionLogo: true },
-        timeScale: { timeVisible: true, rightOffset: 8, barSpacing: 8 },
+        timeScale: {
+          timeVisible: true,
+          shiftVisibleRangeOnNewBar: false,
+          rightOffset: 8,
+          barSpacing: 8,
+        },
         rightPriceScale: { scaleMargins: { top: 0.12, bottom: 0.12 } },
       });
       series = chart.addSeries(L.CandlestickSeries, {
         autoscaleInfoProvider: (base: any) =>
-          includeTradeLevels(
-            base(),
-            getPriceLevels(
-              getDisplaySymbol?.() || (getSymbol() === "NQ" ? "ES" : "NQ"),
+          viewportScale.apply(() =>
+            includeTradeLevels(
+              base(),
+              getPriceLevels(
+                getDisplaySymbol?.() || (getSymbol() === "NQ" ? "ES" : "NQ"),
+              ),
             ),
           ),
         priceFormat: { type: "price", precision: 2, minMove: 0.25 },
         priceLineVisible: false,
       });
+      releaseOnPriceAxisReset(
+        chart,
+        container,
+        () => viewportScale.release(),
+        () => {
+          if (rows.length) series.update(rows.at(-1));
+        },
+      );
       onChartReady?.({
         id: "comparison",
         chart,
@@ -232,6 +252,7 @@ export function createComparison({
         scope === viewScope && now >= renderedTime
           ? chart.timeScale().getVisibleLogicalRange()
           : null;
+    if (scope !== viewScope || now < renderedTime) viewportScale.release();
     {
       chart.applyOptions({
         layout: {
@@ -272,14 +293,11 @@ export function createComparison({
           previous.length &&
           rows[0].time <= previous.at(-1).time
         ) {
-          const following = viewport.to >= previous.length - 1,
-            dropped: any =
+          const dropped: any =
               rows[0].time > previous[0].time
                 ? previous.findIndex((b) => b.time >= rows[0].time)
                 : 0,
-            shift = following
-              ? rows.length - previous.length
-              : -Math.max(0, dropped);
+            shift = -Math.max(0, dropped);
           range = { from: viewport.from + shift, to: viewport.to + shift };
         }
         chart.timeScale().setVisibleLogicalRange(range);
@@ -336,6 +354,12 @@ export function createComparison({
   }
   button.onclick = () => setVisible(!visible);
   return {
+    freezeViewport: () => viewportScale.freeze(),
+    releaseViewport: () => viewportScale.release(),
+    resetViewport: () => {
+      viewportScale.release();
+      viewScope = "";
+    },
     render,
     reload,
     setVisible,

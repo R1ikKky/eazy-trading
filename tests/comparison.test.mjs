@@ -43,12 +43,12 @@ test('panning either pane leaves the other pane viewport unchanged',async()=>{
  }finally{f.restore();}
 });
 
-test('secondary keeps its own historical viewport and zoom through refresh and replay',async()=>{
+test('secondary keeps historical and right-edge viewports unchanged through replay',async()=>{
  const f=fixture({past:10});try{
   await f.open();const primaryView={...f.primary.range},pastView={from:0,to:5};f.secondary.timeScale().setVisibleLogicalRange(pastView);
   f.comparison.render();assert.deepEqual(f.secondary.logical,pastView);
   f.now+=60;f.comparison.render();assert.deepEqual(f.secondary.logical,pastView);assert.deepEqual(f.primary.range,primaryView);
-  f.secondary.timeScale().setVisibleLogicalRange({from:7,to:17});f.now+=60;f.comparison.render();assert.deepEqual(f.secondary.logical,{from:8,to:18});
+  f.secondary.timeScale().setVisibleLogicalRange({from:7,to:17});f.now+=60;f.comparison.render();assert.deepEqual(f.secondary.logical,{from:7,to:17});
   assert.ok(f.secondary.data.every(b=>b.time<=f.now));
  }finally{f.restore();}
 });
