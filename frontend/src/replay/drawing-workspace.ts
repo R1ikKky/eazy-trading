@@ -45,6 +45,7 @@ export function createDrawingWorkspace({
   let pending: any[] = [],
     strokePoints: any[] = [],
     dragHandle = -1,
+    selectionPointer: number | null = null,
     lastSaved: any[] = [];
   let controlHeld = false,
     manualMagnet = false,
@@ -363,6 +364,7 @@ export function createDrawingWorkspace({
       !selected ||
       drawingUI.state.locked ||
       !!drawings.find((d) => d.id === selected)?.locked;
+    if (!selected) drawingUI.closeStyle();
     $("drawUndo").disabled = !active || !history().length;
     $("drawClear").disabled = !drawings.some((d) => belongs(d));
   }
@@ -428,6 +430,8 @@ export function createDrawingWorkspace({
   }
   function selectMode(value: any) {
     mode = value;
+    selectionPointer = null;
+    drawingUI.closeStyle();
     pending = [];
     strokePoints = [];
     drawingUI.setActive(value);
@@ -665,12 +669,21 @@ export function createDrawingWorkspace({
       }
       return;
     }
+    const navigating = NAVIGATION_TOOLS.includes(mode);
+    const best = navigating || mode === "select" ? hit(x, y) : null;
+    if (navigating && best) selectMode("select");
     if (mode !== "select") {
       if (!NAVIGATION_TOOLS.includes(mode)) recordPoint(p);
       return;
     }
+    if (!best) {
+      selectMode("cursor");
+      schedule();
+      return;
+    }
+    e.preventDefault();
+    selectionPointer = e.pointerId;
     pause();
-    const best = hit(x, y);
     selected = best?.id || null;
     dragHandle = -1;
     if (best) {
@@ -745,7 +758,7 @@ export function createDrawingWorkspace({
     }
     schedule();
   };
-  const pointerup = () => {
+  const pointerup = (event: PointerEvent) => {
     if (strokePoints.length) {
       const points = [...strokePoints],
         type = mode;
@@ -760,14 +773,28 @@ export function createDrawingWorkspace({
         void finishDrawing(points, type);
       }
     }
-    if (dragging && preview) {
-      preview.createdAt = getNow();
-      const clean = sanitizeDrawing(preview);
-      if (clean) {
-        drawings = drawings.map((d) => (d.id === selected ? clean : d));
-        saveDrawings();
+    if (selectionPointer === event.pointerId && selected && mode === "select") {
+      const original = drawings.find((d) => d.id === selected);
+      const changed =
+        dragging &&
+        preview &&
+        JSON.stringify(preview) !== JSON.stringify(original);
+      if (changed) {
+        preview.createdAt = getNow();
+        const clean = sanitizeDrawing(preview);
+        if (clean) {
+          drawings = drawings.map((d) => (d.id === selected ? clean : d));
+          saveDrawings();
+        }
+      } else if (original) {
+        drawingUI.editStyle(
+          event.clientX,
+          event.clientY,
+          drawingUI.state.locked || original.locked,
+        );
       }
     }
+    selectionPointer = null;
     dragging = false;
     preview = null;
     dragHandle = -1;
@@ -775,6 +802,7 @@ export function createDrawingWorkspace({
     schedule();
   };
   const pointercancel = () => {
+    selectionPointer = null;
     dragging = false;
     preview = null;
     strokePoints = [];
