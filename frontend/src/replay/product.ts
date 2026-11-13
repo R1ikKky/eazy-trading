@@ -3,6 +3,7 @@ import { element as $ } from "./dom";
 import { dayKey } from "./engine";
 import { WORKSPACE_ROUTES, workspaceView } from "./workspace-routes";
 import { confirmSessionDeletion } from "./session-delete-dialog";
+import { createSessionJournal } from "./session-journal";
 import {
   WorkspaceStore,
   uid,
@@ -98,6 +99,7 @@ export function createProduct({
   const active = () =>
     ws().sessions.find((s: any) => s.id === ws().settings.activeSessionId);
   const strategies = () => ws().playbooks || [];
+  const sessionJournal = createSessionJournal(openTrade);
   const allTrades = () =>
     ws().sessions.flatMap((s: any) =>
       (s.snapshot?.trades || []).map((t: any) => {
@@ -151,6 +153,7 @@ export function createProduct({
   }
   function changed() {
     store.changed();
+    updateHeader(true);
     if (view !== "replay") renderView();
   }
   function navigate(next: any, updateUrl = true) {
@@ -182,7 +185,9 @@ export function createProduct({
     renderView();
     window.dispatchEvent(new Event("resize"));
   }
-  function updateHeader() {}
+  function updateHeader(forceJournal = false) {
+    sessionJournal.render(active(), forceJournal);
+  }
   function createSession({
     symbol,
     from,
@@ -607,7 +612,7 @@ export function createProduct({
   }
   function renderView() {
     if (!loaded) return;
-    updateHeader();
+    updateHeader(true);
     if (view === "sessions") renderSessions();
     if (view === "journal") {
       if (!document.getElementById("journalSearch")) initFilters();
@@ -932,6 +937,7 @@ export function createProduct({
       }
     },
     refresh() {
+      updateHeader(true);
       if (view === "journal") renderJournal();
       if (view === "sessions") renderSessions();
     },

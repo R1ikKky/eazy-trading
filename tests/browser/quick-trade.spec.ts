@@ -70,6 +70,7 @@ test("market entry and chart-drawn SL/TP display and restore on the correct char
     timeout: 45000,
   });
   await expect(page.locator(".quick-order #qty")).toBeVisible();
+  await page.locator("#replayJournalHide").click();
   const progress = await page.locator("#progressLabel").textContent();
   const quote = Number(
     (await page.locator("#lastPrice").textContent())!.replaceAll(",", ""),
@@ -133,7 +134,8 @@ test("market entry and chart-drawn SL/TP display and restore on the correct char
   await assertLines("chart");
   await page.screenshot({ path: "/tmp/quick-trade-desktop.png" });
   await page.locator("#comparisonTitle").click();
-  await page.getByRole("menuitemradio", { name: /^NQ / }).click();
+  const tradedSymbol = await page.locator("#symbol").inputValue();
+  await page.getByRole("menuitemradio", { name: new RegExp("^" + tradedSymbol + " ") }).click();
   await assertLines("compareChart");
   await expect(page.locator("#chartStatus")).not.toBeVisible();
   const headerColors = await page.evaluate(() =>

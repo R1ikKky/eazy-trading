@@ -23,6 +23,7 @@ import "./backtesting-ui.css";
 import "./journal-filters.css";
 import "./mt5-journal.css";
 import "./modal-theme.css";
+import "./session-journal.css";
 export const metadata: Metadata = {
   title: "eazy trading · NQ / ES",
   description:

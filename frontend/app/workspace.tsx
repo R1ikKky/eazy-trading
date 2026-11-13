@@ -538,6 +538,47 @@ export function ReplayWorkspace() {
                 </div>
               </section>
               <aside
+                id="replayJournal"
+                className="replay-journal"
+                aria-labelledby="replayJournalTitle"
+                hidden
+              >
+                <header className="replay-journal-header">
+                  <div>
+                    <h2 id="replayJournalTitle">{translate("Журнал сессии")}</h2>
+                    <p id="replayJournalSession" />
+                  </div>
+                  <button
+                    id="replayJournalHide"
+                    type="button"
+                    aria-label={translate("Скрыть журнал сессии")}
+                    title={translate("Скрыть журнал сессии")}
+                    aria-controls="replayJournal"
+                    aria-expanded="true"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="m9 6 6 6-6 6" />
+                    </svg>
+                  </button>
+                </header>
+                <div className="replay-journal-summary" id="replayJournalSummary" />
+                <div className="replay-journal-current" id="replayJournalCurrent" hidden />
+                <div className="replay-journal-list" id="replayJournalTrades" />
+              </aside>
+              <button
+                id="replayJournalShow"
+                className="replay-journal-reveal"
+                type="button"
+                aria-label={translate("Показать журнал сессии")}
+                title={translate("Показать журнал сессии")}
+                aria-controls="replayJournal"
+                aria-expanded="false"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m15 6-6 6 6 6" />
+                </svg>
+              </button>
+              <aside
                 className="order-card"
                 id="orderTicket"
                 popover="auto"
