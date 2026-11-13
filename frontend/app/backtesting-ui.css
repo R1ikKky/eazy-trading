@@ -91,7 +91,7 @@ body.product-app #view-replay .pane-notice {
 }
 body.product-app #view-replay .replay-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(112px, 1fr) auto minmax(112px, 1fr);
   align-items: center;
   gap: 12px 18px;
   padding: 12px 14px;
@@ -99,7 +99,9 @@ body.product-app #view-replay .replay-panel {
   background: var(--surface-soft);
 }
 body.product-app #view-replay .replay-controls {
+  grid-column: 2;
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 12px 18px;
   min-width: 0;
@@ -217,6 +219,8 @@ body.product-app #view-replay .quick-order #quickOrderSettings {
   border-radius: 8px;
 }
 body.product-app #view-replay .replay-time {
+  grid-column: 3;
+  justify-self: end;
   margin: 0;
   gap: 4px;
   min-width: 112px;
@@ -244,6 +248,19 @@ body.product-app #view-replay #quickClose {
   min-height: 30px;
   border-radius: 8px;
   font-size: 11px;
+}
+@media (max-width: 1200px) {
+  body.product-app #view-replay .replay-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  body.product-app #view-replay .replay-controls,
+  body.product-app #view-replay .replay-time {
+    grid-column: 1;
+  }
+  body.product-app #view-replay .replay-time {
+    justify-self: center;
+    text-align: center;
+  }
 }
 @media (max-width: 1100px) {
   body.product-app #view-replay .drawing-status {

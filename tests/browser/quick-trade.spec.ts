@@ -149,7 +149,7 @@ test("inline market entry immediately displays and restores actual entry, SL, an
   await expect(page.locator("#qty")).toHaveValue("2");
   await assertLines("chart");
   await assertLines("compareChart");
-  for (const width of [1366, 1024]) {
+  for (const width of [1920, 1366, 1024]) {
     await page.setViewportSize({ width, height: 768 });
     for (const selector of [
       "#play",
@@ -162,6 +162,13 @@ test("inline market entry immediately displays and restores actual entry, SL, an
       expect(bounds.x).toBeGreaterThanOrEqual(0);
       expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
       expect(bounds.y + bounds.height).toBeLessThanOrEqual(768);
+    }
+    if (width >= 1200) {
+      const panel = (await page.locator(".replay-panel").boundingBox())!;
+      const transport = (await page.locator(".replay-transport").boundingBox())!;
+      const orders = (await page.locator(".quick-order").boundingBox())!;
+      const center = (transport.x + orders.x + orders.width) / 2;
+      expect(Math.abs(center - (panel.x + panel.width / 2))).toBeLessThan(1);
     }
     await expect(page.locator("#settingsOpen svg")).toBeVisible();
     await page.screenshot({ path: `/tmp/backtesting-laptop-${width}.png` });
