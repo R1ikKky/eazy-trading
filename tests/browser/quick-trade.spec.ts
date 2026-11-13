@@ -192,6 +192,16 @@ test("market entry and chart-drawn SL/TP display and restore on the correct char
       });
       expect(Math.abs(spacing.above - spacing.below)).toBeLessThanOrEqual(1);
     }
+    await expect(page.locator(".pane-notice").first()).not.toBeVisible();
+    const panelGaps = await page.evaluate(() => {
+      const shell = document.querySelector(".app-shell")!;
+      const outer = shell.getBoundingClientRect(), style = getComputedStyle(shell);
+      const card = document.querySelector("#chartCard")!.getBoundingClientRect();
+      return {right:outer.right - parseFloat(style.borderRightWidth) - card.right,
+        bottom:outer.bottom - parseFloat(style.borderBottomWidth) - card.bottom};
+    });
+    expect(panelGaps.bottom).toBeGreaterThan(8);
+    expect(Math.abs(panelGaps.right - panelGaps.bottom)).toBeLessThan(1);
     await expect(page.locator("#settingsOpen svg")).toBeVisible();
     await page.screenshot({ path: `/tmp/backtesting-laptop-${width}.png` });
   }

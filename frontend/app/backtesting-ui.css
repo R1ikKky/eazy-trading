@@ -85,9 +85,7 @@ body.product-app #view-replay .comparison-header {
   min-height: 42px;
 }
 body.product-app #view-replay .pane-notice {
-  margin: 0;
-  padding: 6px 12px;
-  font-size: 10px;
+  display: none;
 }
 body.product-app #view-replay .replay-panel {
   display: grid;
