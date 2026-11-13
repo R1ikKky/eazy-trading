@@ -511,7 +511,7 @@ export function ReplayWorkspace() {
                     <strong id="replayTime" className="mono">
                       —
                     </strong>
-                    <span id="progressLabel">{translate("Свеча 1 из —")}</span>
+                    <span id="progressLabel" hidden>{translate("Свеча 1 из —")}</span>
                   </div>
                 </div>
                 <div className="quick-position" id="quickPosition" hidden>
