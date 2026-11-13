@@ -783,6 +783,12 @@ export class Replay {
       this._rewindBytes -= JSON.stringify(this._rewind.shift()).length;
     }
   }
+  forkBeforeCurrent() {
+    if (this.index === 0) return null;
+    const fork = new Replay(this.bars, this.symbol);
+    fork.index = this.index - 1;
+    return fork;
+  }
   get canRewind() {
     return this.index > (this._rewind[0]?.index ?? this.index);
   }

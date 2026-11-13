@@ -5,10 +5,14 @@ export function confirmRewind({
   from,
   to,
   changes,
+  description: customDescription,
+  confirmLabel,
 }: {
   from: string;
   to: string;
   changes: Change[];
+  description?: string;
+  confirmLabel?: string;
 }): Promise<boolean> {
   const dialog = document.createElement("dialog");
   dialog.className = "rewind-dialog";
@@ -36,9 +40,10 @@ export function confirmRewind({
   const description = node(
     "p",
     "rewind-description",
-    t(
-      "Состояние сделки вернётся к предыдущей свече. Следующие изменения будут отменены.",
-    ),
+    customDescription ||
+      t(
+        "Состояние сделки вернётся к предыдущей свече. Следующие изменения будут отменены.",
+      ),
   );
   description.id = "rewind-description";
   const time = node("div", "rewind-time");
@@ -68,7 +73,7 @@ export function confirmRewind({
   const accept = node(
     "button",
     "button primary",
-    t("Вернуть свечу"),
+    confirmLabel || t("Вернуть свечу"),
   ) as HTMLButtonElement;
   accept.type = "button";
   footer.append(cancel, accept);

@@ -206,10 +206,8 @@ function syncPlayback() {
       : translate("ПАУЗА");
   $("play").disabled = replay.ended || !chart;
   $("step").disabled = replay.ended || !chart;
-  $("back").disabled = !chart || !replay.canRewind || !!orderflow?.isStreaming();
-  $("back").title = replay.index > 0 && !replay.canRewind
-    ? translate("История возврата начинается с момента загрузки этой сохранённой сессии")
-    : translate("Предыдущая свеча");
+  $("back").disabled = !chart || replay.index === 0 || !!orderflow?.isStreaming();
+  $("back").title = translate("Предыдущая свеча");
 }
 function togglePlay() {
   if (orderflow?.isStreaming()) return;
@@ -932,12 +930,65 @@ function order(side: any) {
 }
 let rewindPending = false;
 async function rewindCandle() {
-  if (rewindPending || !replay?.canRewind || orderflow?.isStreaming()) return;
+  if (
+    rewindPending ||
+    !replay ||
+    replay.index === 0 ||
+    orderflow?.isStreaming()
+  )
+    return;
   pause();
   rewindPending = true;
   const currentReplay = replay,
     currentIndex = replay.index;
   try {
+    if (!replay.canRewind) {
+      const clock = (time: number) =>
+        displayTime.format(new Date(time * 1000)) + " " + displayZone;
+      const accepted = await confirmRewind({
+        from: clock(replay.current.time),
+        to: clock(replay.bars[currentIndex - 1].time),
+        description: translate(
+          "В старой сессии не сохранено состояние сделок для этой свечи. Откройте отдельный чистый повтор с предыдущей свечи. Исходная сессия и её сделки останутся без изменений.",
+        ),
+        confirmLabel: translate("Открыть повтор"),
+        changes: [
+          {
+            label: translate("Новый повтор без позиций и заявок"),
+            detail: translate(
+              "Исходная история сделок сохранится в разделе Сессии",
+            ),
+          },
+        ],
+      });
+      if (
+        !accepted ||
+        replay !== currentReplay ||
+        replay.index !== currentIndex
+      )
+        return;
+      guard(() => {
+        const original = product.active();
+        const fork = replay.forkBeforeCurrent();
+        product.saveReplay(replay.snapshot());
+        const record = product.createSession({
+          ...original,
+          name: original.name.slice(0, 80) + translate(" · перемотка"),
+          snapshot: fork.snapshot(),
+        });
+        record.drawings = structuredClone(
+          (original.drawings || []).filter(
+            (drawing) => drawing.createdAt <= fork.current.time,
+          ),
+        );
+        record.notes = original.notes || "";
+        startSession(record.symbol, record.from, record.to, record.session, {
+          record,
+          discardCurrent: true,
+        });
+      });
+      return;
+    }
     const names = {
       orders: "Заявки и позиции",
       protection: "Изменения SL/TP",

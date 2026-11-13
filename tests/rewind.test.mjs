@@ -222,3 +222,28 @@ test("rewinding restores a pending order canceled on a later candle", () => {
   assert.equal(r.pending.entryPrice, 50);
   same(r);
 });
+
+test("older sessions can fork an earlier clean replay without changing their saved trading state", () => {
+  const r = new Replay(bars, "NQ");
+  r.step();
+  r.openMarket(1, chart);
+  r.step();
+  r.modifyProtection({ sl: 95 });
+  r.step();
+  const saved = r.snapshot();
+  delete saved.rewind;
+  const legacy = Replay.restore(bars, "NQ", saved);
+  const before = legacy.snapshot();
+  assert.equal(legacy.canRewind, false);
+  const fork = legacy.forkBeforeCurrent();
+  assert.equal(fork.index, legacy.index - 1);
+  assert.equal(fork.position, null);
+  assert.equal(fork.pending, null);
+  assert.deepEqual(fork.trades, []);
+  assert.equal(fork.canRewind, true);
+  same(fork);
+  fork.rewind();
+  assert.equal(fork.index, legacy.index - 2);
+  assert.deepEqual(legacy.snapshot(), before);
+  assert.equal(new Replay(bars, "NQ").forkBeforeCurrent(), null);
+});

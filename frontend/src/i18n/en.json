@@ -945,11 +945,15 @@
   "Возврат на предыдущую свечу отменит последующие изменения:": "Going back one candle will undo these later changes:",
   "Вернуться назад?": "Go back?",
   "Потяните от линии входа: к убытку — SL, к прибыли — TP": "Drag from entry: toward loss for SL, toward profit for TP",
-  "История возврата начинается с момента загрузки этой сохранённой сессии": "Rewind history starts from the point this saved session was loaded",
   "Вернуться на одну свечу?": "Go back one candle?",
   "Состояние сделки вернётся к предыдущей свече. Следующие изменения будут отменены.": "This restores your trading state at the previous candle. These later changes will be undone.",
   "Текущая свеча": "Current candle",
   "Остаться здесь": "Stay here",
   "Вернуть свечу": "Rewind candle",
-  "Не задано": "Not set"
+  "Не задано": "Not set",
+  "В старой сессии не сохранено состояние сделок для этой свечи. Откройте отдельный чистый повтор с предыдущей свечи. Исходная сессия и её сделки останутся без изменений.": "This older session has no saved trading state for that candle. Open a separate clean replay at the previous candle. Your original session and its trades will stay unchanged.",
+  "Открыть повтор": "Open replay",
+  "Новый повтор без позиций и заявок": "New replay with no positions or pending orders",
+  "Исходная история сделок сохранится в разделе Сессии": "Your original trade history stays in Sessions",
+  " · перемотка": " · rewind"
 }
