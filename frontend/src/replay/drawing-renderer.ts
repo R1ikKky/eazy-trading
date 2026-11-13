@@ -342,7 +342,7 @@ export function renderDrawing(d: any, group: SVGGElement, ctx: any) {
   }
   if (d.type === "long-position" || d.type === "short-position") {
     const boxLeft = Math.min(a.x, b.x, c.x),
-      right = Math.max(boxLeft + 80, a.x, b.x, c.x),
+      right = Math.max(boxLeft + 1, a.x, b.x, c.x),
       stop = b.y,
       target = c.y;
     rect(boxLeft, Math.min(a.y, stop), right - boxLeft, Math.abs(stop - a.y), {

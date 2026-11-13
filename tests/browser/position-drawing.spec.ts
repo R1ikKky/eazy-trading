@@ -5,6 +5,7 @@ for (const symbol of ["NQ", "ES"]) {
   test(`${symbol} position drawings start with SL and TP, support editing, undo and reload`, async ({
     page,
   }) => {
+    test.setTimeout(90000);
     await authenticateTestPage(page, "en");
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
@@ -58,7 +59,12 @@ for (const symbol of ["NQ", "ES"]) {
       await page.mouse.up();
       await expect(count).toHaveText(String(index + 1));
       const drawing = chart.locator("[data-drawing-id]").last();
-      await expect(drawing.locator("circle")).toHaveCount(3);
+      await expect(
+        drawing.locator("circle[data-position-handle='entry']"),
+      ).toHaveCount(1);
+      await expect(drawing.locator("rect[data-position-handle]")).toHaveCount(
+        3,
+      );
       await expect(drawing).toContainText("R:R 1.00");
       const entry = Number(
         await drawing
@@ -87,9 +93,7 @@ for (const symbol of ["NQ", "ES"]) {
       // Each level remains draggable independently, and drawing undo restores it.
       for (const handle of [1, 2]) {
         const line = drawing.locator('[data-position-level="entry"]');
-        const x = Number(
-          await line.getAttribute(sl.time > a.time ? "x2" : "x1"),
-        );
+        const x = Number(await line.getAttribute("x1"));
         const zone = drawing.locator(
           `[data-position-zone="${handle === 1 ? "stop" : "target"}"]`,
         );
@@ -104,10 +108,11 @@ for (const symbol of ["NQ", "ES"]) {
           { steps: 8 },
         );
         await page.mouse.up();
-        await expect(drawing.locator("circle").nth(handle)).not.toHaveAttribute(
-          "cy",
-          String(y),
-        );
+        await expect(
+          drawing.locator(
+            `[data-position-handle="${handle === 1 ? "stop" : "target"}"]`,
+          ),
+        ).not.toHaveAttribute("y", String(y - 4));
         const changed = (await saved()).drawings.find(
           (d: any) => d.id === stored.id,
         );
@@ -123,6 +128,53 @@ for (const symbol of ["NQ", "ES"]) {
         );
         expect(restored.points).toEqual(stored.points);
       }
+      const line = drawing.locator('[data-position-level="entry"]');
+      const left = Number(await line.getAttribute("x1")),
+        right = Number(await line.getAttribute("x2"));
+      const drag = async (x: number, y: number, dx: number, dy: number) => {
+        await page.mouse.move(bounds.x + x, bounds.y + y);
+        await page.mouse.down();
+        await page.mouse.move(bounds.x + x + dx, bounds.y + y + dy, {
+          steps: 10,
+        });
+        await page.mouse.up();
+        return (await saved()).drawings.find((d: any) => d.id === stored.id);
+      };
+      // Overshoot entry with each vertical square: it must stop at one tick away.
+      for (const [handle, pointIndex] of [
+        ["stop", 1],
+        ["target", 2],
+      ] as const) {
+        const zone = drawing.locator(`[data-position-zone="${handle}"]`);
+        const top = Number(await zone.getAttribute("y")),
+          height = Number(await zone.getAttribute("height"));
+        const y = top < entry ? top : top + height;
+        const changed = await drag(left, y, 40, (entry - y) * 2);
+        expect(changed.points[pointIndex].time).toBe(
+          stored.points[pointIndex].time,
+        );
+        expect(Math.abs(changed.points[pointIndex].price - a.price)).toBe(0.25);
+        await page.keyboard.press("Control+z");
+        await saved();
+      }
+      // The entry circle changes the left edge and entry price, leaving both levels fixed.
+      const moved = await drag(left, entry, -28, -20);
+      expect(moved.points[0].time).toBeLessThan(a.time);
+      expect(moved.points[0].price).toBeGreaterThan(a.price);
+      expect(moved.points.slice(1)).toEqual(stored.points.slice(1));
+      await page.keyboard.press("Control+z");
+      await saved();
+      // The right square resizes time only, even on a diagonal drag.
+      const resized = await drag(right, entry, 40, 45);
+      expect(resized.points[1].time).toBeGreaterThan(sl.time);
+      expect(resized.points[2].time).toBe(resized.points[1].time);
+      expect(resized.points.map((p: any) => p.price)).toEqual(
+        stored.points.map((p: any) => p.price),
+      );
+      expect(resized.points[0]).toEqual(a);
+      await page.screenshot({ path: `/tmp/position-handles-${symbol}.png` });
+      await page.keyboard.press("Control+z");
+      await saved();
     }
     await page.mouse.move(900, 100);
     await page.screenshot({ path: `/tmp/position-drawings-${symbol}.png` });

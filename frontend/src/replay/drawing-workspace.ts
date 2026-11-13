@@ -9,6 +9,12 @@ import { sanitizeDrawing } from "./drawing-schema";
 import { renderDrawing } from "./drawing-renderer";
 import { createDrawingToolbar } from "./drawing-toolbar";
 import { createChartMenu } from "./chart-menu";
+import {
+  isPositionDrawing as isPosition,
+  positionHandles,
+  movePositionHandle,
+  type PositionHandle,
+} from "./position-drawing";
 
 /** One toolbar targets the focused chart; stored drawings belong to instruments. */
 export function createDrawingWorkspace({
@@ -45,6 +51,7 @@ export function createDrawingWorkspace({
   let pending: any[] = [],
     strokePoints: any[] = [],
     dragHandle = -1,
+    positionHandle: PositionHandle | null = null,
     selectionPointer: number | null = null,
     lastSaved: any[] = [];
   let controlHeld = false,
@@ -52,8 +59,6 @@ export function createDrawingWorkspace({
     lastPointer: { x: number; y: number } | null = null;
   const histories = new Map<string, any[][]>();
   const symbolOf = (d: any) => d.symbol || getSessionSymbol();
-  const isPosition = (type: string) =>
-    type === "long-position" || type === "short-position";
   const belongs = (d: any, ctx = active) =>
     !!ctx && symbolOf(d) === ctx.getSymbol();
   const history = () => {
@@ -256,6 +261,24 @@ export function createDrawingWorkspace({
       height: Math.max(0, container.clientHeight - chart.timeScale().height()),
     });
     if (isSelected && !drawingUI.state.locked && !d.locked) {
+      if (isPosition(d.type)) {
+        for (const handle of positionHandles(d)) {
+          const c = coordinates(handle.point);
+          if (c.x == null || c.y == null) continue;
+          layer.append(
+            node(handle.kind === "entry" ? "circle" : "rect", {
+              ...(handle.kind === "entry"
+                ? { cx: c.x, cy: c.y, r: 5 }
+                : { x: c.x - 4, y: c.y - 4, width: 8, height: 8, rx: 1.5 }),
+              fill: prefs.background,
+              stroke: "#3979ed",
+              "stroke-width": 2,
+              "data-position-handle": handle.kind,
+            }),
+          );
+        }
+        return;
+      }
       for (const p of d.points || [d.a, ...(d.b ? [d.b] : [])]) {
         const c = coordinates(p);
         if (c.x != null && c.y != null)
@@ -491,6 +514,7 @@ export function createDrawingWorkspace({
   }
   function selectMode(value: any) {
     mode = value;
+    positionHandle = null;
     selectionPointer = null;
     drawingUI.closeStyle();
     pending = [];
@@ -616,6 +640,20 @@ export function createDrawingWorkspace({
       }
     }
     return best;
+  }
+  function positionHandleAt(d: any, x: number, y: number): PositionHandle | null {
+    let nearest: PositionHandle | null = null,
+      distance = 10;
+    for (const handle of positionHandles(d)) {
+      const c = coordinates(handle.point);
+      if (c.x == null || c.y == null) continue;
+      const delta = Math.hypot(c.x - x, c.y - y);
+      if (delta < distance) {
+        nearest = handle.kind;
+        distance = delta;
+      }
+    }
+    return nearest;
   }
   function setPoints(d: any, points: any[]) {
     d.points = points;
@@ -758,11 +796,13 @@ export function createDrawingWorkspace({
     pause();
     selected = best?.id || null;
     dragHandle = -1;
+    positionHandle = null;
     if (best) {
       drawingUI.setStyle(best);
       if (!drawingUI.state.locked && !best.locked) {
         const points = best.points || [best.a, ...(best.b ? [best.b] : [])];
-        dragHandle = points.findIndex((v) => {
+        if (isPosition(best.type)) positionHandle = positionHandleAt(best, x, y);
+        else dragHandle = points.findIndex((v) => {
           const c = coordinates(v);
           return (
             c.x != null && c.y != null && Math.hypot(c.x - x, c.y - y) < 10
@@ -816,17 +856,35 @@ export function createDrawingWorkspace({
             original.a,
             ...(original.b ? [original.b] : []),
           ];
-        setPoints(
-          preview,
-          points.map((v, i) =>
-            dragHandle >= 0
-              ? i === dragHandle
-                ? p
-                : v
-              : { time: v.time + dt, price: v.price + dp },
-          ),
-        );
+        if (isPosition(original.type)) {
+          setPoints(
+            preview,
+            movePositionHandle(original, positionHandle, dt, dp, getTimeframe() * 60),
+          );
+        } else {
+          setPoints(
+            preview,
+            points.map((v, i) =>
+              dragHandle >= 0
+                ? i === dragHandle
+                  ? p
+                  : v
+                : { time: v.time + dt, price: v.price + dp },
+            ),
+          );
+        }
       }
+    }
+    const focused = drawings.find((d) => d.id === selected);
+    if (
+      focused && isPosition(focused.type) &&
+      !drawingUI.state.locked && !focused.locked
+    ) {
+      const handle = dragging ? positionHandle : positionHandleAt(focused, x, y);
+      container.style.cursor =
+        handle === "width" ? "ew-resize" :
+        handle === "stop" || handle === "target" ? "ns-resize" :
+        handle === "entry" || dragging ? "move" : "crosshair";
     }
     schedule();
   };
@@ -870,10 +928,12 @@ export function createDrawingWorkspace({
     dragging = false;
     preview = null;
     dragHandle = -1;
+    positionHandle = null;
     syncMagnet();
     schedule();
   };
   const pointercancel = () => {
+    positionHandle = null;
     selectionPointer = null;
     dragging = false;
     preview = null;

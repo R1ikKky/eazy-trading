@@ -50,6 +50,7 @@ test("Magnet snaps both crosshair and drawing anchors and resets on release, can
   await expect(page.locator("#setupDialog")).not.toBeVisible({
     timeout: 45000,
   });
+  const primarySymbol = await page.locator("#symbol").inputValue();
   const magnet = page.locator('[data-drawing-toggle="magnet"]');
   const choose = async () => {
     await page.locator('[data-group="lines"]').click();
@@ -121,7 +122,8 @@ test("Magnet snaps both crosshair and drawing anchors and resets on release, can
   const active = workspace.sessions.find(
     (s: any) => s.id === workspace.settings.activeSessionId,
   );
-  for (const [index, symbol] of ["NQ", "ES"].entries()) {
+  const chartSymbols = [primarySymbol, primarySymbol === "NQ" ? "ES" : "NQ"];
+  for (const [index, symbol] of chartSymbols.entries()) {
     const [snapped, free] = active.drawings.filter(
       (d: any) => d.symbol === symbol,
     );
