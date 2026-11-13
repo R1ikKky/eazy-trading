@@ -22,8 +22,6 @@ test("ENTRY expands left and cancels untouched fills or closes at the current pr
     timeout: 45000,
   });
   await page.locator("#qty").fill("2");
-  await page.locator("#stop").fill("40");
-  await page.locator("#target").fill("80");
   const snapshot = async () => {
     const w = await (await page.request.get("/api/workspace")).json();
     return w.sessions.find((s: any) => s.id === w.settings.activeSessionId)
@@ -33,7 +31,17 @@ test("ENTRY expands left and cancels untouched fills or closes at the current pr
   await page.locator("#long").click();
   await expect(control).toBeVisible();
   await expect(control).toHaveAttribute("data-action", "cancel");
-  await expect.poll(async () => (await snapshot()).position?.side).toBe(1);
+  await expect(page.locator("#saveStatus")).toHaveAttribute(
+    "data-state",
+    "saved",
+    { timeout: 30000 },
+  );
+  await expect
+    .poll(async () => {
+      const s = await snapshot();
+      return s.index === 0 && s.position?.side === 1;
+    })
+    .toBe(true);
   const untouched = await snapshot();
   await page.mouse.move(900, 100);
   const collapsed = (await control.boundingBox())!;

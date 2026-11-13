@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { drawLevels } from "./chart-gesture-helper";
 import { authenticateTestPage } from "./auth-helper";
 
 test("SL and TP drag between panes and execution history has exact arrows and dashed direction lines", async ({
@@ -63,8 +64,6 @@ test("SL and TP drag between panes and execution history has exact arrows and da
   await page.locator("#comparisonTitle").click();
   await page.getByRole("menuitemradio", { name: /^NQ / }).click();
   await page.locator("#qty").fill("2");
-  await page.locator("#stop").fill("40");
-  await page.locator("#target").fill("80");
   await page.locator("#long").click();
   await expect(page.locator("#quickPositionText")).toContainText("LONG");
   const active = async () => {
@@ -73,6 +72,11 @@ test("SL and TP drag between panes and execution history has exact arrows and da
       .snapshot;
   };
   await expect.poll(async () => (await active()).position?.side).toBe(1);
+  const entry = (await active()).position.entry;
+  await drawLevels(page, entry, entry - 40, entry + 80, "__executionCharts", [
+    "chart",
+    "compareChart",
+  ]);
   const initial = (await active()).position;
   const ranges = () =>
     page.evaluate(() =>

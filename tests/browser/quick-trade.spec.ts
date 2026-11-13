@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { drawLevels } from "./chart-gesture-helper";
 import { authenticateTestPage } from "./auth-helper";
 
-test("inline market entry immediately displays and restores actual entry, SL, and TP on the correct chart", async ({
+test("market entry and chart-drawn SL/TP display and restore on the correct chart", async ({
   page,
 }) => {
   await authenticateTestPage(page, "en");
@@ -74,10 +75,15 @@ test("inline market entry immediately displays and restores actual entry, SL, an
     (await page.locator("#lastPrice").textContent())!.replaceAll(",", ""),
   );
   await page.locator("#qty").fill("2");
-  await page.locator("#stop").fill("12");
-  await page.locator("#target").fill("24");
   await page.locator("#long").click();
   await expect(page.locator("#quickPositionText")).toContainText("LONG");
+  await drawLevels(
+    page,
+    quote + 0.25,
+    quote + 0.25 - 12,
+    quote + 0.25 + 24,
+    "__tradeCharts",
+  );
   await expect(page.locator("#progressLabel")).toHaveText(progress!);
   await expect(page.locator("#saveStatus")).toHaveAttribute(
     "data-state",
@@ -165,16 +171,24 @@ test("inline market entry immediately displays and restores actual entry, SL, an
     }
     if (width >= 1200) {
       const panel = (await page.locator(".replay-panel").boundingBox())!;
-      const transport = (await page.locator(".replay-transport").boundingBox())!;
+      const transport = (await page
+        .locator(".replay-transport")
+        .boundingBox())!;
       const orders = (await page.locator(".quick-order").boundingBox())!;
       const center = (transport.x + orders.x + orders.width) / 2;
       expect(Math.abs(center - (panel.x + panel.width / 2))).toBeLessThan(1);
       const spacing = await page.evaluate(() => {
         const shell = document.querySelector(".app-shell")!;
-        const nav = document.querySelector(".workspace-header .app-sidebar")!.getBoundingClientRect();
-        const chart = document.querySelector("#chartCard")!.getBoundingClientRect();
-        const innerTop = shell.getBoundingClientRect().top + parseFloat(getComputedStyle(shell).borderTopWidth);
-        return {above: nav.top - innerTop, below: chart.top - nav.bottom};
+        const nav = document
+          .querySelector(".workspace-header .app-sidebar")!
+          .getBoundingClientRect();
+        const chart = document
+          .querySelector("#chartCard")!
+          .getBoundingClientRect();
+        const innerTop =
+          shell.getBoundingClientRect().top +
+          parseFloat(getComputedStyle(shell).borderTopWidth);
+        return { above: nav.top - innerTop, below: chart.top - nav.bottom };
       });
       expect(Math.abs(spacing.above - spacing.below)).toBeLessThanOrEqual(1);
     }
@@ -209,10 +223,21 @@ test("inline market entry immediately displays and restores actual entry, SL, an
     { timeout: 30000 },
   );
   await expect(page.locator("#long")).toBeEnabled({ timeout: 30000 });
-  await page.locator("#stop").fill("1000");
-  await page.locator("#target").fill("2000");
   await page.locator("#short").click();
   await expect(page.locator("#quickPositionText")).toContainText("SHORT");
+  await expect(page.locator("#saveStatus")).toHaveAttribute("data-state", "saved", {timeout: 30000});
+  const shortState = await (await page.request.get("/api/workspace")).json();
+  const shortEntry = shortState.sessions.find(
+    (s: any) => s.id === shortState.settings.activeSessionId,
+  ).snapshot.position.entry;
+  await drawLevels(
+    page,
+    shortEntry,
+    shortEntry + 1000,
+    shortEntry - 2000,
+    "__tradeCharts",
+    ["chart", "compareChart"],
+  );
   for (const id of ["chart", "compareChart"]) {
     await expect
       .poll(() =>

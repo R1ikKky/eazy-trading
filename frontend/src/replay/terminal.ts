@@ -47,9 +47,9 @@ export function renderPosition(box: any, replay: any, symbol: any) {
       ) +
       p.entry.toFixed(2) +
       '</span></div><div class="protection-fields"><label>SL<input type="number" data-position-sl step="0.25" value="' +
-      p.sl +
+      (p.sl ?? "") +
       '"></label><label>TP<input type="number" data-position-tp step="0.25" value="' +
-      p.tp +
+      (p.tp ?? "") +
       '"></label><button class="button secondary compact" data-action="protect" ' +
       (replay.ended ? "disabled" : "") +
       translate(
@@ -130,7 +130,6 @@ export function createComparison({
     loadVersion: any = 0,
     rows = [],
     viewScope = "",
-    renderedTime = 0,
     syncingCrosshair = false;
   const button = document.getElementById("compareToggle"),
     panes = document.getElementById("chartPanes"),
@@ -249,10 +248,8 @@ export function createComparison({
     const scope = symbol + ":" + (d?.id || "") + ":" + tf + ":" + p.session,
       previous: any = rows,
       viewport =
-        scope === viewScope && now >= renderedTime
-          ? chart.timeScale().getVisibleLogicalRange()
-          : null;
-    if (scope !== viewScope || now < renderedTime) viewportScale.release();
+        scope === viewScope ? chart.timeScale().getVisibleLogicalRange() : null;
+    if (scope !== viewScope) viewportScale.release();
     {
       chart.applyOptions({
         layout: {
@@ -297,7 +294,11 @@ export function createComparison({
               rows[0].time > previous[0].time
                 ? previous.findIndex((b) => b.time >= rows[0].time)
                 : 0,
-            shift = -Math.max(0, dropped);
+            restored =
+              rows[0].time < previous[0].time
+                ? rows.findIndex((b) => b.time >= previous[0].time)
+                : 0,
+            shift = Math.max(0, restored) - Math.max(0, dropped);
           range = { from: viewport.from + shift, to: viewport.to + shift };
         }
         chart.timeScale().setVisibleLogicalRange(range);
@@ -314,7 +315,6 @@ export function createComparison({
           translate(" нет данных до текущего момента. Выберите другой период.");
     }
     viewScope = scope;
-    renderedTime = now;
     if (priceLabel)
       priceLabel.textContent =
         rows.at(-1)?.close?.toLocaleString("en-US", {

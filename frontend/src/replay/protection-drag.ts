@@ -1,5 +1,11 @@
 type Level = "sl" | "tp";
-type Position = { id: string; sl: number; tp: number; side: number };
+type Position = {
+  id: string;
+  entry?: number;
+  sl: number | null;
+  tp: number | null;
+  side: number;
+};
 
 export function protectionPrice(
   raw: number,
@@ -40,13 +46,16 @@ export function installProtectionDrag({
 }) {
   let drag: {
     id: string;
-    kind: Level;
+    kind: Level | "entry";
+    origin: "entry" | Level;
+    startY: number;
+    moved: boolean;
     pointerId: number;
     price: number;
   } | null = null;
   const hover = (active: boolean) =>
     container.classList.toggle("protection-drag-hover", active);
-  const hit = (event: PointerEvent): Level | null => {
+  const hit = (event: PointerEvent): Level | "entry" | null => {
     if (
       !canDrag() ||
       (event.target as Element).closest(".drawing-ui, button, input, select, a")
@@ -60,11 +69,16 @@ export function installProtectionDrag({
     let nearest: Level | null = null,
       distance = 7;
     for (const kind of ["sl", "tp"] as const) {
+      if (position[kind] === null) continue;
       const lineY = series.priceToCoordinate(position[kind]);
       if (lineY != null && Math.abs(y - lineY) <= distance) {
         nearest = kind;
         distance = Math.abs(y - lineY);
       }
+    }
+    if (!nearest && position.entry != null) {
+      const entryY = series.priceToCoordinate(position.entry);
+      if (entryY != null && Math.abs(y - entryY) <= 7) return "entry";
     }
     return nearest;
   };
@@ -79,7 +93,12 @@ export function installProtectionDrag({
     hover(false);
     if (container.hasPointerCapture(active.pointerId))
       container.releasePointerCapture(active.pointerId);
-    if (commit && getPosition()?.id === active.id)
+    if (
+      commit &&
+      active.kind !== "entry" &&
+      (active.origin !== "entry" || active.moved) &&
+      getPosition()?.id === active.id
+    )
       onCommit(active.kind, active.price);
     else onCancel();
   };
@@ -95,8 +114,11 @@ export function installProtectionDrag({
       drag = {
         id: position.id,
         kind,
+        origin: kind,
+        startY: event.clientY,
+        moved: false,
         pointerId: event.pointerId,
-        price: position[kind],
+        price: kind === "entry" ? position.entry : position[kind],
       };
       container.setPointerCapture(event.pointerId);
       hover(true);
@@ -124,6 +146,13 @@ export function installProtectionDrag({
       );
       const raw = series.coordinateToPrice(y);
       if (raw == null || !Number.isFinite(raw)) return;
+      if (drag.origin === "entry") {
+        const dy = event.clientY - drag.startY;
+        if (Math.abs(dy) < 3) return;
+        drag.kind = dy * position.side > 0 ? "sl" : "tp";
+        drag.moved = true;
+      }
+      if (drag.kind === "entry") return;
       drag.price = protectionPrice(
         raw,
         drag.kind,

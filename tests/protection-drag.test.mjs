@@ -28,3 +28,74 @@ test('drag previews without committing, captures the pointer, cancels on Escape,
     assert.equal(cancels,1);assert.equal(commits.length,1);assert.equal(captures.size,0);
   } finally {globalThis.window=oldWindow;}
 });
+
+test("dragging from entry creates SL toward loss and TP toward profit for both sides", () => {
+  const oldWindow = globalThis.window;
+  globalThis.window = { addEventListener() {} };
+  try {
+    for (const side of [1, -1]) {
+      const listeners = {},
+        captured = new Set(),
+        commits = [];
+      const position = {
+        id: "entry-drag",
+        entry: 100,
+        sl: null,
+        tp: null,
+        side,
+      };
+      const container = {
+        classList: { toggle() {} },
+        getBoundingClientRect: () => ({ top: 0 }),
+        addEventListener: (n, f) => (listeners[n] = f),
+        setPointerCapture: (id) => captured.add(id),
+        hasPointerCapture: (id) => captured.has(id),
+        releasePointerCapture: (id) => captured.delete(id),
+      };
+      installProtectionDrag({
+        container,
+        chart: { paneSize: () => ({ height: 400 }) },
+        series: {
+          priceToCoordinate: (p) => 300 - p * 2,
+          coordinateToPrice: (y) => (300 - y) / 2,
+        },
+        getPosition: () => position,
+        getCurrentPrice: () => 100,
+        canDrag: () => true,
+        onStart() {},
+        onPreview() {},
+        onCommit: (kind, price) => {
+          commits.push([kind, price]);
+          position[kind] = price;
+        },
+        onCancel() {},
+      });
+      const e = (y) => ({
+        button: 0,
+        pointerId: 1,
+        clientY: y,
+        target: { closest: () => null },
+        preventDefault() {},
+        stopImmediatePropagation() {},
+      });
+      listeners.pointerdown(e(100));
+      listeners.pointerup(e(100));
+      assert.equal(
+        commits.length,
+        0,
+        "a click alone does not create protection",
+      );
+      listeners.pointerdown(e(100));
+      listeners.pointermove(e(100 + side * 20));
+      assert.equal(commits.length, 0);
+      listeners.pointerup(e(100 + side * 20));
+      assert.deepEqual(commits[0], ["sl", 100 - side * 10]);
+      listeners.pointerdown(e(100));
+      listeners.pointermove(e(100 - side * 20));
+      listeners.pointerup(e(100 - side * 20));
+      assert.deepEqual(commits[1], ["tp", 100 + side * 10]);
+    }
+  } finally {
+    globalThis.window = oldWindow;
+  }
+});

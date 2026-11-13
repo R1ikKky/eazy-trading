@@ -200,8 +200,9 @@ function snapshot(value: any, symbol: any) {
       ![1, -1].includes(q.side) ||
       !integer(q.qty, 1, 100) ||
       !["market", "limit", "stop"].includes(q.kind) ||
-      !number(q.stop, 0.25) ||
-      !number(q.target, 0.25) ||
+      (q.chartProtection !== undefined && q.chartProtection !== true) ||
+      !number(q.stop, q.chartProtection ? 0 : 0.25) ||
+      !number(q.target, q.chartProtection ? 0 : 0.25) ||
       !number(q.fee, 0, 100) ||
       !integer(q.slip, 0, 100)
     )
@@ -219,8 +220,8 @@ function snapshot(value: any, symbol: any) {
     if (
       open &&
       (!price(q.entry) ||
-        !price(q.sl) ||
-        !price(q.tp) ||
+        (q.sl === null ? !q.chartProtection : !price(q.sl)) ||
+        (q.tp === null ? !q.chartProtection : !price(q.tp)) ||
         !timestamp(q.time) ||
         q.time > value.currentTime ||
         !number(q.realizedNet) ||
@@ -286,6 +287,39 @@ function snapshot(value: any, symbol: any) {
   )
     fail("объём ожидающего выхода");
   if (out.closePending && !out.position) fail("выход без позиции");
+  if (out.rewind !== undefined) {
+    if (
+      !Array.isArray(out.rewind) ||
+      !out.rewind.length ||
+      out.rewind.length > 10000
+    )
+      fail("история возврата");
+    let previousIndex = -1,
+      previousCount = 0;
+    for (const frame of out.rewind) {
+      if (
+        !object(frame) ||
+        !integer(frame.index, previousIndex + 1, out.index) ||
+        !integer(frame.tradeCount, previousCount, out.trades.length) ||
+        typeof frame.closePending !== "boolean" ||
+        (frame.position !== null && frame.pending !== null)
+      )
+        fail("история возврата");
+      seen.clear();
+      if (frame.position !== null) order(frame.position, true);
+      if (frame.pending !== null) order(frame.pending);
+      if (
+        frame.closePending
+          ? !frame.position ||
+            (frame.closeQty !== null &&
+              !integer(frame.closeQty, 1, frame.position.qty))
+          : frame.closeQty !== null
+      )
+        fail("история выхода");
+      previousIndex = frame.index;
+      previousCount = frame.tradeCount;
+    }
+  }
   return out;
 }
 function registry(value: any = {}) {

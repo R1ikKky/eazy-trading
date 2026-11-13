@@ -160,6 +160,7 @@ let symbol: any = "NQ",
   tradeHistory: any,
   priceLines: any = [],
   renderedLevelsSignature = "",
+  protectionPreview: {kind: "sl" | "tp"; price: number; id: string} | null = null,
   chartBars = [],
   toastTimer,
   tools: any,
@@ -204,6 +205,10 @@ function syncPlayback() {
       : translate("ПАУЗА");
   $("play").disabled = replay.ended || !chart;
   $("step").disabled = replay.ended || !chart;
+  $("back").disabled = !chart || !replay.canRewind || !!orderflow?.isStreaming();
+  $("back").title = replay.index > 0 && !replay.canRewind
+    ? translate("История возврата начинается с момента загрузки этой сохранённой сессии")
+    : translate("Предыдущая свеча");
 }
 function togglePlay() {
   if (orderflow?.isStreaming()) return;
@@ -460,7 +465,9 @@ function rebuildChart(leftTime: any = null, preserve = false) {
       chartBars[0] && previousBars[0] && chartBars[0].time > previousBars[0].time
         ? previousBars.findIndex((bar) => bar.time >= chartBars[0].time)
         : 0;
-    const shift = -Math.max(0, dropped);
+    const restored = chartBars[0] && previousBars[0] && chartBars[0].time < previousBars[0].time
+      ? chartBars.findIndex((bar) => bar.time >= previousBars[0].time) : 0;
+    const shift = Math.max(0, restored) - Math.max(0, dropped);
     chart.timeScale().setVisibleLogicalRange({
       from: prior.from + shift,
       to: prior.to + shift,
@@ -878,8 +885,9 @@ function previewRange() {
 function config() {
   return {
     qty: Number($("qty").value),
-    stop: Number($("stop").value),
-    target: Number($("target").value),
+    stop: 0,
+    target: 0,
+    chartProtection: true as const,
     fee: Number($("fee").value),
     slip: Number($("slip").value),
     kind: $("orderKind").value,
@@ -888,16 +896,20 @@ function config() {
   };
 }
 function riskPreview() {
-  const c = config(),
-    risk =
-      c.qty *
-      (c.stop * contracts[symbol].point +
-        2 * c.fee +
-        c.slip * 0.25 * contracts[symbol].point);
-  $("riskValue").textContent =
-    Number.isFinite(risk) && risk > 0 ? money(risk) : "—";
+  const p = replay?.position;
+  const risk =
+    p?.sl != null
+      ? Math.max(
+          0,
+          (p.entry - p.sl) * p.side * contracts[symbol].point * p.qty +
+            2 * p.fee * p.qty,
+        )
+      : null;
+  $("riskValue").textContent = risk !== null ? money(risk) : "—";
+  const stop = p?.sl != null ? Math.max(0, (p.entry - p.sl) * p.side) : 0;
+  const target = p?.tp != null ? Math.max(0, (p.tp - p.entry) * p.side) : 0;
   $("rrValue").textContent =
-    c.stop > 0 && c.target > 0 ? "1 : " + (c.target / c.stop).toFixed(1) : "—";
+    stop > 0 && target > 0 ? "1 : " + (target / stop).toFixed(1) : "—";
 }
 function order(side: any) {
   if (orderflow?.isStreaming())
@@ -916,6 +928,37 @@ function order(side: any) {
       config().kind.toUpperCase() +
       translate(" заявка создана"),
   );
+}
+function rewindCandle() {
+  if (!replay?.canRewind || orderflow?.isStreaming()) return;
+  pause();
+  const names = {
+    orders: "Заявки и позиции",
+    protection: "Изменения SL/TP",
+    trades: "Исполнения и результаты сделок",
+    volume: "Частичные выходы",
+    close: "Запросы на закрытие",
+  };
+  const effects = replay.rewindEffects();
+  if (
+    effects.length &&
+    !confirm(
+      translate("Возврат на предыдущую свечу отменит последующие изменения:") +
+        "\n\n" +
+        effects.map((effect) => "• " + translate(names[effect])).join("\n") +
+        "\n\n" +
+        translate("Вернуться назад?"),
+    )
+  )
+    return;
+  tools?.cancel();
+  protectionPreview = null;
+  tools?.freezeViewport();
+  comparison?.freezeViewport();
+  replay.rewind();
+  tradeOffset = 0;
+  rebuildChart(null, true);
+  render();
 }
 function step() {
   if (orderflow?.isStreaming()) return false;
@@ -1023,7 +1066,8 @@ function installPositionDragging(
     canDrag: () =>
       !!replay?.position &&
       !orderflow?.isStreaming() &&
-      (id === "primary" ? primaryInstrument() : paneSymbols.comparison) === symbol &&
+      (id === "primary" ? primaryInstrument() : paneSymbols.comparison) ===
+        symbol &&
       drawingWorkspace.isNavigation(id),
     onStart: () => {
       pause();
@@ -1031,14 +1075,18 @@ function installPositionDragging(
       comparison?.freezeViewport();
     },
     onPreview: (kind, value) => {
-      for (const lines of [priceLines, comparisonPriceLines])
-        lines[kind === "sl" ? 1 : 2]?.applyOptions({ price: value });
+      protectionPreview = { kind, price: value, id: replay.position.id };
+      renderLines();
     },
     onCommit: (kind, value) => {
+      protectionPreview = null;
       guard(() => replay.modifyProtection({ [kind]: value }));
       render();
     },
-    onCancel: () => renderLines(),
+    onCancel: () => {
+      protectionPreview = null;
+      renderLines();
+    },
   });
 }
 function renderLines() {
@@ -1062,9 +1110,22 @@ function renderLines() {
     for (const target of targets)
       for (const [title, value, color] of [
         [translate("ВХОД"), p.entry, "#748b59"],
-        ["SL", p.sl, "#cf6c66"],
-        ["TP", p.tp, "#2a967a"],
-      ])
+        [
+          "SL",
+          protectionPreview?.id === p.id && protectionPreview.kind === "sl"
+            ? protectionPreview.price
+            : p.sl,
+          "#cf6c66",
+        ],
+        [
+          "TP",
+          protectionPreview?.id === p.id && protectionPreview.kind === "tp"
+            ? protectionPreview.price
+            : p.tp,
+          "#2a967a",
+        ],
+      ]) {
+        if (value == null) continue;
         target.lines.push(
           target.series.createPriceLine({
             price: value,
@@ -1075,6 +1136,7 @@ function renderLines() {
             title: title === translate("ВХОД") ? "" : title,
           }),
         );
+      }
   const levelsSignature = JSON.stringify([
     symbol,
     primaryInstrument(),
@@ -1119,7 +1181,7 @@ function render(save = true) {
   $("orderInstrument").textContent = symbol;
   syncPaneToolbar();
   $("mainChartNotice").textContent =
-    translate("Заявки по ") + symbol + translate(" · общий шаг replay 1 мин");
+    translate("Потяните от линии входа: к убытку — SL, к прибыли — TP");
   const b: any = replay.current,
     s = replay.stats();
   $("contractName").textContent = b.contract || contracts[symbol].name;
@@ -1146,7 +1208,7 @@ function render(save = true) {
   );
   const configuredOrder = replay.position || replay.pending;
   if (configuredOrder) {
-    for (const key of ["qty", "stop", "target", "fee", "slip"])
+    for (const key of ["qty", "fee", "slip"])
       $(key).value = String(configuredOrder[key]);
     $("orderKind").value = configuredOrder.kind;
     if (configuredOrder.entryPrice !== null)
@@ -1157,15 +1219,12 @@ function render(save = true) {
   $("short").disabled = unavailable;
   for (const id of [
     "qty",
-    "stop",
-    "target",
     "fee",
     "slip",
     "qtyDown",
     "qtyUp",
     "orderKind",
     "entryPrice",
-    "sizeByRisk",
   ])
     $(id).disabled = !!(replay.position || replay.pending);
   renderPosition($("positionBox"), replay, symbol);
@@ -1339,8 +1398,6 @@ $("symbol").onchange = async () => {
           ? datasets[symbol].id
           : "",
       });
-      $("stop").value = String(next === "NQ" ? 12 : 4);
-      $("target").value = String(next === "NQ" ? 24 : 8);
       riskPreview();
     } catch (error) {
       datasets[next] = old;
@@ -1366,6 +1423,7 @@ installSessionJump({
   pause,
   jump: (session) => guard(() => skipToOpening(session)),
 });
+$("back").onclick = () => guard(rewindCandle);
 $("step").onclick = () => {
   pause();
   step();
@@ -1386,7 +1444,7 @@ $("qtyUp").onclick = () => {
   $("qty").value = String(Math.min(100, Number($("qty").value) + 1));
   riskPreview();
 };
-for (const id of ["qty", "stop", "target", "fee", "slip"])
+for (const id of ["qty", "fee", "slip"])
   $(id).oninput = riskPreview;
 $("positionBox").addEventListener("focusin", pause);
 $("positionBox").onclick = (e) => {
@@ -1422,22 +1480,11 @@ $("positionBox").onclick = (e) => {
       toast(translate("Выход на следующем открытии"));
     }
     if (action === "protect") {
-      replay.modifyProtection({
-        sl: Number(
-          (
-            $("positionBox").querySelector<HTMLElement>(
-              "[data-position-sl]",
-            ) as HTMLInputElement
-          ).value,
-        ),
-        tp: Number(
-          (
-            $("positionBox").querySelector<HTMLElement>(
-              "[data-position-tp]",
-            ) as HTMLInputElement
-          ).value,
-        ),
-      });
+      const level = (selector: string) => {
+        const value = ($("positionBox").querySelector(selector) as HTMLInputElement).value;
+        return value ? Number(value) : null;
+      };
+      replay.modifyProtection({sl: level("[data-position-sl]"), tp: level("[data-position-tp]")});
       toast(translate("Уровни обновлены"));
     }
     if (action === "review") product.reviewLatest();
@@ -1464,38 +1511,6 @@ $("orderKind").onchange = () => {
   syncOrderKind();
   if (replay) $("entryPrice").value = replay.current.close;
 };
-$("sizeByRisk").onclick = () =>
-  guard(() => {
-    const budget = Number($("riskBudget").value),
-      c = config(),
-      per =
-        c.stop * contracts[symbol].point +
-        2 * c.fee +
-        c.slip * 0.25 * contracts[symbol].point;
-    if (
-      !Number.isFinite(budget) ||
-      budget <= 0 ||
-      !Number.isFinite(per) ||
-      per <= 0
-    )
-      throw Error(translate("Укажите риск и положительный стоп"));
-    const qty = Math.min(100, Math.floor(budget / per));
-    if (qty < 1)
-      throw Error(
-        translate(
-          "Один контракт превышает заданный риск. Уменьшите стоп или увеличьте лимит.",
-        ),
-      );
-    $("qty").value = String(qty);
-    riskPreview();
-    toast(
-      translate("Объём ") +
-        qty +
-        translate(" контр. · риск не больше ") +
-        money(budget),
-    );
-  });
-
 document.querySelectorAll<HTMLElement>("[data-tf]").forEach(
   (b) =>
     (b.onclick = () => {
@@ -1535,6 +1550,10 @@ document.addEventListener("keydown", (e) => {
   if (e.code === "Space") {
     e.preventDefault();
     togglePlay();
+  }
+  if (e.code === "ArrowLeft") {
+    e.preventDefault();
+    guard(rewindCandle);
   }
   if (e.code === "ArrowRight") {
     e.preventDefault();

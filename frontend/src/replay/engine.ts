@@ -7,6 +7,7 @@ import type {
   Position,
   Trade,
   ReplaySnapshot,
+  ReplayFrame,
 } from "./types";
 import { contracts } from "@eazy-trading/orderflow";
 export { contracts };
@@ -300,7 +301,10 @@ function validOrder(q: any) {
     validId(q.id) &&
     [1, -1].includes(q.side) &&
     integer(q.qty, 1, 100) &&
-    [q.stop, q.target].every((n) => onTick(n) && n >= 0.25) &&
+    (q.chartProtection === undefined || q.chartProtection === true) &&
+    [q.stop, q.target].every(
+      (n) => onTick(n) && n >= (q.chartProtection ? 0 : 0.25),
+    ) &&
     Number.isFinite(q.fee) &&
     q.fee >= 0 &&
     q.fee <= 100 &&
@@ -359,6 +363,8 @@ export class Replay {
     this.closeQty = null;
     this.trades = [];
     this._signature = signature(bars);
+    this._rewind = [this.frame()];
+    this._rewindBytes = JSON.stringify(this._rewind[0]).length;
   }
   get current() {
     return this.bars[this.index];
@@ -382,6 +388,7 @@ export class Replay {
       slip = 0,
       kind = "market",
       entryPrice = null,
+      chartProtection,
     }: OrderOptions,
   ) {
     if (this.position || this.pending)
@@ -399,6 +406,7 @@ export class Replay {
       slip,
       kind,
       entryPrice: kind === "market" ? null : entryPrice,
+      ...(chartProtection ? { chartProtection } : {}),
       queuedIndex: this.index,
       queuedTime: this.current.time,
       queuedContract: this.current.contract || null,
@@ -408,7 +416,10 @@ export class Replay {
         "Проверьте объём, тип заявки, цену, стоп, тейк и издержки. Шаг цены — 0.25.",
       );
     const reference = kind === "market" ? this.current.close : q.entryPrice;
-    if (reference - side * stop <= 0 || reference + side * target <= 0)
+    if (
+      (stop > 0 && reference - side * stop <= 0) ||
+      (target > 0 && reference + side * target <= 0)
+    )
       throw Error("Уровни SL и TP должны быть положительными.");
     this.pending = q;
   }
@@ -416,12 +427,12 @@ export class Replay {
     this.queue(side, { ...options, kind: "market", entryPrice: null });
     const q = this.pending!;
     const entry = tickRound(this.current.close + side * q.slip * 0.25);
-    const sl = tickRound(entry - side * q.stop),
-      tp = tickRound(entry + side * q.target);
+    const sl = q.stop > 0 ? tickRound(entry - side * q.stop) : null,
+      tp = q.target > 0 ? tickRound(entry + side * q.target) : null;
     if (
-      ![entry, sl, tp].every(price) ||
-      (this.current.close - sl) * side <= 0 ||
-      (tp - this.current.close) * side <= 0
+      !price(entry) ||
+      (sl !== null && (!price(sl) || (this.current.close - sl) * side <= 0)) ||
+      (tp !== null && (!price(tp) || (tp - this.current.close) * side <= 0))
     ) {
       this.pending = null;
       throw Error("Проверьте цену, защитные уровни и проскальзывание.");
@@ -436,10 +447,13 @@ export class Replay {
       sl,
       tp,
       initialQty: q.qty,
+      ...(q.chartProtection && q.stop > 0 ? { riskStop: q.stop } : {}),
       initialRisk:
-        q.stop * contracts[this.symbol].point * q.qty +
-        2 * q.fee * q.qty +
-        q.slip * 0.25 * contracts[this.symbol].point * q.qty,
+        q.chartProtection && !q.stop
+          ? 0
+          : q.stop * contracts[this.symbol].point * q.qty +
+            2 * q.fee * q.qty +
+            q.slip * 0.25 * contracts[this.symbol].point * q.qty,
       exits: [],
       realizedNet: 0,
       realizedGross: 0,
@@ -455,8 +469,13 @@ export class Replay {
   }
   get canCancelEntry() {
     const p = this.position;
-    return !!p && p.entryAtClose === true && p.queuedIndex === this.index &&
-      p.time === this.current.time && p.exits.length === 0;
+    return (
+      !!p &&
+      p.entryAtClose === true &&
+      p.queuedIndex === this.index &&
+      p.time === this.current.time &&
+      p.exits.length === 0
+    );
   }
   cancelEntry() {
     if (!this.canCancelEntry) return false;
@@ -470,7 +489,10 @@ export class Replay {
     if (!p) throw Error("Нет открытой позиции.");
     if (this.current.time <= p.time && p.entryAtClose === true)
       throw Error("Сначала перейдите к следующей свече.");
-    this.finish(tickRound(this.current.close - p.side * p.slip * 0.25), "По рынку");
+    this.finish(
+      tickRound(this.current.close - p.side * p.slip * 0.25),
+      "По рынку",
+    );
   }
   requestClose(qty: number | null = null) {
     if (!this.position) throw Error("Нет открытой позиции.");
@@ -492,14 +514,23 @@ export class Replay {
       s = sl === undefined ? p.sl : sl,
       t = tp === undefined ? p.tp : tp;
     if (
-      !price(s) ||
-      !price(t) ||
-      (this.current.close - s) * p.side <= 0 ||
-      (t - this.current.close) * p.side <= 0
+      (s === null
+        ? !p.chartProtection
+        : !price(s) || (this.current.close - s) * p.side <= 0) ||
+      (t === null
+        ? !p.chartProtection
+        : !price(t) || (t - this.current.close) * p.side <= 0)
     )
       throw Error(
         "SL должен быть позади текущей цены, TP — впереди. Шаг цены — 0.25.",
       );
+    if (p.chartProtection && p.riskStop === undefined && s !== null) {
+      p.riskStop = Math.max(0, (p.entry - s) * p.side);
+      p.initialRisk =
+        p.riskStop * contracts[this.symbol].point * p.initialQty +
+        2 * p.fee * p.initialQty +
+        p.slip * 0.25 * contracts[this.symbol].point * p.initialQty;
+    }
     p.sl = s;
     p.tp = t;
     return { sl: s, tp: t };
@@ -565,7 +596,7 @@ export class Replay {
       gross: p.realizedGross,
       fees: p.realizedFees,
       pnl: p.realizedNet,
-      r: p.realizedNet / p.initialRisk,
+      r: p.initialRisk > 0 ? p.realizedNet / p.initialRisk : null,
       reason,
       ambiguous: p.exits.some((e: any) => e.ambiguous),
       exits: p.exits.map((e: any) => ({ ...e })),
@@ -578,6 +609,7 @@ export class Replay {
   }
   step() {
     if (this.ended) return false;
+    this.remember();
     const previous = this.current,
       next = this.bars[this.index + 1],
       roll =
@@ -609,9 +641,13 @@ export class Replay {
         fill = fillOrder(q, b);
       if (fill) {
         const entry = fill.entry,
-          sl = tickRound(entry - q.side * q.stop),
-          tp = tickRound(entry + q.side * q.target);
-        if (!price(entry) || !price(sl) || !price(tp)) {
+          sl = q.stop > 0 ? tickRound(entry - q.side * q.stop) : null,
+          tp = q.target > 0 ? tickRound(entry + q.side * q.target) : null;
+        if (
+          !price(entry) ||
+          (sl !== null && !price(sl)) ||
+          (tp !== null && !price(tp))
+        ) {
           this.cancelOrder();
           throw Error(
             "Заявка отменена: гэп вывел защитные уровни за допустимый диапазон.",
@@ -626,10 +662,13 @@ export class Replay {
           sl,
           tp,
           initialQty: q.qty,
+          ...(q.chartProtection && q.stop > 0 ? { riskStop: q.stop } : {}),
           initialRisk:
-            q.stop * contracts[this.symbol].point * q.qty +
-            2 * q.fee * q.qty +
-            q.slip * 0.25 * contracts[this.symbol].point * q.qty,
+            q.chartProtection && !q.stop
+              ? 0
+              : q.stop * contracts[this.symbol].point * q.qty +
+                2 * q.fee * q.qty +
+                q.slip * 0.25 * contracts[this.symbol].point * q.qty,
           exits: [],
           realizedNet: 0,
           realizedGross: 0,
@@ -643,8 +682,10 @@ export class Replay {
     let p = this.position;
     if (!p) return true;
     if (!filledNow || entryAtOpen) {
-      const gapStop = p.side === 1 ? b.open <= p.sl : b.open >= p.sl,
-        gapTarget = p.side === 1 ? b.open >= p.tp : b.open <= p.tp;
+      const gapStop =
+          p.sl !== null && (p.side === 1 ? b.open <= p.sl : b.open >= p.sl),
+        gapTarget =
+          p.tp !== null && (p.side === 1 ? b.open >= p.tp : b.open <= p.tp);
       if (gapStop) {
         this.finish(tickRound(b.open - p.side * p.slip * 0.25), "SL · гэп");
         return true;
@@ -663,8 +704,10 @@ export class Replay {
       p = this.position;
       if (!p) return true;
     }
-    const stopHit = p.side === 1 ? b.low <= p.sl : b.high >= p.sl,
-      targetHit = p.side === 1 ? b.high >= p.tp : b.low <= p.tp;
+    const stopHit =
+        p.sl !== null && (p.side === 1 ? b.low <= p.sl : b.high >= p.sl),
+      targetHit =
+        p.tp !== null && (p.side === 1 ? b.high >= p.tp : b.low <= p.tp);
     if (stopHit)
       this.finish(
         tickRound(p.sl - p.side * p.slip * 0.25),
@@ -708,8 +751,96 @@ export class Replay {
       pf: loss ? gain / loss : gain ? Infinity : null,
     };
   }
-  snapshot(): ReplaySnapshot {
+  private frame(): ReplayFrame {
     return copy({
+      index: this.index,
+      position: this.position,
+      pending: this.pending,
+      closePending: this.closePending,
+      closeQty: this.closeQty,
+      tradeCount: this.trades.length,
+    });
+  }
+  private remember() {
+    const frame = this.frame(),
+      last = this._rewind.at(-1);
+    if (
+      last &&
+      JSON.stringify({ ...last, index: 0 }) ===
+        JSON.stringify({ ...frame, index: 0 })
+    )
+      return;
+    if (last?.index === frame.index) {
+      this._rewindBytes -= JSON.stringify(last).length;
+      this._rewind[this._rewind.length - 1] = frame;
+    } else this._rewind.push(frame);
+    this._rewindBytes += JSON.stringify(frame).length;
+    // Bound saved history independently of the number of candles or fills.
+    while (
+      this._rewind.length > 1 &&
+      (this._rewind.length > 10000 || this._rewindBytes > 512 * 1024)
+    ) {
+      this._rewindBytes -= JSON.stringify(this._rewind.shift()).length;
+    }
+  }
+  get canRewind() {
+    return this.index > (this._rewind[0]?.index ?? this.index);
+  }
+  private previousFrame() {
+    return this._rewind.findLast((frame) => frame.index < this.index);
+  }
+  rewindEffects(): string[] {
+    if (!this.canRewind) return [];
+    const frame = this.previousFrame()!,
+      effects: string[] = [];
+    if (frame.tradeCount !== this.trades.length) effects.push("trades");
+    if (
+      frame.position?.id !== this.position?.id ||
+      JSON.stringify(frame.pending) !== JSON.stringify(this.pending)
+    )
+      effects.push("orders");
+    if (
+      frame.position &&
+      this.position &&
+      frame.position.id === this.position.id
+    ) {
+      if (
+        frame.position.sl !== this.position.sl ||
+        frame.position.tp !== this.position.tp ||
+        frame.position.initialRisk !== this.position.initialRisk ||
+        frame.position.riskStop !== this.position.riskStop
+      )
+        effects.push("protection");
+      if (frame.position.qty !== this.position.qty) effects.push("volume");
+    }
+    if (
+      frame.closePending !== this.closePending ||
+      frame.closeQty !== this.closeQty
+    )
+      effects.push("close");
+    return effects;
+  }
+  rewind() {
+    if (!this.canRewind) return false;
+    const target = this.index - 1,
+      frame = copy(this.previousFrame()!);
+    this.position = frame.position;
+    this.pending = frame.pending;
+    this.closePending = frame.closePending;
+    this.closeQty = frame.closeQty;
+    this.trades = this.trades.slice(0, frame.tradeCount);
+    this.index = target;
+    this._rewind = this._rewind.filter((entry) => entry.index <= target);
+    this._rewindBytes = this._rewind.reduce(
+      (sum, frame) => sum + JSON.stringify(frame).length,
+      0,
+    );
+    return true;
+  }
+  snapshot(): ReplaySnapshot {
+    this.remember();
+    return copy({
+      rewind: this._rewind,
       version: 1,
       symbol: this.symbol,
       index: this.index,
@@ -743,6 +874,7 @@ export class Replay {
       typeof state.closePending !== "boolean"
     )
       fail();
+    let validationIndex = state.index;
     const times = new Map<number, number>(
         bars.map((b: any, i: any) => [b.time, i]),
       ),
@@ -750,14 +882,18 @@ export class Replay {
     const checkQueued = (q: any) => {
       if (
         !validOrder(q) ||
-        !integer(q.queuedIndex, 0, state.index) ||
+        !integer(q.queuedIndex, 0, validationIndex) ||
         q.queuedTime !== bars[q.queuedIndex].time ||
         q.queuedContract !== (bars[q.queuedIndex].contract || null)
       )
         fail();
     };
     const checkOrderHistory = (q: any, entryIndex: any = null) => {
-      for (let i = q.queuedIndex + 1; i <= (entryIndex ?? state.index); i++) {
+      for (
+        let i = q.queuedIndex + 1;
+        i <= (entryIndex ?? validationIndex);
+        i++
+      ) {
         const previous = bars[i - 1],
           next = bars[i];
         if (
@@ -778,14 +914,16 @@ export class Replay {
       const instant = p.entryAtClose === true;
       if (
         entryIndex === undefined ||
-        entryIndex > state.index ||
+        entryIndex > validationIndex ||
         (p.entryAtClose !== undefined && !instant) ||
         (instant
           ? p.kind !== "market" || entryIndex !== p.queuedIndex
           : entryIndex <= p.queuedIndex) ||
         !price(p.entry) ||
-        !price(p.sl) ||
-        !price(p.tp) ||
+        (p.sl === null ? !p.chartProtection : !price(p.sl)) ||
+        (p.tp === null ? !p.chartProtection : !price(p.tp)) ||
+        (p.riskStop !== undefined &&
+          (!p.chartProtection || !onTick(p.riskStop) || p.riskStop < 0)) ||
         !integer(p.initialQty, 1, 100) ||
         (closed ? p.qty !== p.initialQty : !integer(p.qty, 1, p.initialQty)) ||
         p.contract !== (bars[entryIndex].contract || null) ||
@@ -810,9 +948,13 @@ export class Replay {
         fill.atOpen !== p.entryAtOpen ||
         !near(
           p.initialRisk,
-          p.stop * contracts[symbol].point * p.initialQty +
-            2 * p.fee * p.initialQty +
-            p.slip * 0.25 * contracts[symbol].point * p.initialQty,
+          p.chartProtection && p.riskStop === undefined
+            ? 0
+            : (p.chartProtection ? p.riskStop : p.stop) *
+                contracts[symbol].point *
+                p.initialQty +
+                2 * p.fee * p.initialQty +
+                p.slip * 0.25 * contracts[symbol].point * p.initialQty,
         )
       )
         fail();
@@ -828,11 +970,11 @@ export class Replay {
           !e ||
           !integer(e.qty, 1, p.initialQty) ||
           !price(e.price) ||
-          !price(e.sl) ||
-          !price(e.tp) ||
-          (e.tp - e.sl) * p.side <= 0 ||
+          (e.sl === null ? !p.chartProtection : !price(e.sl)) ||
+          (e.tp === null ? !p.chartProtection : !price(e.tp)) ||
+          (e.sl !== null && e.tp !== null && (e.tp - e.sl) * p.side <= 0) ||
           i === undefined ||
-          i > state.index ||
+          i > validationIndex ||
           e.time < lastTime ||
           !validReason(e.reason) ||
           (instant && i === entryIndex && e.reason !== "Ролловер") ||
@@ -842,14 +984,19 @@ export class Replay {
         const b = bars[i],
           exitSlip = p.side * p.slip * 0.25,
           intrabarEntry = i === entryIndex && !p.entryAtOpen,
-          stopHit = p.side === 1 ? b.low <= e.sl : b.high >= e.sl,
-          targetHit = p.side === 1 ? b.high >= e.tp : b.low <= e.tp,
-          gapStop = p.side === 1 ? b.open <= e.sl : b.open >= e.sl,
-          gapTarget = p.side === 1 ? b.open >= e.tp : b.open <= e.tp;
+          stopHit =
+            e.sl !== null && (p.side === 1 ? b.low <= e.sl : b.high >= e.sl),
+          targetHit =
+            e.tp !== null && (p.side === 1 ? b.high >= e.tp : b.low <= e.tp),
+          gapStop =
+            e.sl !== null && (p.side === 1 ? b.open <= e.sl : b.open >= e.sl),
+          gapTarget =
+            e.tp !== null && (p.side === 1 ? b.open >= e.tp : b.open <= e.tp);
         if ((b.contract || null) !== p.contract) fail();
         if (
           i === entryIndex &&
           !instant &&
+          !p.chartProtection &&
           (e.sl !== tickRound(p.entry - p.side * p.stop) ||
             e.tp !== tickRound(p.entry + p.side * p.target))
         )
@@ -869,12 +1016,13 @@ export class Replay {
             !near(e.price, tickRound(b.close - exitSlip)) ||
             e.qty !== p.initialQty - qty ||
             e.ambiguous
-          ) fail();
+          )
+            fail();
         } else if (e.reason === "Ролловер") {
           const next = bars[i + 1];
           if (
             !next ||
-            i >= state.index ||
+            i >= validationIndex ||
             !b.contract ||
             !next.contract ||
             b.contract === next.contract ||
@@ -945,9 +1093,11 @@ export class Replay {
         fail();
       if (
         !closed &&
-        ((bars[state.index].close - p.sl) * p.side <= 0 ||
-          (p.tp - bars[state.index].close) * p.side <= 0 ||
-          (bars[state.index].contract || null) !== p.contract)
+        ((p.sl !== null &&
+          (bars[validationIndex].close - p.sl) * p.side <= 0) ||
+          (p.tp !== null &&
+            (p.tp - bars[validationIndex].close) * p.side <= 0) ||
+          (bars[validationIndex].contract || null) !== p.contract)
       )
         fail();
       if (closed) {
@@ -962,7 +1112,9 @@ export class Replay {
           !near(p.gross, gross) ||
           !near(p.fees, fees) ||
           !near(p.pnl, net) ||
-          !near(p.r, net / p.initialRisk) ||
+          (p.initialRisk > 0
+            ? !near(p.r, net / p.initialRisk)
+            : p.r !== null) ||
           p.reason !== p.exits.at(-1).reason ||
           p.ambiguous !== p.exits.some((e: any) => e.ambiguous)
         )
@@ -993,12 +1145,58 @@ export class Replay {
     if (state.closePending) {
       if (
         !state.position ||
-        state.index >= bars.length - 1 ||
+        validationIndex >= bars.length - 1 ||
         (state.closeQty !== null &&
           !integer(state.closeQty, 1, state.position.qty))
       )
         fail();
     } else if (state.closeQty !== null) fail();
+    if (state.rewind !== undefined) {
+      if (
+        !Array.isArray(state.rewind) ||
+        !state.rewind.length ||
+        state.rewind.length > 10000
+      )
+        fail();
+      let previousIndex = -1,
+        previousCount = 0;
+      for (const frame of state.rewind) {
+        if (
+          !frame ||
+          !integer(frame.index, previousIndex + 1, state.index) ||
+          !integer(frame.tradeCount, previousCount, state.trades.length) ||
+          typeof frame.closePending !== "boolean" ||
+          (frame.position !== null && frame.pending !== null)
+        )
+          fail();
+        validationIndex = frame.index;
+        seen.clear();
+        const lastTrade = state.trades[frame.tradeCount - 1];
+        const lastExit = lastTrade?.exitTime || 0;
+        if (lastExit > bars[frame.index].time) fail();
+        if (frame.position !== null) {
+          const span = checkPosition(frame.position, false);
+          if (frame.position.queuedTime < lastExit || span.entry < lastExit)
+            fail();
+        }
+        if (frame.pending !== null) {
+          checkQueued(frame.pending);
+          checkOrderHistory(frame.pending);
+          if (frame.pending.queuedTime < lastExit) fail();
+        }
+        if (frame.closePending) {
+          if (
+            !frame.position ||
+            frame.index >= bars.length - 1 ||
+            (frame.closeQty !== null &&
+              !integer(frame.closeQty, 1, frame.position.qty))
+          )
+            fail();
+        } else if (frame.closeQty !== null) fail();
+        previousIndex = frame.index;
+        previousCount = frame.tradeCount;
+      }
+    }
     // Construct only after every field has been validated. Clone the imported
     // state so later caller changes cannot mutate the running session.
     const replay = new Replay(bars, symbol),
@@ -1009,6 +1207,19 @@ export class Replay {
     replay.closePending = saved.closePending;
     replay.closeQty = saved.closeQty;
     replay.trades = saved.trades;
+    replay._rewind = saved.rewind || [
+      {
+        ...replay.frame(),
+        index:
+          !saved.position && !saved.pending && !saved.trades.length
+            ? 0
+            : saved.index,
+      },
+    ];
+    replay._rewindBytes = replay._rewind.reduce(
+      (sum, frame) => sum + JSON.stringify(frame).length,
+      0,
+    );
     return replay;
   }
 
@@ -1021,4 +1232,6 @@ export class Replay {
   closeQty: number | null;
   trades: Trade[];
   private _signature: string;
+  private _rewind: ReplayFrame[] = [];
+  private _rewindBytes = 0;
 }

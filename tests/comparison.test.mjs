@@ -78,3 +78,11 @@ test('linked crosshairs wait for price and time scales after mounting a pane',as
   assert.equal(f.secondary.crosshair.price,100);
  }finally{f.restore();}
 });
+
+test('rolling history preserves absolute chart placement when stepping forward and back',async()=>{
+ const f=fixture({past:30002});try{
+  await f.open();const range={from:29900,to:30000};f.secondary.timeScale().setVisibleLogicalRange(range);
+  f.now+=60;f.comparison.render();assert.deepEqual(f.secondary.logical,{from:29899,to:29999});
+  f.now-=60;f.comparison.render();assert.deepEqual(f.secondary.logical,range);assert.ok(f.secondary.data.every(b=>b.time<=f.now));
+ }finally{f.restore();}
+});

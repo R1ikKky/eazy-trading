@@ -491,3 +491,19 @@ body.product-app #view-replay .position-entry-control:focus-within .position-ent
   pointer-events: auto;
 }
 body.product-app #view-replay .position-entry-action span:last-child { font-size: 17px; }
+
+body.product-app #view-replay .replay-transport #back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  min-width: 34px;
+  padding: 0;
+  border-radius: 9px;
+}
+body.product-app #view-replay .quick-order .order-fields {
+  grid-template-columns: 88px;
+}
+@media (max-width: 700px) {
+  body.product-app #view-replay .replay-transport #back { width: 30px; min-width: 30px; }
+}

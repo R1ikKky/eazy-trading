@@ -935,5 +935,15 @@
   "Быстрая сделка": "Quick trade",
   "Параметры сделки": "Order settings",
   "Управление позицией": "Manage position",
-  "Market исполняется по текущей цене с учётом издержек": "Market fills at the current price with configured trading costs"
+  "Market исполняется по текущей цене с учётом издержек": "Market fills at the current price with configured trading costs",
+  "Предыдущая свеча": "Previous candle",
+  "Заявки и позиции": "Orders and positions",
+  "Изменения SL/TP": "SL/TP changes",
+  "Исполнения и результаты сделок": "Trade executions and results",
+  "Частичные выходы": "Partial exits",
+  "Запросы на закрытие": "Close requests",
+  "Возврат на предыдущую свечу отменит последующие изменения:": "Going back one candle will undo these later changes:",
+  "Вернуться назад?": "Go back?",
+  "Потяните от линии входа: к убытку — SL, к прибыли — TP": "Drag from entry: toward loss for SL, toward profit for TP",
+  "История возврата начинается с момента загрузки этой сохранённой сессии": "Rewind history starts from the point this saved session was loaded"
 }

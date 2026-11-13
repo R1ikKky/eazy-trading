@@ -366,6 +366,28 @@ export function ReplayWorkspace() {
                       aria-label="Playback controls"
                     >
                       <button
+                        id="back"
+                        type="button"
+                        className="icon-button step-button"
+                        aria-label={translate("Предыдущая свеча")}
+                        title={translate("Предыдущая свеча")}
+                      >
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M5 5v14m14-14L8 12l11 7V5Z"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                      <button
                         id="play"
                         className="play-button"
                         aria-label={translate("Воспроизвести")}
@@ -452,32 +474,6 @@ export function ReplayWorkspace() {
                           >
                             +
                           </button>
-                        </div>
-                        <div className="field-pair">
-                          <div>
-                            <label htmlFor="stop">
-                              {translate("Стоп, пт")}
-                            </label>
-                            <input
-                              id="stop"
-                              type="number"
-                              min="0.25"
-                              step="0.25"
-                              defaultValue={12}
-                            />
-                          </div>
-                          <div>
-                            <label htmlFor="target">
-                              {translate("Тейк, пт")}
-                            </label>
-                            <input
-                              id="target"
-                              type="number"
-                              min="0.25"
-                              step="0.25"
-                              defaultValue={24}
-                            />
-                          </div>
                         </div>
                       </div>
                       <div className="trade-buttons">
@@ -588,41 +584,14 @@ export function ReplayWorkspace() {
                     placeholder={translate("Цена заявки")}
                   />
                 </div>
-                <details className="risk-sizing">
-                  <summary>{translate("Рассчитать объём по риску")}</summary>
-                  <label htmlFor="riskBudget">
-                    {translate("Бюджет риска, $")}
-                  </label>
-                  <div className="risk-sizing-row">
-                    <input
-                      id="riskBudget"
-                      type="number"
-                      min={1}
-                      max={1000000}
-                      step={25}
-                      defaultValue={250}
-                      inputMode="decimal"
-                    />
-                    <button
-                      id="sizeByRisk"
-                      type="button"
-                      className="button secondary compact"
-                      title={translate(
-                        "Подобрать число контрактов по бюджету риска",
-                      )}
-                    >
-                      {translate("Рассчитать")}
-                    </button>
-                  </div>
-                </details>
                 <div className="risk-summary">
                   <div>
                     <span>{translate("Риск сделки ≈")}</span>
-                    <strong id="riskValue">$250.00</strong>
+                    <strong id="riskValue">—</strong>
                   </div>
                   <div>
                     <span>{translate("Соотношение R:R")}</span>
-                    <strong id="rrValue">1 : 2.0</strong>
+                    <strong id="rrValue">—</strong>
                   </div>
                 </div>
                 <details className="costs">
