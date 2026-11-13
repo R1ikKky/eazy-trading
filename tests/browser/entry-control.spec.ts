@@ -53,7 +53,9 @@ test("ENTRY expands left and cancels untouched fills or closes at the current pr
   expect((await snapshot()).trades).toHaveLength(0);
   expect((await snapshot()).index).toBe(untouched.index);
   await page.reload();
-  await expect(page.locator("#lastPrice")).toHaveText(/[0-9]/, { timeout: 30000 });
+  await expect(page.locator("#lastPrice")).toHaveText(/[0-9]/, {
+    timeout: 30000,
+  });
   await expect(page.locator("#long")).toBeEnabled({ timeout: 30000 });
   await expect(control).not.toBeVisible();
   await page.locator("#long").click();
@@ -83,9 +85,35 @@ test("ENTRY expands left and cancels untouched fills or closes at the current pr
   expect(closed.position).toBeNull();
   expect(closed.trades[0].exit).toBe(quote - open.position.slip * 0.25);
   await page.reload();
-  await expect(page.locator("#lastPrice")).toHaveText(/[0-9]/, { timeout: 30000 });
+  await expect(page.locator("#lastPrice")).toHaveText(/[0-9]/, {
+    timeout: 30000,
+  });
   await expect(page.locator("#long")).toBeEnabled({ timeout: 30000 });
   expect((await snapshot()).trades).toHaveLength(1);
   await expect(control).not.toBeVisible();
+  await page.goto("/journal");
+  await expect(page.locator("#tradeRows tr").first()).toBeVisible({
+    timeout: 30000,
+  });
+  const rows = await page.locator("#tradeRows tr").evaluateAll((rows) =>
+    rows.slice(0, 5).map((row) => {
+      const rect = row.getBoundingClientRect();
+      return Array.from(row.querySelectorAll("td")).map((cell) => {
+        const bounds = cell.getBoundingClientRect();
+        return {
+          display: getComputedStyle(cell).display,
+          top: bounds.top - rect.top,
+          bottom: rect.bottom - bounds.bottom,
+        };
+      });
+    }),
+  );
+  for (const row of rows)
+    for (const cell of row) {
+      expect(cell.display).toBe("table-cell");
+      expect(Math.abs(cell.top)).toBeLessThan(1);
+      expect(Math.abs(cell.bottom)).toBeLessThan(1);
+    }
+  await page.screenshot({ path: "/tmp/journal-table-aligned.png" });
   expect(errors).toEqual([]);
 });

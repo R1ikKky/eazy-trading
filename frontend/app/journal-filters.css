@@ -58,3 +58,17 @@ body.product-app #journalFilters input::placeholder {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Keep cells in the table layout; flex belongs inside the instrument cell. */
+body.product-app #tradeRows td {
+  display: table-cell;
+  vertical-align: middle;
+}
+body.product-app #tradeRows .journal-instrument {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+body.product-app #journalZone {
+  margin-inline-start: 4px;
+}

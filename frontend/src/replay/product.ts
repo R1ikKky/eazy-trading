@@ -319,11 +319,11 @@ export function createProduct({
           esc(t.id) +
           '" data-session-id="' +
           esc(t.sessionId) +
-          '"><td><strong>' +
+          '"><td><span class="journal-instrument"><strong>' +
           esc(t.symbol) +
           "</strong><small>" +
           time(t.time) +
-          '</small></td><td><span class="side-tag ' +
+          '</small></span></td><td><span class="side-tag ' +
           (t.side === -1 ? "sell" : "") +
           '">' +
           (t.side === 1 ? "Long" : "Short") +
