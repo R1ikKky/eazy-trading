@@ -1,4 +1,5 @@
 import { t as translate, locale } from "../i18n/language";
+import { createEntryControl } from "./entry-control";
 import { installProtectionDrag } from "./protection-drag";
 import { createTradeHistory } from "./trade-history";
 import { createDrawingWorkspace } from "./drawing-workspace";
@@ -65,6 +66,8 @@ let displayTime = nyTime,
   comparison: any,
   comparisonContext: any,
   comparisonHistory: any,
+  comparisonEntryControl: any,
+  entryControl: any,
   comparisonPriceLines: any[] = [],
   drawingWorkspace: any,
   paneSymbols: { primary: string; comparison: string } = {
@@ -361,6 +364,7 @@ function initChart() {
     pause,
   });
   installPositionDragging("primary", chart, series, $("chart"));
+  entryControl = installEntryControl("primary", chart, series, $("chart"));
   chart.subscribeCrosshairMove((param) => {
     const b: any = tools?.lockedTime
       ? chartBars.find((b) => b.time === tools.lockedTime)
@@ -970,6 +974,40 @@ function skipToOpening(session: SessionOpening) {
       displayZone,
   );
 }
+function installEntryControl(
+  id: string,
+  targetChart: any,
+  targetSeries: any,
+  container: HTMLElement,
+) {
+  return createEntryControl({
+    container,
+    chart: targetChart,
+    series: targetSeries,
+    getState: () => {
+      const p = replay?.position;
+      if (
+        !p ||
+        (id === "primary" ? primaryInstrument() : paneSymbols.comparison) !== symbol
+      ) return null;
+      const cancel = replay.canCancelEntry;
+      return {
+        price: p.entry,
+        label: translate("ВХОД"),
+        action: translate(cancel ? "Отменить заявку" : "Закрыть"),
+        mode: cancel ? "cancel" : "close",
+        disabled: !!replay.closePending,
+      };
+    },
+    onAction: () => guard(() => {
+      pause();
+      if (!replay?.position) return;
+      if (replay.canCancelEntry) replay.cancelEntry();
+      else replay.closeMarket();
+      render();
+    }),
+  });
+}
 function installPositionDragging(
   id: string,
   targetChart: any,
@@ -1034,7 +1072,7 @@ function renderLines() {
             lineWidth: title === translate("ВХОД") ? 2 : 1,
             lineStyle: title === translate("ВХОД") ? 0 : 2,
             axisLabelVisible: true,
-            title,
+            title: title === translate("ВХОД") ? "" : title,
           }),
         );
   const levelsSignature = JSON.stringify([
@@ -1056,6 +1094,8 @@ function renderLines() {
     if (comparisonBar && comparison?.getVisible())
       comparisonContext.series.update(comparisonBar);
   }
+  entryControl?.refresh();
+  comparisonEntryControl?.refresh();
   const showHistory = !tools?.preferences.hideMarks;
   tradeHistory.setHistory(
     primaryInstrument() === symbol && showHistory ? replay.trades : [],
@@ -1679,6 +1719,9 @@ async function bootstrap() {
       onChartReady: (ctx: any) => {
         comparisonContext = ctx;
         comparisonHistory = createTradeHistory(ctx.series);
+        comparisonEntryControl = installEntryControl(
+          "comparison", ctx.chart, ctx.series, ctx.container,
+        );
         installPositionDragging(
           "comparison",
           ctx.chart,

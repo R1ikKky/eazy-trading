@@ -453,6 +453,25 @@ export class Replay {
     this.pending = null;
     return true;
   }
+  get canCancelEntry() {
+    const p = this.position;
+    return !!p && p.entryAtClose === true && p.queuedIndex === this.index &&
+      p.time === this.current.time && p.exits.length === 0;
+  }
+  cancelEntry() {
+    if (!this.canCancelEntry) return false;
+    this.position = null;
+    this.closePending = false;
+    this.closeQty = null;
+    return true;
+  }
+  closeMarket() {
+    const p = this.position;
+    if (!p) throw Error("Нет открытой позиции.");
+    if (this.current.time <= p.time && p.entryAtClose === true)
+      throw Error("Сначала перейдите к следующей свече.");
+    this.finish(tickRound(this.current.close - p.side * p.slip * 0.25), "По рынку");
+  }
   requestClose(qty: number | null = null) {
     if (!this.position) throw Error("Нет открытой позиции.");
     if (this.ended)
@@ -844,6 +863,13 @@ export class Replay {
             e.ambiguous
           )
             fail();
+        } else if (e.reason === "По рынку") {
+          if (
+            i < entryIndex ||
+            !near(e.price, tickRound(b.close - exitSlip)) ||
+            e.qty !== p.initialQty - qty ||
+            e.ambiguous
+          ) fail();
         } else if (e.reason === "Ролловер") {
           const next = bars[i + 1];
           if (

@@ -431,3 +431,46 @@ body.product-app #view-replay .protection-drag-hover,
 body.product-app #view-replay .protection-drag-hover * {
   cursor: ns-resize !important;
 }
+
+body.product-app #view-replay .position-entry-control {
+  position: absolute;
+  z-index: 9;
+  display: flex;
+  align-items: stretch;
+  transform: translateY(-50%);
+  height: 20px;
+  font: 600 10px/20px "IBM Plex Mono", monospace;
+}
+body.product-app #view-replay .position-entry-control[hidden] { display: none; }
+body.product-app #view-replay .position-entry-label {
+  padding: 0 5px;
+  color: #fff;
+  background: #748b59;
+  white-space: nowrap;
+}
+body.product-app #view-replay .position-entry-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 3px 0 0 3px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+body.product-app #view-replay .position-entry-control:hover .position-entry-action,
+body.product-app #view-replay .position-entry-control:focus-within .position-entry-action {
+  max-width: 160px;
+  padding: 0 7px;
+  opacity: 1;
+  pointer-events: auto;
+}
+body.product-app #view-replay .position-entry-action span:last-child { font-size: 17px; }
