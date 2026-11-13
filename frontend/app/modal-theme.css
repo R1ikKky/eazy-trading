@@ -1,0 +1,82 @@
+/* Dialogs share the selected app theme; the page behind them stays unchanged. */
+:root[data-theme] body.product-app dialog::backdrop {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.product-app :is(.tv-settings, .tv-utility-dialog, .tv-data-dialog, .tv-palette) {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border-strong);
+  font-family: inherit;
+  scrollbar-color: var(--scroll-thumb) var(--surface);
+}
+body.product-app :is(.tv-settings-header, .tv-settings-tabs, .tv-settings-footer, .tv-settings-tabs button:nth-child(5), .tv-custom-color, .tv-table-scroll, .tv-tree-row) {
+  border-color: var(--border-strong);
+}
+body.product-app :is(.tv-settings-header h2, .tv-settings-header button, .tv-settings-tabs button, .tv-row, .tv-settings .tv-check, .tv-data-header, .tv-data-header button, .tv-tree-title) {
+  color: var(--text);
+}
+body.product-app .tv-settings-tabs button[aria-selected="true"] {
+  color: var(--text);
+  background: var(--surface-raised);
+}
+body.product-app .tv-settings-tabs button:hover {
+  background: var(--surface-soft);
+}
+body.product-app :is(.tv-section-heading, .tv-settings .tv-note, .tv-settings .tv-opacity, .tv-data-dialog .tv-note) {
+  color: var(--text-muted);
+}
+body.product-app .tv-settings-content {
+  scrollbar-color: var(--scroll-thumb) var(--surface);
+}
+body.product-app .tv-settings :is(select, input[type="text"], input[type="number"]) {
+  background: var(--input-bg);
+  color: var(--text);
+  border-color: var(--border-strong);
+  font-family: inherit;
+}
+body.product-app .tv-settings :is(input[type="checkbox"], input[type="range"]) {
+  accent-color: var(--accent);
+}
+body.product-app .tv-settings :is(input:focus-visible, select:focus-visible, .tv-swatch:focus-visible, .tv-color-area:focus-visible) {
+  outline-color: var(--accent);
+}
+body.product-app .tv-settings :is(.tv-swatch, #paletteCustomToggle) {
+  background: var(--input-bg);
+  border-color: var(--border-strong);
+}
+body.product-app .tv-settings-footer :is(button, #chartTemplate),
+body.product-app :is(.tv-data-footer button, .tv-tree-row button) {
+  color: var(--text);
+  border-color: var(--border-strong);
+  background: var(--surface);
+}
+body.product-app .tv-settings-footer #settingsOk {
+  color: var(--app-bg);
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
+}
+:root[data-theme="yellow"] body.product-app .tv-settings-footer #settingsOk {
+  color: var(--text);
+}
+body.product-app .tv-settings-footer button:hover,
+body.product-app :is(.tv-data-footer button, .tv-tree-row button):hover {
+  background: var(--surface-raised);
+}
+body.product-app .tv-settings-footer #settingsOk:hover { filter: brightness(.96); }
+body.product-app .tv-settings #paletteCustomAdd { color: var(--text); }
+body.product-app .tv-palette-current span {
+  border-color: var(--border-strong);
+  outline-color: var(--text-muted);
+}
+body.product-app .tv-palette-current span:first-child,
+body.product-app .tv-palette-grid :is(button:hover, .selected) { outline-color: var(--accent); }
+body.product-app .tv-data-dialog table { background: var(--surface); }
+body.product-app .tv-data-dialog th {
+  color: var(--text-muted);
+  background: var(--surface-soft);
+  border-color: var(--border-strong);
+}
+body.product-app .tv-data-dialog td { color: var(--text); border-color: var(--border); }
