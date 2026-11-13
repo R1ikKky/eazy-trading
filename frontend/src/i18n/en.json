@@ -955,5 +955,8 @@
   "Открыть повтор": "Open replay",
   "Новый повтор без позиций и заявок": "New replay with no positions or pending orders",
   "Исходная история сделок сохранится в разделе Сессии": "Your original trade history stays in Sessions",
-  " · перемотка": " · rewind"
+  " · перемотка": " · rewind",
+  "Отмена": "Cancel",
+  "Удалить сессию?": "Delete session?",
+  "Сессия, её сделки, разметка и заметки будут удалены. Это действие нельзя отменить.": "This deletes the session, its trades, drawings, and notes. This cannot be undone."
 }

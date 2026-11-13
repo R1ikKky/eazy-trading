@@ -2,6 +2,7 @@ import { t as translate, locale, configureLanguagePersistence } from "../i18n/la
 import { element as $ } from "./dom";
 import { dayKey } from "./engine";
 import { WORKSPACE_ROUTES, workspaceView } from "./workspace-routes";
+import { confirmSessionDeletion } from "./session-delete-dialog";
 import {
   WorkspaceStore,
   uid,
@@ -77,6 +78,7 @@ export function createProduct({
     applyingRemote = false,
     pendingRemote: any = null,
     interacting = false,
+    deleteSessionPending = false,
     filter: Record<string, any> = {};
   const store = new WorkspaceStore((state: any, label: any) => {
     const status = $("saveStatus");
@@ -671,13 +673,23 @@ export function createProduct({
         const s = ws().sessions.find(
           (x: any) => x.id === b.dataset.deleteSession,
         );
+        if (!s || deleteSessionPending) return;
         if (active()?.id === s.id) {
           toast(translate("Сначала откройте другую сессию"));
           return;
         }
-        if (confirm(translate("Удалить сессию «") + s.name + translate("» вместе с журналом?"))) {
-          ws().sessions = ws().sessions.filter((x: any) => x.id !== s.id);
-          changed();
+        deleteSessionPending = true;
+        try {
+          if (await confirmSessionDeletion(s)) {
+            if (active()?.id === s.id) {
+              toast(translate("Сначала откройте другую сессию"));
+              return;
+            }
+            ws().sessions = ws().sessions.filter((x: any) => x.id !== s.id);
+            changed();
+          }
+        } finally {
+          deleteSessionPending = false;
         }
       }
       if (b.hasAttribute("data-create-strategy")) editStrategy();

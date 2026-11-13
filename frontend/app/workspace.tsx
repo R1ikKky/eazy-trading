@@ -274,6 +274,7 @@ export function ReplayWorkspace() {
                       <span
                         className="drawing-count"
                         id="drawingCount"
+                        hidden
                         aria-label={translate("Количество объектов")}
                       >
                         0

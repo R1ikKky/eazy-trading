@@ -80,3 +80,38 @@ body.product-app .tv-data-dialog th {
   border-color: var(--border-strong);
 }
 body.product-app .tv-data-dialog td { color: var(--text); border-color: var(--border); }
+
+body.product-app dialog.session-delete-dialog[open] {
+  box-sizing: border-box;
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 24px;
+  overflow: auto;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  box-shadow: 0 24px 90px #0005;
+}
+.session-delete-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.session-delete-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; color: var(--red); background: color-mix(in srgb, var(--red) 12%, var(--surface)); }
+.session-delete-icon svg { width: 22px; height: 22px; }
+.session-delete-close { display: grid; place-items: center; width: 30px; min-height: 30px; padding: 5px; border: 0; background: transparent; color: var(--text-muted); }
+.session-delete-close svg { width: 19px; height: 19px; }
+.session-delete-dialog h2 { margin: 0; font-size: 23px; font-weight: 550; letter-spacing: -.025em; }
+.session-delete-description { margin: 10px 0 20px; color: var(--text-muted); font-size: 13px; line-height: 1.65; }
+.session-delete-summary { display: flex; flex-direction: column; gap: 8px; padding: 16px 0; border-block: 1px solid var(--border); overflow-wrap: anywhere; }
+.session-delete-summary strong { font-size: 15px; font-weight: 550; }
+.session-delete-summary span { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+.session-delete-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.session-delete-actions button { min-height: 40px; padding: 9px 16px; border: 1px solid var(--border-strong); border-radius: 10px; font-size: 12px; background: var(--surface); color: var(--text); }
+.session-delete-actions .session-delete-accept { color: color-mix(in srgb, var(--red) 75%, var(--text)); border-color: color-mix(in srgb, var(--red) 35%, transparent); background: color-mix(in srgb, var(--red) 14%, var(--surface)); }
+.session-delete-actions .session-delete-accept:hover { background: color-mix(in srgb, var(--red) 22%, var(--surface)); }
+.session-delete-cancel:hover, .session-delete-close:hover { background: var(--surface-raised); }
+.session-delete-dialog button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.session-delete-dialog .session-delete-accept:focus-visible { outline-color: var(--red); }
+@media (max-width: 480px) {
+  body.product-app dialog.session-delete-dialog[open] { padding: 20px; }
+  .session-delete-actions button { flex: 1; }
+}
