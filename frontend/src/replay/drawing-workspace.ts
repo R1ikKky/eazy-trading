@@ -816,11 +816,22 @@ export function createDrawingWorkspace({
     if (
       location.pathname !== "/replay" ||
       document.querySelector<HTMLDialogElement>("dialog[open]") ||
-      ["INPUT", "TEXTAREA", "SELECT", "BUTTON", "A"].includes(
-        (e.target as HTMLElement).tagName,
+      (e.target as HTMLElement).closest(
+        "input, textarea, select, [contenteditable]:not([contenteditable='false'])",
       )
     )
       return;
+    if (
+      (e.ctrlKey || e.metaKey) &&
+      !e.shiftKey &&
+      !e.altKey &&
+      e.code === "KeyZ"
+    ) {
+      e.preventDefault();
+      undoDrawing();
+      return;
+    }
+    if (["BUTTON", "A"].includes((e.target as HTMLElement).tagName)) return;
     if (e.code === "Escape") selectMode("cursor");
     if (
       e.code === "Enter" &&
@@ -841,15 +852,21 @@ export function createDrawingWorkspace({
   });
 
   $("drawDelete").onclick = removeSelected;
-  $("drawUndo").onclick = () => {
+  function undoDrawing() {
     if (!active) return;
+    if (pending.length || strokePoints.length || dragging) {
+      selectMode(mode);
+      schedule();
+      return;
+    }
     const previous = history().pop();
     if (!previous) return;
     drawings = drawings.filter((d) => !belongs(d)).concat(previous);
     selected = null;
     saveDrawings(false);
     schedule();
-  };
+  }
+  $("drawUndo").onclick = undoDrawing;
   $("drawClear").onclick = () => {
     if (!active) return;
     if (
