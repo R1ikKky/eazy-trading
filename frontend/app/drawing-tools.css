@@ -269,6 +269,10 @@ body.product-app .drawing-rail > .drawing-rail-divider {
   justify-content: flex-start;
   gap: 9px;
 }
+.drawing-position-fields { border: 0; border-top: 1px solid var(--border); padding: 14px 0 0; margin: 16px 0 0; }
+.drawing-position-fields legend { font-size: 12px; color: var(--text-muted); padding-right: 8px; }
+.drawing-position-fields input[type="number"] { width: 105px; min-width: 0; }
+.drawing-position-fields p { color: var(--text-muted); font-size: 11px; line-height: 1.5; }
 .drawing-text-dialog {
   width: min(440px, calc(100vw - 32px));
   border: 1px solid var(--border-strong);

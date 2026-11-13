@@ -65,7 +65,7 @@ for (const symbol of ["NQ", "ES"]) {
       await expect(drawing.locator("rect[data-position-handle]")).toHaveCount(
         3,
       );
-      await expect(drawing).toContainText("R:R 1.00");
+      await expect(drawing).toContainText("Risk/reward ratio: 1");
       const entry = Number(
         await drawing
           .locator('[data-position-level="entry"]')

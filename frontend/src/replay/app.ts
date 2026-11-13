@@ -333,6 +333,7 @@ function initChart() {
     getNow: () => replay?.current.time || 0,
     getScope: () => product?.active()?.id || "loading",
     getSessionSymbol: () => symbol,
+    getCapital: () => product?.active()?.capital || 50000,
     onDrawingsChange: (value: any) => product?.saveDrawings(value),
     onChange: chartPreferenceChanged,
     pause,

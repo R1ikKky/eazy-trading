@@ -1,5 +1,6 @@
 import { tr, t as translate } from "../i18n/language";
 import { drawingTool } from "./drawing-catalog";
+import { positionMetrics, positionLabelLayout } from "./position-labels";
 export const FIB_LEVELS = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1, 1.272, 1.618];
 export function anchoredVWAP(bars: any[], start: number, now: number) {
   let sum = 0,
@@ -358,44 +359,33 @@ export function renderDrawing(d: any, group: SVGGElement, ctx: any) {
       "data-position-zone": "target",
     });
     line(boxLeft, a.y, right, a.y, { "data-position-level": "entry" });
-    const risk = Math.abs(source[0].price - bPoint.price),
-      reward = Math.abs((cPoint.price || source[0].price) - source[0].price);
-    const valid =
-      d.type === "long-position"
-        ? bPoint.price < source[0].price && cPoint.price > source[0].price
-        : bPoint.price > source[0].price && cPoint.price < source[0].price;
-    const badge = (y: number, value: string, color: string) => {
-      const width = Math.min(w - left - 8, value.length * 5.7 + 16),
-        x = Math.max(left + 4, Math.min(w - width - 4, (boxLeft + right - width) / 2)),
-        top = Math.max(2, Math.min(h - 22, y));
-      rect(x, top, width, 20, { fill: color, stroke: "#ffffff99", "stroke-width": 0.7 });
-      const text = add("text", {
-        x: x + width / 2,
-        y: top + 13.5,
-        fill: "#ffffff",
-        "font-size": 10,
-        "font-family": "Manrope, Arial, sans-serif",
-        "text-anchor": "middle",
+    if (!ctx.isSelected || source.length < 3) return;
+    const metrics = positionMetrics({ ...d, points: source }, { ...ctx, capital: ctx.capital });
+    const badges = positionLabelLayout(
+      [
+        { kind: "stop", y: stop, lines: metrics.stop, color: "#802c35" },
+        { kind: "entry", y: a.y, lines: metrics.entry, color: metrics.pnl >= 0 ? "#145b4d" : "#802c35" },
+        { kind: "target", y: target, lines: metrics.target, color: "#145b4d" },
+      ],
+      { left: boxLeft, right, width: w, height: h, plotLeft: left, measure: ctx.measureText },
+    );
+    for (const badge of badges) {
+      const layer = add("g", { "data-position-label": badge.kind });
+      layer.append(node("rect", {
+        x: badge.x, y: badge.top, width: badge.width, height: badge.height, rx: 3,
+        fill: badge.color, stroke: "#ffffff99", "stroke-width": 0.7,
+      }));
+      badge.lines.forEach((value: string, i: number) => {
+        const text = node("text", {
+          x: badge.x + badge.width / 2,
+          y: badge.top + badge.padding + badge.fontSize + i * badge.lineHeight,
+          fill: "#ffffff", "font-size": badge.fontSize,
+          "font-family": "Manrope, Arial, sans-serif", "text-anchor": "middle",
+        });
+        text.textContent = value;
+        layer.append(text);
       });
-      text.textContent = value;
-    };
-    badge(
-      a.y - 10,
-      valid
-        ? `${d.type === "long-position" ? "Long" : "Short"} · R:R ${risk ? (reward / risk).toFixed(2) : "—"}`
-        : translate("Проверьте порядок входа, стопа и цели"),
-      d.type === "long-position" ? "#145b4d" : "#802c35",
-    );
-    badge(
-      stop < a.y ? stop - 24 : stop + 4,
-      tr`Стоп ${bPoint.price.toFixed(2)}` + ` · ${risk.toFixed(2)} (${((100 * risk) / source[0].price).toFixed(2)}%)`,
-      "#802c35",
-    );
-    badge(
-      target < a.y ? target - 24 : target + 4,
-      tr`Цель ${cPoint.price.toFixed(2)}` + ` · ${reward.toFixed(2)} (${((100 * reward) / source[0].price).toFixed(2)}%)`,
-      "#145b4d",
-    );
+    }
     return;
   }
   if (d.type === "forecast" || d.type === "projection") {

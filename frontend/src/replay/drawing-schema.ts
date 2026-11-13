@@ -28,6 +28,9 @@ export function sanitizeDrawing(d: any): any | null {
   )
     return null;
   if (d.symbol !== undefined && !["NQ", "ES"].includes(d.symbol)) return null;
+  for (const [key, min, max] of [["accountSize", 1, 1e9], ["riskPercent", 0.01, 100]] as const) {
+    if (d[key] !== undefined && (!Number.isFinite(d[key]) || d[key] < min || d[key] > max)) return null;
+  }
   const points =
     d.points === undefined ? [d.a, ...(d.b ? [d.b] : [])] : d.points;
   if (
@@ -51,6 +54,8 @@ export function sanitizeDrawing(d: any): any | null {
     id: d.id,
     type: d.type,
     ...(d.symbol !== undefined ? { symbol: d.symbol } : {}),
+    ...(d.accountSize !== undefined ? { accountSize: d.accountSize } : {}),
+    ...(d.riskPercent !== undefined ? { riskPercent: d.riskPercent } : {}),
     createdAt: d.createdAt,
     a: clean[0],
     b: clean[1] || null,

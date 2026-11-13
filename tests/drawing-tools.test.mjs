@@ -47,7 +47,7 @@ class Element {
     this.children.push(child);
   }
 }
-function render(d, now = time + 20 * 60) {
+function render(d, now = time + 20 * 60, options = {}) {
   const root = new Element("g");
   renderDrawing(d, root, {
     node: (tag, attrs) => new Element(tag, attrs),
@@ -56,6 +56,7 @@ function render(d, now = time + 20 * 60) {
     height: 600,
     bars,
     now,
+    ...options,
   });
   return root;
 }
@@ -182,4 +183,34 @@ test("drawing instrument tags survive validation and legacy drawings remain read
     assert.equal(sanitizeDrawing({ ...original, symbol }).symbol, symbol);
   assert.equal(sanitizeDrawing({ ...original, symbol: "BTC" }), null);
   assert.equal(Object.hasOwn(sanitizeDrawing(original), "symbol"), false);
+});
+
+test("position labels appear only for the selected drawing and show planning metrics", () => {
+  const d = drawing({ id: "long-position", points: 3 });
+  d.points = [
+    { time, price: 100 },
+    { time: time + 600, price: 90 },
+    { time: time + 600, price: 120 },
+  ];
+  d.accountSize = 1000;
+  d.riskPercent = 10;
+  const labels = (root) =>
+    root.children.filter((c) => c.attrs["data-position-label"]);
+  assert.equal(labels(render(d)).length, 0);
+  const selected = render(d, time + 60, { isSelected: true });
+  assert.equal(labels(selected).length, 3);
+  const content = JSON.stringify(selected);
+  for (const value of ["Open P&L", "Qty:", "Risk/reward ratio:", "Amount:"])
+    assert.ok(content.includes(value), value);
+  assert.doesNotMatch(content, /Long · R:R/);
+  const clean = sanitizeDrawing(d);
+  assert.equal(clean.accountSize, 1000);
+  assert.equal(clean.riskPercent, 10);
+  for (const change of [
+    { accountSize: 0 },
+    { accountSize: Infinity },
+    { riskPercent: 0 },
+    { riskPercent: 101 },
+  ])
+    assert.equal(sanitizeDrawing({ ...d, ...change }), null);
 });

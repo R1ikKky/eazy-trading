@@ -44,6 +44,14 @@ export function createDrawingToolbar(callbacks: {
     locked: !!saved.locked,
     hidden: !!saved.hidden,
   };
+  const positionFields = document.createElement("fieldset");
+  positionFields.className = "drawing-position-fields";
+  positionFields.hidden = true;
+  positionFields.innerHTML = tr`<legend>Параметры позиции</legend><label>Размер счёта, $<input id="drawingAccountSize" type="number" min="1" max="1000000000" step="any"></label><label>Риск, %<input id="drawingRiskPercent" type="number" min="0.01" max="100" step="any"></label><p>Только для этой разметки</p>`;
+  styleMenu.append(positionFields);
+  const accountSize = positionFields.querySelector<HTMLInputElement>("#drawingAccountSize")!;
+  const riskPercent = positionFields.querySelector<HTMLInputElement>("#drawingRiskPercent")!;
+  accountSize.required = riskPercent.required = true;
   let showFavorites = saved.showFavorites !== false,
     railCollapsed = saved.railCollapsed === true;
   const persist = () => {
@@ -260,15 +268,17 @@ export function createDrawingToolbar(callbacks: {
     width = root.querySelector<HTMLSelectElement>("#drawingStyleWidth")!,
     opacity = root.querySelector<HTMLInputElement>("#drawingStyleOpacity")!,
     dashed = root.querySelector<HTMLInputElement>("#drawingStyleDashed")!;
-  for (const input of [color, width, opacity, dashed])
-    input.addEventListener("change", () =>
+  for (const input of [color, width, opacity, dashed, accountSize, riskPercent])
+    input.addEventListener("change", () => {
+      if (!positionFields.hidden && (!accountSize.reportValidity() || !riskPercent.reportValidity())) return;
       callbacks.style({
         color: color.value,
         width: Number(width.value),
         opacity: Number(opacity.value),
         dashed: dashed.checked,
-      }),
-    );
+        ...(!positionFields.hidden ? { accountSize: Number(accountSize.value), riskPercent: Number(riskPercent.value) } : {}),
+      });
+    });
   const grip = dock.querySelector<HTMLElement>(".drawing-favorites-grip")!;
   let drag: any = null;
   grip.addEventListener("pointerdown", (event) => {
@@ -362,13 +372,18 @@ export function createDrawingToolbar(callbacks: {
       width.value = String(value.width);
       opacity.value = String(value.opacity);
       dashed.checked = !!value.dashed;
+      positionFields.hidden = !["long-position", "short-position"].includes(value.type);
+      if (!positionFields.hidden) {
+        accountSize.value = String(value.accountSize ?? 50000);
+        riskPercent.value = String(value.riskPercent ?? 1);
+      }
       rail.style.setProperty("--drawing-color", value.color);
     },
     closeStyle() {
       if (styleMenu.matches(":popover-open")) styleMenu.hidePopover();
     },
     editStyle(x: number, y: number, locked = false) {
-      for (const input of [color, width, opacity, dashed])
+      for (const input of [color, width, opacity, dashed, accountSize, riskPercent])
         input.disabled = locked;
       if (menu.matches(":popover-open")) menu.hidePopover();
       const panelWidth = Math.min(280, innerWidth - 24);

@@ -22,6 +22,7 @@ export function createDrawingWorkspace({
   getNow,
   getScope,
   getSessionSymbol,
+  getCapital = () => 50000,
   onChange,
   onDrawingsChange,
   onActiveChange,
@@ -59,6 +60,10 @@ export function createDrawingWorkspace({
     lastPointer: { x: number; y: number } | null = null;
   const histories = new Map<string, any[][]>();
   const symbolOf = (d: any) => d.symbol || getSessionSymbol();
+  const styleOf = (d: any) => isPosition(d.type)
+    ? { ...d, accountSize: d.accountSize ?? getCapital(), riskPercent: d.riskPercent ?? 1 }
+    : d;
+  const measure = document.createElement("canvas").getContext("2d");
   const belongs = (d: any, ctx = active) =>
     !!ctx && symbolOf(d) === ctx.getSymbol();
   const history = () => {
@@ -253,6 +258,14 @@ export function createDrawingWorkspace({
       bars: getBars(),
       now: getNow(),
       background: prefs.background,
+      isSelected,
+      capital: getCapital(),
+      symbol: symbolOf(d),
+      measureText: (text: string, size: number) => {
+        if (!measure) return text.length * size * 0.6;
+        measure.font = `${size}px Manrope, Arial, sans-serif`;
+        return measure.measureText(text).width;
+      },
       left: chart.priceScale("left").width?.() || 0,
       width: Math.max(
         0,
@@ -693,6 +706,7 @@ export function createDrawingWorkspace({
       id: Date.now() + "-" + Math.random().toString(36).slice(2),
       type,
       symbol: active.getSymbol(),
+      ...(isPosition(type) ? { accountSize: getCapital(), riskPercent: 1 } : {}),
       points,
       a: points[0],
       b: points[1] || null,
@@ -717,7 +731,7 @@ export function createDrawingWorkspace({
     if (isPosition(type)) {
       selectMode("select");
       selected = d.id;
-      drawingUI.setStyle(d);
+      drawingUI.setStyle(styleOf(d));
     }
     schedule();
   }
@@ -798,7 +812,7 @@ export function createDrawingWorkspace({
     dragHandle = -1;
     positionHandle = null;
     if (best) {
-      drawingUI.setStyle(best);
+      drawingUI.setStyle(styleOf(best));
       if (!drawingUI.state.locked && !best.locked) {
         const points = best.points || [best.a, ...(best.b ? [best.b] : [])];
         if (isPosition(best.type)) positionHandle = positionHandleAt(best, x, y);
