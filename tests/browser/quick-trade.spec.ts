@@ -169,6 +169,14 @@ test("inline market entry immediately displays and restores actual entry, SL, an
       const orders = (await page.locator(".quick-order").boundingBox())!;
       const center = (transport.x + orders.x + orders.width) / 2;
       expect(Math.abs(center - (panel.x + panel.width / 2))).toBeLessThan(1);
+      const spacing = await page.evaluate(() => {
+        const shell = document.querySelector(".app-shell")!;
+        const nav = document.querySelector(".workspace-header .app-sidebar")!.getBoundingClientRect();
+        const chart = document.querySelector("#chartCard")!.getBoundingClientRect();
+        const innerTop = shell.getBoundingClientRect().top + parseFloat(getComputedStyle(shell).borderTopWidth);
+        return {above: nav.top - innerTop, below: chart.top - nav.bottom};
+      });
+      expect(Math.abs(spacing.above - spacing.below)).toBeLessThanOrEqual(1);
     }
     await expect(page.locator("#settingsOpen svg")).toBeVisible();
     await page.screenshot({ path: `/tmp/backtesting-laptop-${width}.png` });
