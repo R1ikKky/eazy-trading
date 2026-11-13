@@ -425,3 +425,9 @@ body.product-app #view-replay :is(.chart-legend, .comparison-header) {
     min-width: 60px;
   }
 }
+
+/* SL/TP lines can be moved directly without panning the candles. */
+body.product-app #view-replay .protection-drag-hover,
+body.product-app #view-replay .protection-drag-hover * {
+  cursor: ns-resize !important;
+}

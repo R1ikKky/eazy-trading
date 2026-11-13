@@ -1,4 +1,6 @@
 import { t as translate, locale } from "../i18n/language";
+import { installProtectionDrag } from "./protection-drag";
+import { createTradeHistory } from "./trade-history";
 import { createDrawingWorkspace } from "./drawing-workspace";
 import { installPaneInstrumentMenu } from "./pane-instruments";
 import { installChartSplitter } from "./chart-splitter";
@@ -62,7 +64,7 @@ let displayTime = nyTime,
   product: any,
   comparison: any,
   comparisonContext: any,
-  comparisonMarkers: any,
+  comparisonHistory: any,
   comparisonPriceLines: any[] = [],
   drawingWorkspace: any,
   paneSymbols: { primary: string; comparison: string } = {
@@ -152,7 +154,7 @@ let symbol: any = "NQ",
   chart: any,
   series: any,
   volume: any,
-  markers: any,
+  tradeHistory: any,
   priceLines: any = [],
   renderedLevelsSignature = "",
   chartBars = [],
@@ -318,7 +320,7 @@ function initChart() {
     priceLineVisible: false,
   });
   volume.priceScale().applyOptions({ scaleMargins: { top: 0.87, bottom: 0 } });
-  markers = L.createSeriesMarkers(series, []);
+  tradeHistory = createTradeHistory(series);
   drawingWorkspace = createDrawingWorkspace({
     getPreferences: () => tools?.preferences || loadSettings(),
     getNow: () => replay?.current.time || 0,
@@ -358,6 +360,7 @@ function initChart() {
     toast,
     pause,
   });
+  installPositionDragging("primary", chart, series, $("chart"));
   chart.subscribeCrosshairMove((param) => {
     const b: any = tools?.lockedTime
       ? chartBars.find((b) => b.time === tools.lockedTime)
@@ -967,6 +970,39 @@ function skipToOpening(session: SessionOpening) {
       displayZone,
   );
 }
+function installPositionDragging(
+  id: string,
+  targetChart: any,
+  targetSeries: any,
+  container: HTMLElement,
+) {
+  installProtectionDrag({
+    container,
+    chart: targetChart,
+    series: targetSeries,
+    getPosition: () => replay?.position || null,
+    getCurrentPrice: () => replay?.current.close,
+    canDrag: () =>
+      !!replay?.position &&
+      !orderflow?.isStreaming() &&
+      (id === "primary" ? primaryInstrument() : paneSymbols.comparison) === symbol &&
+      drawingWorkspace.isNavigation(id),
+    onStart: () => {
+      pause();
+      tools?.freezeViewport();
+      comparison?.freezeViewport();
+    },
+    onPreview: (kind, value) => {
+      for (const lines of [priceLines, comparisonPriceLines])
+        lines[kind === "sl" ? 1 : 2]?.applyOptions({ price: value });
+    },
+    onCommit: (kind, value) => {
+      guard(() => replay.modifyProtection({ [kind]: value }));
+      render();
+    },
+    onCancel: () => renderLines(),
+  });
+}
 function renderLines() {
   if (!series) return;
   for (const line of priceLines) series.removePriceLine(line);
@@ -1020,32 +1056,22 @@ function renderLines() {
     if (comparisonBar && comparison?.getVisible())
       comparisonContext.series.update(comparisonBar);
   }
-  const makeMarkers = (interval: number) => {
-    const result: any[] = [];
-    const add = (time: number, side: number, exit = false) =>
-      result.push({
-        time: barTime(time, interval, activeSession),
-        position: side === 1 ? "belowBar" : "aboveBar",
-        color: exit ? "#718156" : side === 1 ? "#259176" : "#d57470",
-        shape: exit ? "circle" : side === 1 ? "arrowUp" : "arrowDown",
-        text: exit ? "" : side === 1 ? "L" : "S",
-      });
-    for (const trade of replay.trades) {
-      add(trade.time, trade.side);
-      add(trade.exitTime, -trade.side, true);
-    }
-    if (p) add(p.time, p.side);
-    return result.sort((a, b) => a.time - b.time);
-  };
-  markers.setMarkers(
-    primaryInstrument() === symbol && !tools?.preferences.hideMarks
-      ? makeMarkers(tf)
-      : [],
+  const showHistory = !tools?.preferences.hideMarks;
+  tradeHistory.setHistory(
+    primaryInstrument() === symbol && showHistory ? replay.trades : [],
+    primaryInstrument() === symbol && showHistory ? p : null,
+    (time: number) =>
+      barTime(time, tf, tools?.preferences.session || activeSession),
   );
-  comparisonMarkers?.setMarkers(
-    paneSymbols.comparison === symbol && !tools?.preferences.hideMarks
-      ? makeMarkers(comparison?.getTimeframe() || tf)
-      : [],
+  comparisonHistory?.setHistory(
+    paneSymbols.comparison === symbol && showHistory ? replay.trades : [],
+    paneSymbols.comparison === symbol && showHistory ? p : null,
+    (time: number) =>
+      barTime(
+        time,
+        comparison?.getTimeframe() || tf,
+        tools?.preferences.session || activeSession,
+      ),
   );
 }
 function render(save = true) {
@@ -1652,9 +1678,12 @@ async function bootstrap() {
       getDisplaySymbol: () => paneSymbols.comparison,
       onChartReady: (ctx: any) => {
         comparisonContext = ctx;
-        comparisonMarkers = window.LightweightCharts.createSeriesMarkers(
+        comparisonHistory = createTradeHistory(ctx.series);
+        installPositionDragging(
+          "comparison",
+          ctx.chart,
           ctx.series,
-          [],
+          ctx.container,
         );
         drawingWorkspace.addPane({
           ...ctx,
