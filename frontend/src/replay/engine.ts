@@ -789,6 +789,10 @@ export class Replay {
   private previousFrame() {
     return this._rewind.findLast((frame) => frame.index < this.index);
   }
+  rewindPreview() {
+    if (!this.canRewind) return null;
+    return copy(this.previousFrame()!);
+  }
   rewindEffects(): string[] {
     if (!this.canRewind) return [];
     const frame = this.previousFrame()!,

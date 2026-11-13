@@ -33,13 +33,37 @@ test("rewind confirms discarded orders, protection edits and closes, with chart-
   const at = async (index: number) =>
     expect.poll(async () => (await state()).index).toBe(index);
   const back = async (accept: boolean, phrase: string) => {
-    const dialogEvent = page.waitForEvent("dialog"),
-      click = page.locator("#back").click();
-    const dialog = await dialogEvent;
-    expect(dialog.message()).toContain(phrase);
-    if (accept) await dialog.accept();
-    else await dialog.dismiss();
-    await click;
+    await page.locator("#back").click();
+    const dialog = page.getByRole("dialog", { name: "Go back one candle?" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText(phrase);
+    await expect(
+      dialog.getByRole("button", { name: "Stay here", exact: true }),
+    ).toBeFocused();
+    const bounds = (await dialog.boundingBox())!,
+      viewport = page.viewportSize()!;
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.y).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(viewport.width);
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(viewport.height);
+    if (phrase === "SL/TP") {
+      await expect(dialog.locator(".rewind-changes small")).toContainText(
+        "SL:",
+      );
+      await page.screenshot({
+        path:
+          viewport.width < 500
+            ? "/tmp/rewind-dialog-mobile.png"
+            : "/tmp/rewind-dialog-desktop.png",
+      });
+    }
+    await dialog
+      .getByRole("button", {
+        name: accept ? "Rewind candle" : "Stay here",
+        exact: true,
+      })
+      .click();
+    await expect(dialog).toHaveCount(0);
   };
   await expect(page.locator("#stop,#target")).toHaveCount(0);
   await expect(page.locator("#back")).toBeDisabled();
@@ -79,6 +103,16 @@ test("rewind confirms discarded orders, protection edits and closes, with chart-
   await back(false, "SL/TP");
   await at(3);
   expect((await state()).position.sl).toBe(p.entry - 8);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await back(false, "SL/TP");
+  await page.locator("#back").click();
+  await expect(
+    page.getByRole("dialog", { name: "Go back one candle?" }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".rewind-dialog")).toHaveCount(0);
+  await at(3);
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await back(true, "SL/TP");
   await at(2);
   expect((await state()).position.sl).toBe(p.entry - 12);

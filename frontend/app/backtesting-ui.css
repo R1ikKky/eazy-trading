@@ -505,3 +505,40 @@ body.product-app #view-replay .quick-order .order-fields {
 @media (max-width: 700px) {
   body.product-app #view-replay .replay-transport #back { width: 30px; min-width: 30px; }
 }
+
+body.product-app dialog.rewind-dialog {
+  box-sizing: border-box;
+  width: min(460px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 24px;
+  overflow: auto;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  box-shadow: 0 24px 90px #0007;
+}
+body.product-app dialog.rewind-dialog::backdrop { background: #0009; backdrop-filter: blur(4px); }
+.rewind-dialog-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.rewind-dialog-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--surface-raised); color: var(--text-muted); }
+.rewind-dialog-icon svg { width: 23px; height: 23px; }
+.rewind-dialog-close { display: grid; place-items: center; width: 30px; min-width: 30px; height: 30px; min-height: 30px; padding: 5px; border: 0; background: transparent; color: var(--text-muted); }
+.rewind-dialog-close svg { width: 19px; height: 19px; }
+.rewind-dialog h2 { margin: 0; font-size: 23px; font-weight: 550; letter-spacing: -.025em; }
+.rewind-description { margin: 10px 0 20px; color: var(--text-muted); font-size: 13px; line-height: 1.6; }
+.rewind-time { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 0; border-block: 1px solid var(--border); }
+.rewind-time > div { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.rewind-time span { color: var(--text-faint); font-size: 11px; }
+.rewind-time strong { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.rewind-changes { margin: 8px 0 22px; padding: 0; list-style: none; }
+.rewind-changes li { display: flex; flex-direction: column; gap: 6px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.rewind-changes small { color: var(--text-muted); line-height: 1.5; font-size: 12px; font-variant-numeric: tabular-nums; }
+.rewind-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.rewind-dialog-actions .button { min-height: 40px; padding: 9px 16px; border-radius: 10px; font-size: 12px; }
+.rewind-dialog :is(button):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 480px) {
+  body.product-app dialog.rewind-dialog { padding: 20px; }
+  .rewind-dialog h2 { font-size: 21px; }
+  .rewind-dialog-actions .button { flex: 1; padding-inline: 10px; }
+}

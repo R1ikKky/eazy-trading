@@ -1,4 +1,5 @@
 import { t as translate, locale } from "../i18n/language";
+import { confirmRewind } from "./rewind-dialog";
 import { createEntryControl } from "./entry-control";
 import { installProtectionDrag } from "./protection-drag";
 import { createTradeHistory } from "./trade-history";
@@ -929,36 +930,71 @@ function order(side: any) {
       translate(" заявка создана"),
   );
 }
-function rewindCandle() {
-  if (!replay?.canRewind || orderflow?.isStreaming()) return;
+let rewindPending = false;
+async function rewindCandle() {
+  if (rewindPending || !replay?.canRewind || orderflow?.isStreaming()) return;
   pause();
-  const names = {
-    orders: "Заявки и позиции",
-    protection: "Изменения SL/TP",
-    trades: "Исполнения и результаты сделок",
-    volume: "Частичные выходы",
-    close: "Запросы на закрытие",
-  };
-  const effects = replay.rewindEffects();
-  if (
-    effects.length &&
-    !confirm(
-      translate("Возврат на предыдущую свечу отменит последующие изменения:") +
-        "\n\n" +
-        effects.map((effect) => "• " + translate(names[effect])).join("\n") +
-        "\n\n" +
-        translate("Вернуться назад?"),
-    )
-  )
-    return;
-  tools?.cancel();
-  protectionPreview = null;
-  tools?.freezeViewport();
-  comparison?.freezeViewport();
-  replay.rewind();
-  tradeOffset = 0;
-  rebuildChart(null, true);
-  render();
+  rewindPending = true;
+  const currentReplay = replay,
+    currentIndex = replay.index;
+  try {
+    const names = {
+      orders: "Заявки и позиции",
+      protection: "Изменения SL/TP",
+      trades: "Исполнения и результаты сделок",
+      volume: "Частичные выходы",
+      close: "Запросы на закрытие",
+    };
+    const effects = replay.rewindEffects();
+    if (effects.length) {
+      const previous = replay.rewindPreview();
+      const changes = effects.map((effect) => ({
+        label: translate(names[effect]),
+        detail: "",
+      }));
+      if (
+        effects.includes("protection") &&
+        previous.position?.id === replay.position?.id
+      ) {
+        const value = (level: number | null) =>
+          level == null ? translate("Не задано") : price(level);
+        changes.find(
+          (change) => change.label === translate(names.protection),
+        ).detail = ["sl", "tp"]
+          .filter((key) => replay.position[key] !== previous.position[key])
+          .map(
+            (key) =>
+              `${key.toUpperCase()}: ${value(replay.position[key])} → ${value(previous.position[key])}`,
+          )
+          .join(" · ");
+      }
+      const clock = (time: number) =>
+        displayTime.format(new Date(time * 1000)) + " " + displayZone;
+      const accepted = await confirmRewind({
+        from: clock(replay.current.time),
+        to: clock(replay.bars[currentIndex - 1].time),
+        changes,
+      });
+      if (
+        !accepted ||
+        replay !== currentReplay ||
+        replay.index !== currentIndex
+      )
+        return;
+    }
+    guard(() => {
+      tools?.cancel();
+      protectionPreview = null;
+      tools?.freezeViewport();
+      comparison?.freezeViewport();
+      replay.rewind();
+      tradeOffset = 0;
+      rebuildChart(null, true);
+      render();
+    });
+  } finally {
+    rewindPending = false;
+  }
 }
 function step() {
   if (orderflow?.isStreaming()) return false;
