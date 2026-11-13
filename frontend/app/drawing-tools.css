@@ -382,3 +382,9 @@ body.product-app .drawing-rail > .drawing-rail-divider {
   .drawing-rail-reveal { left: 11px; }
   body.product-app:has(#view-replay:not([hidden])):has(.drawing-rail.is-collapsed) .product-main { padding-left: 0; }
 }
+
+/* The visible drawing cursor follows the snapped drawing point. */
+.drawing-mode.drawing-magnet-cursor,
+.drawing-mode.drawing-magnet-cursor * {
+  cursor: none !important;
+}

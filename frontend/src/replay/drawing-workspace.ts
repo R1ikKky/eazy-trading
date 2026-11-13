@@ -321,6 +321,49 @@ export function createDrawingWorkspace({
             }),
           );
       }
+      const magnetCursor =
+        ctx === target && drawingUI.state.magnet && !!hover && !!lastPointer;
+      ctx.container.classList.toggle("drawing-magnet-cursor", magnetCursor);
+      if (magnetCursor) {
+        const cursor = coordinates(hover);
+        if (cursor.x != null && cursor.y != null) {
+          const crosshair = node("g", {
+            "data-magnet-crosshair": "true",
+            "data-time": hover.time,
+            "data-price": hover.price,
+            "data-x": cursor.x,
+            "data-y": cursor.y,
+            stroke: prefs.crosshairColor,
+            "stroke-width": 1,
+            "pointer-events": "none",
+          });
+          if (prefs.crosshair) {
+            crosshair.append(
+              node("line", {
+                x1: left,
+                x2: w - right,
+                y1: cursor.y,
+                y2: cursor.y,
+                "stroke-dasharray": "4 4",
+              }),
+              node("line", {
+                x1: cursor.x,
+                x2: cursor.x,
+                y1: 0,
+                y2: h - chart.timeScale().height(),
+                "stroke-dasharray": "4 4",
+              }),
+            );
+          }
+          crosshair.append(
+            node("path", {
+              d: `M${cursor.x - 6} ${cursor.y}h12M${cursor.x} ${cursor.y - 6}v12`,
+              "stroke-width": 1.5,
+            }),
+          );
+          group.append(crosshair);
+        }
+      }
       if (ctx === target) {
         const points = strokePoints.length
           ? strokePoints
@@ -859,8 +902,11 @@ export function createDrawingWorkspace({
       undoDrawing();
       return;
     }
+    if (e.code === "Escape") {
+      selectMode("cursor");
+      return;
+    }
     if (["BUTTON", "A"].includes((e.target as HTMLElement).tagName)) return;
-    if (e.code === "Escape") selectMode("cursor");
     if (
       e.code === "Enter" &&
       ["path", "polyline"].includes(mode) &&
@@ -924,7 +970,10 @@ export function createDrawingWorkspace({
           horzLine: { visible: prefs.crosshair, labelVisible: prefs.crosshair },
         },
       });
-      active.container.classList.remove("drawing-mode");
+      active.container.classList.remove(
+        "drawing-mode",
+        "drawing-magnet-cursor",
+      );
     }
     for (const item of contexts) if (item !== ctx) item.menu?.close();
     active = ctx;
@@ -951,6 +1000,13 @@ export function createDrawingWorkspace({
       pointermove,
       pointerup,
       pointercancel,
+      pointerleave: () => {
+        if (!dragging && !strokePoints.length) {
+          lastPointer = null;
+          hover = null;
+          schedule();
+        }
+      },
       dblclick,
     }))
       ctx.container.addEventListener(name, (event: any) => {
